@@ -10,6 +10,5 @@ namespace CafeEase.Model
         public string? Method { get; set; }
         public string? Status { get; set; }
         public int OrderId { get; set; }
-        public Order? Order { get; set; }
     }
 }

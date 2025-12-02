@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CafeEase.Model
+namespace CafeEase.Services.Database
 {
     public class LoyaltyPoints
     {
         public int Id { get; set; }
+
         public int UserId { get; set; }
-        public int Points { get; set; }
+        public virtual User User { get; set; }
         public DateTime LastUpdated { get; set; }
+        public int Points { get; set; }
     }
 }
