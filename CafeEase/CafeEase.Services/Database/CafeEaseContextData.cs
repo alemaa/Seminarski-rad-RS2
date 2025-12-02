@@ -30,7 +30,8 @@ namespace CafeEase.Services.Database
                  FirstName = "Admin",
                  LastName = "Admin",
                  Email = "admin@cafeease.com",
-                 PasswordHash = "test",
+                 PasswordHash = "L0uD9aDjQiZ6US9mT63C+tMvcSk=",
+                 PasswordSalt = "js30TX4cHnStZnZM8pWbcg==",
                  RoleId = 1
              },
              new User
@@ -39,7 +40,8 @@ namespace CafeEase.Services.Database
                  FirstName = "Mobile",
                  LastName = "User",
                  Email = "mobileuser@cafeease.com",
-                 PasswordHash = "test",
+                 PasswordHash = "w6NEGcaz3XwZej0uJcY1mJIWrAI=",
+                 PasswordSalt = "tNcmHa/vi33ilAmQImsPhg==",
                  RoleId = 2
              },
              new User
@@ -48,7 +50,8 @@ namespace CafeEase.Services.Database
                  FirstName = "Test",
                  LastName = "User",
                  Email = "test@cafeease.com",
-                 PasswordHash = "test123",
+                 PasswordHash = "dlKlLumk23Dx2D3OgAiBbZsFmfo=",
+                 PasswordSalt = "ym5obohaOyqCOlyuhaGxGQ==",
                  RoleId = 2
              }
             );
