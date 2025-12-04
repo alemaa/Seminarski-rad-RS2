@@ -1,0 +1,19 @@
+﻿using AutoMapper;
+using CafeEase.Model;
+using CafeEase.Model.Requests;
+using CafeEase.Services.Database;
+
+namespace CafeEase.Services.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            CreateMap<Database.User, Model.User>();
+            CreateMap<Model.Requests.UserInsertRequest, Database.User>();
+            CreateMap<Model.Requests.UserUpdateRequest, Database.User>();
+            CreateMap<Database.Category, Model.Category>();
+            CreateMap<CategoryUpsertRequest, Database.Category>();
+        }
+    }
+}
