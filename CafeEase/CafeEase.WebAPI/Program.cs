@@ -1,4 +1,7 @@
+using AutoMapper;
+using CafeEase.Services;
 using CafeEase.Services.Database;
+using CafeEase.Services.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +12,13 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<ICategoryService, CategoryService>();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.ShouldMapMethod = methodInfo => false;
+}, typeof(MappingProfile));
 
 var app = builder.Build();
 
