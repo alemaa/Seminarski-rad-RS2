@@ -14,6 +14,9 @@ namespace CafeEase.Services.Mapping
             CreateMap<Model.Requests.UserUpdateRequest, Database.User>();
             CreateMap<Database.Category, Model.Category>();
             CreateMap<CategoryUpsertRequest, Database.Category>();
+            CreateMap<Database.Product, Model.Product>();
+            CreateMap<ProductInsertRequest, Database.Product>();
+            CreateMap<ProductUpdateRequest, Database.Product>();
         }
     }
 }
