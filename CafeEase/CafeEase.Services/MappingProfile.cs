@@ -17,6 +17,12 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Product, Model.Product>();
             CreateMap<ProductInsertRequest, Database.Product>();
             CreateMap<ProductUpdateRequest, Database.Product>();
+            CreateMap<OrderInsertRequest, Database.Order>();
+            CreateMap<Database.Order, Model.Order>();
+            CreateMap<Database.OrderItem, Model.OrderItem>();
+            CreateMap<OrderItemInsertRequest, Database.OrderItem>();
+            CreateMap<OrderItemUpdateRequest, Database.OrderItem>();
+
         }
     }
 }
