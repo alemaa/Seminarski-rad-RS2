@@ -21,6 +21,7 @@ builder.Services.AddTransient<IPaymentService, PaymentService>();
 builder.Services.AddTransient<ILoyaltyPointsService, LoyaltyPointsService>();
 builder.Services.AddTransient<IPromotionService, PromotionService>();
 builder.Services.AddTransient<IReviewService, ReviewService>();
+builder.Services.AddTransient<IReservationService, ReservationService>();
 
 
 builder.Services.AddAutoMapper(cfg =>

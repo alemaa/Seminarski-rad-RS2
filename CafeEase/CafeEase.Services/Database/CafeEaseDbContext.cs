@@ -29,6 +29,7 @@ namespace CafeEase.Services.Database
         public DbSet<LoyaltyPoints> LoyaltyPoints { get; set; }
         public DbSet<Recommendation> Recommendations { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
