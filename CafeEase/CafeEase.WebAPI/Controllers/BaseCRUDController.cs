@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CafeEase.WebAPI.Controllers
 {
-    [Route("[controller]")]
+    [ApiController]
+    [Route("api/[controller]")]
     public class BaseCRUDController<T, TSearch, TInsert, TUpdate> : BaseController<T, TSearch> where T : class where TSearch : class
     {
         protected new readonly ICRUDService<T, TSearch, TInsert, TUpdate> _service;

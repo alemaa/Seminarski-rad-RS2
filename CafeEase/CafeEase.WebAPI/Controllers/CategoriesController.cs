@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CafeEase.WebAPI.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
     public class CategoriesController
      : BaseCRUDController<Model.Category, CategorySearchObject, CategoryUpsertRequest, CategoryUpsertRequest>
