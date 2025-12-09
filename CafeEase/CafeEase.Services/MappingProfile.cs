@@ -22,6 +22,15 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.OrderItem, Model.OrderItem>();
             CreateMap<OrderItemInsertRequest, Database.OrderItem>();
             CreateMap<OrderItemUpdateRequest, Database.OrderItem>();
+            CreateMap<Database.Payment, Model.Payment>();
+            CreateMap<PaymentInsertRequest, Database.Payment>();
+            CreateMap<PaymentUpdateRequest, Database.Payment>();
+            CreateMap<Database.LoyaltyPoints, Model.LoyaltyPoints>();
+            CreateMap<LoyaltyPointsInsertRequest, Database.LoyaltyPoints>();
+            CreateMap<LoyaltyPointsUpdateRequest, Database.LoyaltyPoints>();
+            CreateMap<Database.Promotion, Model.Promotion>();
+            CreateMap<PromotionInsertRequest, Database.Promotion>();
+            CreateMap<PromotionUpdateRequest, Database.Promotion>();
 
         }
     }

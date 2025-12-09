@@ -17,6 +17,9 @@ builder.Services.AddTransient<ICategoryService, CategoryService>();
 builder.Services.AddTransient<IProductService, ProductService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IOrderItemService, OrderItemService>();
+builder.Services.AddTransient<IPaymentService, PaymentService>();
+builder.Services.AddTransient<ILoyaltyPointsService, LoyaltyPointsService>();
+builder.Services.AddTransient<IPromotionService, PromotionService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
