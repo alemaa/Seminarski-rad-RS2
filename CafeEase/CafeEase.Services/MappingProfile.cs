@@ -31,6 +31,9 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Promotion, Model.Promotion>();
             CreateMap<PromotionInsertRequest, Database.Promotion>();
             CreateMap<PromotionUpdateRequest, Database.Promotion>();
+            CreateMap<Database.Review, Model.Review>();
+            CreateMap<ReviewInsertRequest, Database.Review>();
+            CreateMap<ReviewUpdateRequest, Database.Review>();
 
         }
     }
