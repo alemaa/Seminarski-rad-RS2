@@ -2,6 +2,7 @@ using AutoMapper;
 using CafeEase.Services;
 using CafeEase.Services.Database;
 using CafeEase.Services.Mapping;
+using CafeEase.WebAPI.Filters;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,11 @@ builder.Services.AddTransient<IPromotionService, PromotionService>();
 builder.Services.AddTransient<IReviewService, ReviewService>();
 builder.Services.AddTransient<IReservationService, ReservationService>();
 
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ExceptionFilter>();
+});
 
 builder.Services.AddAutoMapper(cfg =>
 {
