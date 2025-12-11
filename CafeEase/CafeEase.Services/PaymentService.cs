@@ -1,51 +1,77 @@
 ﻿using AutoMapper;
+using CafeEase.Model.Messages;
 using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
+using CafeEase.Services.Exceptions;
+using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace CafeEase.Services
 {
-    public class PaymentService
-        : BaseCRUDService<
-            Model.Payment,
-            Database.Payment,
-            PaymentSearchObject,
-            PaymentInsertRequest,
-            PaymentUpdateRequest>,
-          IPaymentService
+    public class PaymentService : BaseCRUDService<Model.Payment, Database.Payment, PaymentSearchObject, PaymentInsertRequest, PaymentUpdateRequest>,IPaymentService
     {
-        public PaymentService(CafeEaseDbContext context, IMapper mapper)
-            : base(context, mapper)
+        private readonly ILogger<PaymentService> _logger;
+
+        public PaymentService(CafeEaseDbContext context, IMapper mapper, ILogger<PaymentService> logger) : base(context, mapper)
         {
+            _logger = logger;
         }
 
-        public override async Task BeforeInsert(
-            Database.Payment entity,
-            PaymentInsertRequest insert)
+        public override async Task BeforeInsert(Database.Payment entity,PaymentInsertRequest insert)
         {
             entity.Status = "Completed";
 
             var order = await _context.Orders.FindAsync(insert.OrderId);
-            if (order != null)
+            if (order == null)
             {
-                order.Status = "Paid";
+                throw new UserException("Order not found");
             }
+
+            order.Status = "Paid";
 
             var loyalty = _context.LoyaltyPoints.FirstOrDefault(x => x.UserId == order.UserId);
             if (loyalty != null)
             {
                 loyalty.Points += (int)(order.TotalAmount / 10);
             }
+
+            var factory = new ConnectionFactory { 
+                HostName = "localhost"
+            };
+
+            await using var connection = await factory.CreateConnectionAsync();
+            await using var channel = await connection.CreateChannelAsync();
+
+            await channel.QueueDeclareAsync(
+                queue: "payment_completed",
+                durable: false,
+                exclusive: false,
+                autoDelete: false);
+
+            var body = Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(new PaymentCompleted
+                {
+                    OrderId = insert.OrderId,
+                    UserId = order.UserId,
+                    Amount = order.TotalAmount
+                })
+            );
+
+            await channel.BasicPublishAsync(
+                exchange: "",
+                routingKey: "payment_completed",
+                mandatory: false,
+                body: body);
+
         }
 
-        public override IQueryable<Database.Payment> AddFilter(
-            IQueryable<Database.Payment> query,
-            PaymentSearchObject? search = null)
+        public override IQueryable<Database.Payment> AddFilter(IQueryable<Database.Payment> query, PaymentSearchObject? search = null)
         {
             if (search?.OrderId.HasValue == true)
                 query = query.Where(x => x.OrderId == search.OrderId);
@@ -56,5 +82,4 @@ namespace CafeEase.Services
             return base.AddFilter(query, search);
         }
     }
-
 }
