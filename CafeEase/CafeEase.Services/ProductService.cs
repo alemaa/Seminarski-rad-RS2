@@ -10,18 +10,14 @@ using System.Threading.Tasks;
 
 namespace CafeEase.Services
 {
-    public class ProductService
-        : BaseCRUDService<Model.Product, Database.Product, ProductSearchObject, ProductInsertRequest, ProductUpdateRequest>,
-          IProductService
+    public class ProductService : BaseCRUDService<Model.Product, Database.Product, ProductSearchObject, ProductInsertRequest, ProductUpdateRequest>,IProductService
     {
         public ProductService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)
         {
         }
 
-        public override IQueryable<Database.Product> AddFilter(
-            IQueryable<Database.Product> query,
-            ProductSearchObject? search = null)
+        public override IQueryable<Database.Product> AddFilter(IQueryable<Database.Product> query, ProductSearchObject? search = null)
         {
             if (!string.IsNullOrWhiteSpace(search?.NameFTS))
             {

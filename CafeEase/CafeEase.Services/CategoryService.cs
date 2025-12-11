@@ -6,8 +6,7 @@ using System.Linq;
 
 namespace CafeEase.Services
 {
-    public class CategoryService
-        : BaseCRUDService<Model.Category,Database.Category,CategorySearchObject,CategoryUpsertRequest, CategoryUpsertRequest>,ICategoryService
+    public class CategoryService : BaseCRUDService<Model.Category,Database.Category,CategorySearchObject,CategoryUpsertRequest, CategoryUpsertRequest>,ICategoryService
     {
         public CategoryService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)

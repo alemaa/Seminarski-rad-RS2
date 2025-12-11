@@ -17,9 +17,7 @@ namespace CafeEase.Services
         {
         }
 
-        public override IQueryable<Database.Promotion> AddFilter(
-            IQueryable<Database.Promotion> query,
-            PromotionSearchObject? search = null)
+        public override IQueryable<Database.Promotion> AddFilter(IQueryable<Database.Promotion> query,PromotionSearchObject? search = null)
         {
             if (search?.ActiveOnly == true)
             {

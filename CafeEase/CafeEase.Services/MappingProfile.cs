@@ -37,7 +37,6 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Reservation, Model.Reservation>();
             CreateMap<ReservationInsertRequest, Database.Reservation>();
             CreateMap<ReservationUpdateRequest, Database.Reservation>();
-
         }
     }
 }

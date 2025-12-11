@@ -11,9 +11,7 @@ namespace CafeEase.WebAPI.Controllers
     [Route("api/[controller]")]
     public class ReviewsController : BaseCRUDController<Review, ReviewSearchObject, ReviewInsertRequest, ReviewUpdateRequest>
     {
-        public ReviewsController(
-            ILogger<BaseController<Review, ReviewSearchObject>> logger,
-            IReviewService service)
+        public ReviewsController(ILogger<BaseController<Review, ReviewSearchObject>> logger, IReviewService service)
             : base(logger, service)
         {
         }

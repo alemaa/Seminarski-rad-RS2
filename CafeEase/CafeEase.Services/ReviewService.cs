@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace CafeEase.Services
 {
-    public class ReviewService
-     : BaseCRUDService<Model.Review, Database.Review, ReviewSearchObject, ReviewInsertRequest, ReviewUpdateRequest>, IReviewService
+    public class ReviewService : BaseCRUDService<Model.Review, Database.Review, ReviewSearchObject, ReviewInsertRequest, ReviewUpdateRequest>, IReviewService
     {
         public ReviewService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)
@@ -23,9 +22,7 @@ namespace CafeEase.Services
             entity.DateCreated = DateTime.Now;
         }
 
-        public override IQueryable<Database.Review> AddFilter(
-            IQueryable<Database.Review> query,
-            ReviewSearchObject? search = null)
+        public override IQueryable<Database.Review> AddFilter(IQueryable<Database.Review> query, ReviewSearchObject? search = null)
         {
             if (search?.ProductId.HasValue == true)
             {

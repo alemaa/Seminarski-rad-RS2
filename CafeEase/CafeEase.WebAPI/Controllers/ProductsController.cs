@@ -9,12 +9,9 @@ namespace CafeEase.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController
-        : BaseCRUDController<Product, ProductSearchObject, ProductInsertRequest, ProductUpdateRequest>
+    public class ProductsController : BaseCRUDController<Product, ProductSearchObject, ProductInsertRequest, ProductUpdateRequest>
     {
-        public ProductsController(
-            ILogger<BaseController<Product, ProductSearchObject>> logger,
-            IProductService service)
+        public ProductsController(ILogger<BaseController<Product, ProductSearchObject>> logger, IProductService service)
             : base(logger, service)
         {
         }

@@ -11,12 +11,9 @@ namespace CafeEase.WebAPI.Controllers
     [Route("api/[controller]")]
     public class PromotionsController : BaseCRUDController<Promotion,PromotionSearchObject,PromotionInsertRequest,PromotionUpdateRequest>
     {
-        public PromotionsController(
-            ILogger<BaseController<Promotion, PromotionSearchObject>> logger,
-            IPromotionService service)
+        public PromotionsController(ILogger<BaseController<Promotion, PromotionSearchObject>> logger, IPromotionService service)
             : base(logger, service)
         {
         }
     }
-
 }

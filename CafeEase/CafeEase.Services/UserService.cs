@@ -11,9 +11,7 @@ using CafeEase.Services.Database;
 
 namespace CafeEase.Services
 {
-    public class UserService
-        : BaseCRUDService<Model.User, Database.User, UserSearchObject, UserInsertRequest, UserUpdateRequest>,
-          IUserService
+    public class UserService : BaseCRUDService<Model.User, Database.User, UserSearchObject, UserInsertRequest, UserUpdateRequest>, IUserService
     {
         public UserService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)
@@ -47,9 +45,7 @@ namespace CafeEase.Services
             return Convert.ToBase64String(hash);
         }
 
-        public override IQueryable<Database.User> AddInclude(
-            IQueryable<Database.User> query,
-            UserSearchObject search = null)
+        public override IQueryable<Database.User> AddInclude(IQueryable<Database.User> query, UserSearchObject search = null)
         {
             if (search?.IncludeRole == true)
             {
@@ -75,5 +71,4 @@ namespace CafeEase.Services
             return _mapper.Map<Model.User>(entity);
         }
     }
-
 }

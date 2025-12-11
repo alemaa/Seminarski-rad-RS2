@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace CafeEase.Services
 {
-    public class BaseCRUDService<T, TDb, TSearch, TInsert, TUpdate>
-        : BaseService<T, TDb, TSearch>
-        where T : class
-        where TDb : class
-        where TSearch : BaseSearchObject
+    public class BaseCRUDService<T, TDb, TSearch, TInsert, TUpdate> : BaseService<T, TDb, TSearch>where T : class where TDb : class where TSearch : BaseSearchObject
     {
         public BaseCRUDService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)

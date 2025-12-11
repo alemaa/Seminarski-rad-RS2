@@ -4,8 +4,7 @@ using CafeEase.Model.SearchObjects;
 
 namespace CafeEase.Services
 {
-    public interface ICategoryService
-        : ICRUDService<Category, CategorySearchObject, CategoryUpsertRequest, CategoryUpsertRequest>
+    public interface ICategoryService : ICRUDService<Category, CategorySearchObject, CategoryUpsertRequest, CategoryUpsertRequest>
     {
     }
 }

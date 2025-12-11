@@ -8,12 +8,9 @@ namespace CafeEase.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoriesController
-     : BaseCRUDController<Model.Category, CategorySearchObject, CategoryUpsertRequest, CategoryUpsertRequest>
+    public class CategoriesController : BaseCRUDController<Model.Category, CategorySearchObject, CategoryUpsertRequest, CategoryUpsertRequest>
     {
-        public CategoriesController(
-            ILogger<BaseController<Model.Category, CategorySearchObject>> logger,
-            ICategoryService service)
+        public CategoriesController(ILogger<BaseController<Model.Category, CategorySearchObject>> logger, ICategoryService service)
             : base(logger, service)
         {
         }

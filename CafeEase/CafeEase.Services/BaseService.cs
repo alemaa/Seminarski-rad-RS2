@@ -9,11 +9,7 @@ using System.Threading.Tasks;
 
 namespace CafeEase.Services
 {
-    public class BaseService<T, TDb, TSearch>
-        : IService<T, TSearch>
-        where T : class
-        where TDb : class
-        where TSearch : BaseSearchObject
+    public class BaseService<T, TDb, TSearch> : IService<T, TSearch>where T : class where TDb : class where TSearch : BaseSearchObject
     {
         protected CafeEaseDbContext _context;
         public IMapper _mapper { get; set; }

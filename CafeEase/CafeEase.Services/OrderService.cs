@@ -15,9 +15,7 @@ namespace CafeEase.Services {
         {
         }
 
-        public override async Task BeforeInsert(
-            Database.Order entity,
-            OrderInsertRequest insert)
+        public override async Task BeforeInsert(Database.Order entity,OrderInsertRequest insert)
         {
             decimal total = 0;
 
@@ -74,4 +72,3 @@ namespace CafeEase.Services {
         }
     }
 }
-

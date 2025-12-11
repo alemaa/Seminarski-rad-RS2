@@ -11,9 +11,7 @@ namespace CafeEase.WebAPI.Controllers
     [Route("api/[controller]")]
     public class ReservationsController : BaseCRUDController<Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>
     {
-        public ReservationsController(
-            ILogger<BaseController<Reservation, ReservationSearchObject>> logger,
-            IReservationService service)
+        public ReservationsController(ILogger<BaseController<Reservation, ReservationSearchObject>> logger, IReservationService service)
             : base(logger, service)
         {
         }

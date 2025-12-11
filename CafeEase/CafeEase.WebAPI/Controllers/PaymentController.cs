@@ -8,20 +8,11 @@ namespace CafeEase.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PaymentsController
-      : BaseCRUDController<
-          Model.Payment,
-          PaymentSearchObject,
-          PaymentInsertRequest,
-          PaymentUpdateRequest>
+    public class PaymentsController : BaseCRUDController<Model.Payment, PaymentSearchObject,PaymentInsertRequest,PaymentUpdateRequest>
     {
-        public PaymentsController(
-            ILogger<
-                BaseController<Model.Payment, PaymentSearchObject>> logger,
-            IPaymentService service)
+        public PaymentsController(ILogger<BaseController<Model.Payment, PaymentSearchObject>> logger, IPaymentService service)
             : base(logger, service)
         {
         }
     }
-
 }

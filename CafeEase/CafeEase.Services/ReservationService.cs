@@ -17,16 +17,12 @@ namespace CafeEase.Services
         {
         }
 
-        public override async Task BeforeInsert(
-            Database.Reservation entity,
-            ReservationInsertRequest insert)
+        public override async Task BeforeInsert(Database.Reservation entity, ReservationInsertRequest insert)
         {
             entity.Status = "Pending";
         }
 
-        public override IQueryable<Database.Reservation> AddFilter(
-            IQueryable<Database.Reservation> query,
-            ReservationSearchObject? search = null)
+        public override IQueryable<Database.Reservation> AddFilter(IQueryable<Database.Reservation> query, ReservationSearchObject? search = null)
         {
             if (search?.UserId.HasValue == true)
             {
