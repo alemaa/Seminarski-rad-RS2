@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    [Migration("20251202191129_UpdateUserSeedWithPasswordSalt")]
-    partial class UpdateUserSeedWithPasswordSalt
+    [Migration("20251211231659_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -267,6 +267,9 @@ namespace CafeEase.Services.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -356,8 +359,69 @@ namespace CafeEase.Services.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int>("RecommendedProductId")
+                        .HasColumnType("int");
+
                     b.Property<double>("Score")
                         .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Recommendations");
+                });
+
+            modelBuilder.Entity("CafeEase.Services.Database.Reservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("NumberOfGuests")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReservationDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TableId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reservations");
+                });
+
+            modelBuilder.Entity("CafeEase.Services.Database.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -368,7 +432,7 @@ namespace CafeEase.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Recommendations");
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Role", b =>
@@ -599,7 +663,26 @@ namespace CafeEase.Services.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("CafeEase.Services.Database.Recommendation", b =>
+            modelBuilder.Entity("CafeEase.Services.Database.Reservation", b =>
+                {
+                    b.HasOne("CafeEase.Services.Database.Table", "Table")
+                        .WithMany()
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeEase.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Table");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CafeEase.Services.Database.Review", b =>
                 {
                     b.HasOne("CafeEase.Services.Database.Product", "Product")
                         .WithMany()
