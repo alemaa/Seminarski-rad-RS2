@@ -23,18 +23,12 @@ public class RecommendationService : IRecommendationService
         _context.Recommendations.RemoveRange(_context.Recommendations);
         await _context.SaveChangesAsync();
 
-        var orders = _context.Orders
-            .Include(o => o.OrderItems)
-            .ToList();
-
+        var orders = _context.Orders.Include(o => o.OrderItems).ToList();
         var pairs = new Dictionary<(int, int), int>();
 
         foreach (var order in orders)
         {
-            var items = order.OrderItems
-                .Select(x => x.ProductId)
-                .Distinct()
-                .ToList();
+            var items = order.OrderItems.Select(x => x.ProductId).Distinct().ToList();
 
             for (int i = 0; i < items.Count; i++)
             {
@@ -52,12 +46,7 @@ public class RecommendationService : IRecommendationService
             }
         }
 
-        var grouped = pairs
-            .GroupBy(x => x.Key.Item1)
-            .ToDictionary(
-                g => g.Key,
-                g => g.OrderByDescending(p => p.Value).Take(3).ToList()
-            );
+        var grouped = pairs.GroupBy(x => x.Key.Item1).ToDictionary( g => g.Key, g => g.OrderByDescending(p => p.Value).Take(3).ToList());
 
         foreach (var kvp in grouped)
         {
@@ -73,7 +62,6 @@ public class RecommendationService : IRecommendationService
                 });
             }
         }
-
         await _context.SaveChangesAsync();
     }
 
