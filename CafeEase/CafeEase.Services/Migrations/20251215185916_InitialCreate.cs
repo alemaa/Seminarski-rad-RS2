@@ -130,6 +130,7 @@ namespace CafeEase.Services.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -383,12 +384,12 @@ namespace CafeEase.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Email", "FirstName", "LastName", "PasswordHash", "PasswordSalt", "RoleId" },
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "PasswordHash", "PasswordSalt", "RoleId", "Username" },
                 values: new object[,]
                 {
-                    { 1, "admin@cafeease.com", "Admin", "Admin", "L0uD9aDjQiZ6US9mT63C+tMvcSk=", "js30TX4cHnStZnZM8pWbcg==", 1 },
-                    { 2, "mobileuser@cafeease.com", "Mobile", "User", "w6NEGcaz3XwZej0uJcY1mJIWrAI=", "tNcmHa/vi33ilAmQImsPhg==", 2 },
-                    { 3, "test@cafeease.com", "Test", "User", "dlKlLumk23Dx2D3OgAiBbZsFmfo=", "ym5obohaOyqCOlyuhaGxGQ==", 2 }
+                    { 1, "admin@cafeease.com", "Admin", "Admin", "L0uD9aDjQiZ6US9mT63C+tMvcSk=", "js30TX4cHnStZnZM8pWbcg==", 1, "desktop" },
+                    { 2, "mobileuser@cafeease.com", "Mobile", "User", "w6NEGcaz3XwZej0uJcY1mJIWrAI=", "tNcmHa/vi33ilAmQImsPhg==", 2, "mobile" },
+                    { 3, "test@cafeease.com", "Test", "User", "dlKlLumk23Dx2D3OgAiBbZsFmfo=", "ym5obohaOyqCOlyuhaGxGQ==", 2, "test" }
                 });
 
             migrationBuilder.InsertData(

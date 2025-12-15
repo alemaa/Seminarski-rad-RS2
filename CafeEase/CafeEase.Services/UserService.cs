@@ -54,11 +54,11 @@ namespace CafeEase.Services
             return base.AddInclude(query, search);
         }
 
-        public async Task<Model.User> Login(string email, string password)
+        public async Task<Model.User> Login(string username, string password)
         {
             var entity = await _context.Users
                 .Include(x => x.Role)
-                .FirstOrDefaultAsync(x => x.Email == email);
+                .FirstOrDefaultAsync(x => x.Username == username);
 
             if (entity == null)
                 return null;

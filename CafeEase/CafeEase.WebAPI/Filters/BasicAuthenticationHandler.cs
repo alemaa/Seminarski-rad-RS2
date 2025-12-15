@@ -42,10 +42,10 @@ namespace CafeEase.WebAPI.Authentication
                 var credentials =
                     Encoding.UTF8.GetString(credentialBytes).Split(':');
 
-                var email = credentials[0];
+                var username = credentials[0];
                 var password = credentials[1];
 
-                var user = await _userService.Login(email, password);
+                var user = await _userService.Login(username, password);
 
                 if (user == null)
                 {
@@ -54,9 +54,8 @@ namespace CafeEase.WebAPI.Authentication
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-                    new Claim(ClaimTypes.Email, user.Email!)
+                   new Claim(ClaimTypes.Name,user.FirstName),
+                    new Claim(ClaimTypes.NameIdentifier,user.Username)
                 };
 
                 var identity = new ClaimsIdentity(claims, Scheme.Name);

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    [Migration("20251211231659_InitialCreate")]
+    [Migration("20251215185916_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -534,6 +534,9 @@ namespace CafeEase.Services.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
@@ -549,7 +552,8 @@ namespace CafeEase.Services.Migrations
                             LastName = "Admin",
                             PasswordHash = "L0uD9aDjQiZ6US9mT63C+tMvcSk=",
                             PasswordSalt = "js30TX4cHnStZnZM8pWbcg==",
-                            RoleId = 1
+                            RoleId = 1,
+                            Username = "desktop"
                         },
                         new
                         {
@@ -559,7 +563,8 @@ namespace CafeEase.Services.Migrations
                             LastName = "User",
                             PasswordHash = "w6NEGcaz3XwZej0uJcY1mJIWrAI=",
                             PasswordSalt = "tNcmHa/vi33ilAmQImsPhg==",
-                            RoleId = 2
+                            RoleId = 2,
+                            Username = "mobile"
                         },
                         new
                         {
@@ -569,7 +574,8 @@ namespace CafeEase.Services.Migrations
                             LastName = "User",
                             PasswordHash = "dlKlLumk23Dx2D3OgAiBbZsFmfo=",
                             PasswordSalt = "ym5obohaOyqCOlyuhaGxGQ==",
-                            RoleId = 2
+                            RoleId = 2,
+                            Username = "test"
                         });
                 });
 
