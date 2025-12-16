@@ -6,9 +6,10 @@ import '../utils/authorization.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
-  final String _endpoint;
+  late String _endpoint;
 
-  BaseProvider(this._endpoint) {
+  BaseProvider(String endpoint) {
+    _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment(
       'baseUrl',
       defaultValue: 'https://localhost:44380/',
@@ -19,21 +20,22 @@ abstract class BaseProvider<T> with ChangeNotifier {
     var url = '$_baseUrl$_endpoint';
 
     if (filter != null) {
-      url += '?${getQueryString(filter)}';
+      var queryString = getQueryString(filter);
+      url = '$url?$queryString';
     }
+print("URL: $url");
 
-    var response = await http.get(
-      Uri.parse(url),
-      headers: createHeaders(),
-    );
+    var uri = Uri.parse(url);
+    var headers = createHeaders();
 
-    if (response.statusCode == 401) {
-      throw Exception('Unauthorized');
-    }
+    var response = await http.get(uri, headers: headers);
+
+    isValidResponse(response);
 
     var data = jsonDecode(response.body);
-    var result = SearchResult<T>()
-      ..count = data['count'];
+
+    var result = SearchResult<T>();
+    result.count = data['count'];
 
     for (var item in data['result']) {
       result.result.add(fromJson(item));
@@ -42,10 +44,78 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return result;
   }
 
+  Future<T> getById(int id) async {
+    var url = '$_baseUrl$_endpoint/$id';
+    var uri = Uri.parse(url);
+    var headers = createHeaders();
+
+    var response = await http.get(uri, headers: headers);
+
+    isValidResponse(response);
+
+    var data = jsonDecode(response.body);
+    return fromJson(data);
+  }
+
+  Future<T> insert(dynamic request) async {
+    var uri = Uri.parse('$_baseUrl$_endpoint');
+    var headers = createHeaders();
+
+    var response = await http.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(request),
+    );
+
+    isValidResponse(response);
+
+    var data = jsonDecode(response.body);
+    return fromJson(data);
+  }
+
+  Future<T> update(int id, dynamic request) async {
+    var uri = Uri.parse('$_baseUrl$_endpoint/$id');
+    var headers = createHeaders();
+
+    var response = await http.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(request),
+    );
+
+    isValidResponse(response);
+
+    var data = jsonDecode(response.body);
+    return fromJson(data);
+  }
+
+  Future<void> delete(int id) async {
+    var uri = Uri.parse('$_baseUrl$_endpoint/$id');
+    var headers = createHeaders();
+
+    var response = await http.delete(uri, headers: headers);
+
+    isValidResponse(response);
+  }
+
+  bool isValidResponse(http.Response response) {
+    if (response.statusCode < 300) {
+      return true;
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized');
+    } else {
+      throw Exception(
+        'Server error (${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
   Map<String, String> createHeaders() {
-    final basicAuth = 'Basic ${base64Encode(
-      utf8.encode('${Authorization.username}:${Authorization.password}'),
-    )}';
+    String username = Authorization.username ?? '';
+    String password = Authorization.password ?? '';
+
+    String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     return {
       'Content-Type': 'application/json',
@@ -53,12 +123,24 @@ abstract class BaseProvider<T> with ChangeNotifier {
     };
   }
 
-  T fromJson(dynamic data);
+  String getQueryString(Map params,
+      {String prefix = '&', bool inRecursion = false}) {
+    String query = '';
 
-  String getQueryString(Map params) {
-    return params.entries
-        .where((e) => e.value != null)
-        .map((e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}')
-        .join('&');
+    params.forEach((key, value) {
+      if (value == null) return;
+
+      if (value is String ||
+          value is int ||
+          value is double ||
+          value is bool) {
+        query += '$prefix$key=${Uri.encodeComponent(value.toString())}';
+      } else if (value is DateTime) {
+        query += '$prefix$key=${value.toIso8601String()}';
+      }
+    });
+
+    return query;
   }
+  T fromJson(dynamic data);
 }
