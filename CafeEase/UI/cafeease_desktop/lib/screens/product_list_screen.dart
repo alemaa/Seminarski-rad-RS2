@@ -39,9 +39,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
-Widget _buildProductImage(String? imageBase64, int? categoryId) {
+Widget _buildProductImage(String? imageBase64) {
   if (imageBase64 == null || imageBase64.isEmpty) {
-    return _categoryIcon(categoryId);
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6D4C3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_outlined,
+        size: 28,
+        color: Color(0xFF6B3E2E),
+      ),
+    );
   }
 
   try {
@@ -52,46 +65,35 @@ Widget _buildProductImage(String? imageBase64, int? categoryId) {
       fit: BoxFit.cover,
     );
   } catch (e) {
-    return _categoryIcon(categoryId);
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6D4C3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_outlined,
+        size: 28,
+        color: Color(0xFF6B3E2E),
+      ),
+    );
   }
 }
-
-Widget _categoryIcon(int? categoryId) {
-  IconData icon;
-  Color color = const Color(0xFF6F4E37);
-
-  switch (categoryId) {
-    case 1: 
-      icon = Icons.local_cafe;
-      break;
-    case 2:
-      icon = Icons.local_drink;
-      break;
-    case 3:
-      icon = Icons.cake;
-      break;
-    default:
-      icon = Icons.fastfood;
-  }
-
-  return Icon(
-    icon,
-    size: 40,
-    color: color,
-  );
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 208, 182, 160),
+      backgroundColor: const Color(0xFFEFE1D1),
       appBar: AppBar(
         title: const Text('Products'),
-        backgroundColor: const Color.fromARGB(255, 160, 122, 104),
+        backgroundColor: const Color(0xFF8B5A3C),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromARGB(255, 160, 122, 104),
+        backgroundColor: Color(0xFF8B5A3C),
+        foregroundColor: Colors.white,
+        elevation: 3,
         child: const Icon(Icons.add),
         onPressed: () async {
           final result = await Navigator.of(context).push(
@@ -115,8 +117,9 @@ Widget _categoryIcon(int? categoryId) {
                 final product = _products[index];
 
                 return Card(
-                  color: const Color.fromARGB(255, 208, 182, 160),
+                  color: const Color(0xFFCDB08F),
                   elevation: 4,
+                  shadowColor: Colors.black26,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -126,15 +129,22 @@ Widget _categoryIcon(int? categoryId) {
                   borderRadius: BorderRadius.circular(8),
                   child: _buildProductImage(
                     product.image,
-                    product.categoryId,
                   ),
-                  ),
+                ),
 
 
 
-                    title: Text(product.name ?? ''),
+                    title: Text(product.name ?? '',
+                    style: TextStyle( 
+                      color: Color(0xFF3E2723),
+                      fontWeight: FontWeight.w600,)
+                    ),
                     subtitle: Text(
                       '${product.price?.toStringAsFixed(2)} KM',
+                       style: TextStyle(
+                        color: Color(0xFF5D4037),
+                        fontSize: 13,
+                      ),
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {

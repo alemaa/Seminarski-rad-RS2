@@ -1,3 +1,4 @@
+import 'package:cafeease_desktop/screens/category_list_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/authorization.dart';
 import 'login_screen.dart';
@@ -9,9 +10,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 208, 182, 160),
+      backgroundColor: const Color(0xFFEFE1D1),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 160, 122, 104),
+        backgroundColor: const Color(0xFF8B5A3C),
         title: const Text(
           'CafeEase – Admin Panel',
           style: TextStyle(color: Colors.white),
@@ -73,7 +74,11 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.category,
                     title: 'Categories',
                     onTap: () {
-                      // TODO: Navigator → CategoryScreen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                        builder: (_) => const CategoryListScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildCard(
@@ -123,7 +128,7 @@ class HomeScreen extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Card(
         elevation: 4,
-        color: const Color.fromARGB(255, 160, 122, 104),
+        color: const Color(0xFFC7A48B),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
