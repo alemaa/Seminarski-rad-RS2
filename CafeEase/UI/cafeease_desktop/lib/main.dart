@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/product_provider.dart';
 import 'screens/login_screen.dart';
+import 'providers/category_provider.dart';
 
 void main() {
   runApp(
@@ -9,6 +10,9 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (_) => ProductProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CategoryProvider()
         ),
       ],
       child: const CafeEaseApp(),

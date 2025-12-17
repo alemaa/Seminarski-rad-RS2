@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/category.dart';
+import '../providers/category_provider.dart';
+import 'category_detail_screen.dart';
+
+class CategoryListScreen extends StatefulWidget {
+  const CategoryListScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CategoryListScreen> createState() => _CategoryListScreenState();
+}
+
+class _CategoryListScreenState extends State<CategoryListScreen> {
+  List<Category> _categories = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final provider = context.read<CategoryProvider>();
+
+    try {
+      final result = await provider.get();
+      setState(() {
+        _categories = result.result;
+        _loading = false;
+      });
+    } catch (e) {
+      _loading = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load categories')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEFE1D1),
+      appBar: AppBar(
+        title: const Text('Categories'),
+        backgroundColor: Color(0xFF8B5A3C),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CategoryDetailScreen(),
+                ),
+              );
+
+              if (result == 'refresh') {
+                _loadCategories();
+              }
+            },
+          )
+        ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _categories.length,
+              itemBuilder: (_, index) {
+                final category = _categories[index];
+
+                return Card(
+                  color: const Color(0xFFD2B48C),
+                  child: ListTile(
+                    title: Text(category.name ?? ''),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CategoryDetailScreen(category: category),
+                        ),
+                      );
+
+                      if (result == 'refresh') {
+                        _loadCategories();
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
