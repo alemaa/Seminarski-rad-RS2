@@ -23,7 +23,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
       var queryString = getQueryString(filter);
       url = '$url?$queryString';
     }
-print("URL: $url");
 
     var uri = Uri.parse(url);
     var headers = createHeaders();
@@ -101,12 +100,28 @@ print("URL: $url");
   bool isValidResponse(http.Response response) {
     if (response.statusCode < 300) {
       return true;
-    } else if (response.statusCode == 401) {
-      throw Exception('Unauthorized');
-    } else {
-      throw Exception(
-        'Server error (${response.statusCode}): ${response.body}',
-      );
+    }
+
+    try {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is Map && decoded.containsKey('errors')) {
+        if (decoded['errors']['userError'] != null &&
+            decoded['errors']['userError'] is List &&
+            decoded['errors']['userError'].isNotEmpty) {
+          throw Exception(decoded['errors']['userError'][0]);
+        }
+
+        final firstKey = decoded['errors'].keys.first;
+        final firstError = decoded['errors'][firstKey];
+        if (firstError is List && firstError.isNotEmpty) {
+          throw Exception(firstError[0]);
+        }
+      }
+
+      throw Exception('Unexpected server error');
+    } catch (e) {
+      throw Exception(e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -117,23 +132,20 @@ print("URL: $url");
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': basicAuth,
-    };
+    return {'Content-Type': 'application/json', 'Authorization': basicAuth};
   }
 
-  String getQueryString(Map params,
-      {String prefix = '&', bool inRecursion = false}) {
+  String getQueryString(
+    Map params, {
+    String prefix = '&',
+    bool inRecursion = false,
+  }) {
     String query = '';
 
     params.forEach((key, value) {
       if (value == null) return;
 
-      if (value is String ||
-          value is int ||
-          value is double ||
-          value is bool) {
+      if (value is String || value is int || value is double || value is bool) {
         query += '$prefix$key=${Uri.encodeComponent(value.toString())}';
       } else if (value is DateTime) {
         query += '$prefix$key=${value.toIso8601String()}';
@@ -142,5 +154,6 @@ print("URL: $url");
 
     return query;
   }
+
   T fromJson(dynamic data);
 }

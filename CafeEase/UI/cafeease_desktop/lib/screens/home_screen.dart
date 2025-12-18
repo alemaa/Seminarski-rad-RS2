@@ -1,8 +1,10 @@
 import 'package:cafeease_desktop/screens/category_list_screen.dart';
+import 'package:cafeease_desktop/screens/table_list_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/authorization.dart';
 import 'login_screen.dart';
 import 'product_list_screen.dart';
+import 'reservation_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -53,11 +55,13 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
+              child: GridView(
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 300,
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
-                childAspectRatio: 1.8,
+                childAspectRatio: 1.6,
+                ),
+                padding: const EdgeInsets.all(24),          
                 children: [
                   _buildCard(
                     icon: Icons.local_cafe,
@@ -83,9 +87,22 @@ class HomeScreen extends StatelessWidget {
                   ),
                   _buildCard(
                     icon: Icons.event_seat,
+                    title: 'Tables',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const TableListScreen(),)
+                      );
+                    },
+                  ),
+                    _buildCard(
+                    icon: Icons.event_seat,
                     title: 'Reservations',
                     onTap: () {
-                      // TODO: Navigator → ReservationScreen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReservationListScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildCard(
