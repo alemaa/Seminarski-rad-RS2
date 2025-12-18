@@ -34,13 +34,16 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Review, Model.Review>();
             CreateMap<ReviewInsertRequest, Database.Review>();
             CreateMap<ReviewUpdateRequest, Database.Review>();
-            CreateMap<Database.Reservation, Model.Reservation>();
+            CreateMap<Database.Reservation, Model.Reservation>().ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number));
             CreateMap<ReservationInsertRequest, Database.Reservation>();
             CreateMap<ReservationUpdateRequest, Database.Reservation>();
             CreateMap<Database.Recommendation, Model.Recommendation>().ReverseMap();
             CreateMap<Database.Table, Model.Table>();
             CreateMap<TableInsertRequest, Database.Table>();
             CreateMap<TableUpdateRequest, Database.Table>();
+            CreateMap<Database.Inventory, Model.Inventory>();
+            CreateMap<InventoryInsertRequest, Database.Inventory>();
+            CreateMap<InventoryUpdateRequest, Database.Inventory>();
         }
     }
 }

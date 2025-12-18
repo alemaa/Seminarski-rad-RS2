@@ -27,6 +27,7 @@ builder.Services.AddTransient<IReviewService, ReviewService>();
 builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IRecommendationService, RecommendationService>();
 builder.Services.AddTransient<ITableService, TableService>();
+builder.Services.AddTransient<IInventoryService, InventoryService>();   
 
 builder.Services.AddControllers(options =>
 {
