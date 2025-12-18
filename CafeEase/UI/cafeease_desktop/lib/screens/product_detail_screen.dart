@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import '../models/category.dart';
 import '../providers/category_provider.dart';
+import '../models/inventory.dart';
+import '../providers/inventory_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -31,62 +33,84 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<Category> _categories = [];
   Category? _selectedCategory;
   bool _loadingCategories = true;
+  Inventory? _inventory;
+  int _quantity = 0;
 
   @override
   void initState() {
     super.initState();
 
-    _nameController =
-        TextEditingController(text: widget.product?.name ?? '');
-    _priceController =
-        TextEditingController(text: widget.product?.price?.toString() ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.product?.description ?? '');
+    _nameController = TextEditingController(text: widget.product?.name ?? '');
+    _priceController = TextEditingController(
+      text: widget.product?.price?.toString() ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.product?.description ?? '',
+    );
 
-        _loadCategories();
+    _loadCategories();
+    if (widget.product != null) {
+      _loadInventory();
+    }
   }
 
-Future<void> _loadCategories() async {
-  final provider = context.read<CategoryProvider>();
+  Future<void> _loadInventory() async {
+    final inventoryProvider = context.read<InventoryProvider>();
 
-  try {
-    final result = await provider.get();
+    try {
+      final result = await inventoryProvider.get(
+        filter: {'productId': widget.product!.id},
+      );
 
-    setState(() {
-      _categories = result.result;
-
-      if (isEdit) {
-        _selectedCategory = _categories.firstWhere(
-          (c) => c.id == widget.product!.categoryId,
-        );
+      if (result.result.isNotEmpty) {
+        setState(() {
+          _inventory = result.result.first;
+          _quantity = _inventory!.quantity!;
+        });
       }
+    } catch (e) {}
+  }
 
-      _loadingCategories = false;
-    });
-  } catch (e) {
+  Future<void> _loadCategories() async {
+    final provider = context.read<CategoryProvider>();
+
+    try {
+      final result = await provider.get();
+
+      setState(() {
+        _categories = result.result;
+
+        if (isEdit) {
+          _selectedCategory = _categories.firstWhere(
+            (c) => c.id == widget.product!.categoryId,
+          );
+        }
+
+        _loadingCategories = false;
+      });
+    } catch (e) {
+      setState(() {
+        _loadingCategories = false;
+      });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result == null || result.files.single.path == null) return;
+
+    final file = File(result.files.single.path!);
+    final bytes = await file.readAsBytes();
+
     setState(() {
-      _loadingCategories = false;
+      _selectedImage = file;
+      _base64Image = base64Encode(bytes);
     });
   }
-}
-
-Future<void> _pickImage() async {
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.image,
-    allowMultiple: false,
-  );
-
-  if (result == null || result.files.single.path == null) return;
-
-  final file = File(result.files.single.path!);
-  final bytes = await file.readAsBytes();
-
-  setState(() {
-    _selectedImage = file;
-    _base64Image = base64Encode(bytes);
-  });
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -96,13 +120,13 @@ Future<void> _pickImage() async {
       backgroundColor: const Color(0xFFEFE1D1),
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Product' : 'Add Product'),
-        backgroundColor:const Color(0xFF8B5A3C),
+        backgroundColor: const Color(0xFF8B5A3C),
       ),
       body: Center(
         child: Card(
-         color: Color(0xFFF2E9E2),
-        elevation: 4,
-        shadowColor: Colors.black12,
+          color: Color(0xFFF2E9E2),
+          elevation: 4,
+          shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -115,53 +139,103 @@ Future<void> _pickImage() async {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.coffee, size: 48, color: Color(0xFF6F4E37)),
+                    const Icon(
+                      Icons.coffee,
+                      size: 48,
+                      color: Color(0xFF6F4E37),
+                    ),
                     const SizedBox(height: 16),
-                    
+
                     _buildField(_nameController, 'Name'),
-                    _buildField(_priceController, 'Price',
-                        keyboardType: TextInputType.number),
+                    _buildField(
+                      _priceController,
+                      'Price',
+                      keyboardType: TextInputType.number,
+                    ),
                     _buildField(_descriptionController, 'Description'),
 
                     const SizedBox(height: 8),
 
-                  _loadingCategories
-                  ? const CircularProgressIndicator()
-                  : DropdownButtonFormField<Category>(
-                      value: _selectedCategory,
-                      items: _categories
-                          .map(
-                            (c) => DropdownMenuItem<Category>(
-                              value: c,
-                              child: Text(c.name ?? ''),
+                    _loadingCategories
+                        ? const CircularProgressIndicator()
+                        : DropdownButtonFormField<Category>(
+                            value: _selectedCategory,
+                            items: _categories
+                                .map(
+                                  (c) => DropdownMenuItem<Category>(
+                                    value: c,
+                                    child: Text(c.name ?? ''),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCategory = value;
+                              });
+                            },
+                            validator: (value) =>
+                                value == null ? 'Please select category' : null,
+                            decoration: InputDecoration(
+                              labelText: 'Category',
+                              filled: true,
+                              fillColor: Color(0xFFEDE3DB),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF8B5A3C),
+                                  width: 2,
+                                ),
+                              ),
                             ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCategory = value;
-                        });
-                      },
-                      validator: (value) =>
-                          value == null ? 'Please select category' : null,
-                      decoration: InputDecoration(
-                        labelText: 'Category',
-                        filled: true,
-                       fillColor: Color(0xFFEDE3DB),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: Color(0xFF8B5A3C),
-                            width: 2,
                           ),
+
+                    const SizedBox(height: 15),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Quantity on stock',
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
-                      ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: _quantity > 0
+                                  ? () {
+                                      setState(() {
+                                        _quantity--;
+                                      });
+                                    }
+                                  : null,
+                            ),
+                            Container(
+                              width: 40,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '$_quantity',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () {
+                                setState(() {
+                                  _quantity++;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 24),
+
                     SizedBox(
                       width: double.infinity,
                       height: 45,
@@ -192,8 +266,9 @@ Future<void> _pickImage() async {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
                       
+                    const SizedBox(height: 24),
+
                     SizedBox(
                       width: double.infinity,
                       height: 45,
@@ -205,7 +280,7 @@ Future<void> _pickImage() async {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        
+
                         onPressed: _isSaving
                             ? null
                             : () async {
@@ -217,16 +292,33 @@ Future<void> _pickImage() async {
                                   "name": _nameController.text,
                                   "price": double.parse(_priceController.text),
                                   "description": _descriptionController.text,
-                                  'image': _base64Image ?? widget.product?.image,
-                                 "categoryId": _selectedCategory!.id,
+                                  'image':
+                                      _base64Image ?? widget.product?.image,
+                                  "categoryId": _selectedCategory!.id,
                                 };
 
                                 try {
                                   if (isEdit) {
                                     await provider.update(
-                                        widget.product!.id!, request);
+                                      widget.product!.id!,
+                                      request,
+                                    );
                                   } else {
                                     await provider.insert(request);
+                                  }
+                                  final inventoryProvider = context
+                                      .read<InventoryProvider>();
+
+                                  if (_inventory == null) {
+                                    await inventoryProvider.insert({
+                                      'productId': widget.product!.id,
+                                      'quantity': _quantity,
+                                    });
+                                  } else {
+                                    await inventoryProvider.update(
+                                      _inventory!.id!,
+                                      {'quantity': _quantity},
+                                    );
                                   }
 
                                   if (!mounted) return;
@@ -234,12 +326,14 @@ Future<void> _pickImage() async {
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text('Operation failed')),
+                                      content: Text('Operation failed'),
+                                    ),
                                   );
                                 } finally {
                                   setState(() => _isSaving = false);
                                 }
                               },
+
                         child: _isSaving
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
@@ -267,7 +361,8 @@ Future<void> _pickImage() async {
                               builder: (_) => AlertDialog(
                                 title: const Text('Delete product'),
                                 content: const Text(
-                                    'Are you sure you want to delete this product?'),
+                                  'Are you sure you want to delete this product?',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>

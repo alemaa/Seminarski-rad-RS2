@@ -1,3 +1,6 @@
+import 'package:cafeease_desktop/providers/inventory_provider.dart';
+import 'package:cafeease_desktop/providers/reservation_provider.dart';
+import 'package:cafeease_desktop/providers/table_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/product_provider.dart';
@@ -14,6 +17,13 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => CategoryProvider()
         ),
+        ChangeNotifierProvider(
+          create: (_) => ReservationProvider()
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TableProvider()
+        ),
+        ChangeNotifierProvider(create: (_) => InventoryProvider())
       ],
       child: const CafeEaseApp(),
     ),
