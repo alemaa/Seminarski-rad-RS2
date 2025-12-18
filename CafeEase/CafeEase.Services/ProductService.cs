@@ -21,7 +21,15 @@ namespace CafeEase.Services
         {
             if (!string.IsNullOrWhiteSpace(search?.NameFTS))
             {
-                query = query.Where(p => p.Name.Contains(search.NameFTS));
+                var term = search.NameFTS.ToLower();
+
+                query = query.Where(p =>
+                    p.Name != null &&
+                    (
+                        p.Name.ToLower().StartsWith(term) ||
+                        p.Name.ToLower().Contains(" " + term)
+                    )
+                );
             }
 
             if (search?.CategoryId.HasValue == true)
@@ -31,7 +39,6 @@ namespace CafeEase.Services
 
             return base.AddFilter(query, search);
         }
-
         public async Task<List<string>> AllowedActions(int id)
         {
             var result = new List<string>();
@@ -51,6 +58,20 @@ namespace CafeEase.Services
 
             return result;
         }
+
+        public override async Task BeforeInsert(Database.Product entity,ProductInsertRequest insert)
+        {
+            await base.BeforeInsert(entity, insert);
+
+            var inventory = new Database.Inventory
+            {
+                Product = entity, 
+                Quantity = 0
+            };
+
+            _context.Inventories.Add(inventory);
+        }
+
         public List<Model.Product> Recommend(int id)
         {
             var product = _context.Products.Find(id);
