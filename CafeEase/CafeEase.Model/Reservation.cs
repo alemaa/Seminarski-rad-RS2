@@ -11,6 +11,7 @@ namespace CafeEase.Model
         public int Id { get; set; }
         public int UserId { get; set; }
         public int TableId { get; set; }
+        public int TableNumber { get; set; }
         public DateTime ReservationDateTime { get; set; }
         public int NumberOfGuests { get; set; }
         public string Status { get; set; } = string.Empty;

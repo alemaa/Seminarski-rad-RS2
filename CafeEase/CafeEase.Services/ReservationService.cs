@@ -3,6 +3,7 @@ using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
 using CafeEase.Services.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,11 +59,52 @@ namespace CafeEase.Services
 
             return base.AddFilter(query, search);
         }
+
+        public override async Task<Model.Reservation> Update(int id, ReservationUpdateRequest update)
+        {
+            var entity = await _context.Reservations
+                .Include(r => r.Table)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new UserException("Reservation not found");
+
+            var oldStatus = entity.Status;
+
+            _mapper.Map(update, entity);
+
+            if (oldStatus != "Cancelled" && entity.Status == "Cancelled")
+            {
+                if (entity.Table != null)
+                {
+                    entity.Table.IsOccupied = false;
+                }
+            }
+
+            if (oldStatus == "Cancelled" &&
+                (entity.Status == "Pending" || entity.Status == "Confirmed"))
+            {
+                if (entity.Table == null)
+                    throw new UserException("Table not found");
+
+                if (entity.Table.IsOccupied)
+                    throw new UserException("Table is already occupied");
+
+                entity.Table.IsOccupied = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Reservation>(entity);
+        }
+
         public override async Task BeforeUpdate(Database.Reservation entity, ReservationUpdateRequest update)
         {
-            {
-                entity.Status = update.Status;
-            }
+           
+        }
+        public override IQueryable<Database.Reservation> AddInclude(IQueryable<Database.Reservation> query,ReservationSearchObject? search = null)
+        {
+            return query.Include(r => r.Table);
         }
 
         public override async Task<Model.Reservation> Delete(int id)
