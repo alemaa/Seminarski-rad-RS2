@@ -8,4 +8,19 @@ class ProductProvider extends BaseProvider<Product> {
   Product fromJson(data) {
     return Product.fromJson(data);
   }
+
+  Future<List<Product>> search({String? nameFTS, int? categoryId}) async {
+    final filter = <String, dynamic>{};
+
+    if (nameFTS != null && nameFTS.isNotEmpty) {
+      filter['nameFTS'] = nameFTS;
+    }
+
+    if (categoryId != null) {
+      filter['categoryId'] = categoryId;
+    }
+
+    final result = await get(filter: filter);
+    return result.result;
+  }
 }
