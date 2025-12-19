@@ -6,6 +6,7 @@ import 'login_screen.dart';
 import 'product_list_screen.dart';
 import 'reservation_list_screen.dart';
 import 'order_list_screen.dart';
+import 'reports_menu_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -131,7 +132,9 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.bar_chart,
                     title: 'Reports',
                     onTap: () {
-                      // TODO: Navigator → ReportsScreen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ReportsMenuScreen()),
+                      );
                     },
                   ),
                 ],
