@@ -5,6 +5,7 @@ import '../utils/authorization.dart';
 import 'login_screen.dart';
 import 'product_list_screen.dart';
 import 'reservation_list_screen.dart';
+import 'order_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class HomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -56,12 +57,13 @@ class HomeScreen extends StatelessWidget {
 
             Expanded(
               child: GridView(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 300,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: 1.6,
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 300,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  childAspectRatio: 1.6,
                 ),
-                padding: const EdgeInsets.all(24),          
+                padding: const EdgeInsets.all(24),
                 children: [
                   _buildCard(
                     icon: Icons.local_cafe,
@@ -69,9 +71,9 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                        builder: (_) => const ProductListScreen(),
+                          builder: (_) => const ProductListScreen(),
                         ),
-                     );
+                      );
                     },
                   ),
                   _buildCard(
@@ -80,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                        builder: (_) => const CategoryListScreen(),
+                          builder: (_) => const CategoryListScreen(),
                         ),
                       );
                     },
@@ -90,11 +92,13 @@ class HomeScreen extends StatelessWidget {
                     title: 'Tables',
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const TableListScreen(),)
+                        MaterialPageRoute(
+                          builder: (_) => const TableListScreen(),
+                        ),
                       );
                     },
                   ),
-                    _buildCard(
+                  _buildCard(
                     icon: Icons.event_seat,
                     title: 'Reservations',
                     onTap: () {
@@ -116,7 +120,11 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.receipt_long,
                     title: 'Orders',
                     onTap: () {
-                      // TODO: Navigator → OrdersScreen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const OrderListScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildCard(
@@ -146,9 +154,7 @@ class HomeScreen extends StatelessWidget {
       child: Card(
         elevation: 4,
         color: const Color(0xFFC7A48B),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
