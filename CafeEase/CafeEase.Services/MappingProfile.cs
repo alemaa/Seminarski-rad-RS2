@@ -41,7 +41,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Table, Model.Table>();
             CreateMap<TableInsertRequest, Database.Table>();
             CreateMap<TableUpdateRequest, Database.Table>();
-            CreateMap<Database.Inventory, Model.Inventory>();
+            CreateMap<Database.Inventory, Model.Inventory>().ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
             CreateMap<InventoryInsertRequest, Database.Inventory>();
             CreateMap<InventoryUpdateRequest, Database.Inventory>();
         }

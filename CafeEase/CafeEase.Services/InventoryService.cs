@@ -3,7 +3,9 @@ using CafeEase.Model;
 using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CafeEase.Services
 {
@@ -24,6 +26,13 @@ namespace CafeEase.Services
             }
 
             return base.AddFilter(query, search);
+        }
+
+        public override IQueryable<Database.Inventory> AddInclude(
+        IQueryable<Database.Inventory> query,
+        InventorySearchObject? search = null)
+        {
+            return query.Include(x => x.Product);
         }
     }
 }
