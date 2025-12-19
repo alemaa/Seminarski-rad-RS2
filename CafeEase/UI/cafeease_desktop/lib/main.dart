@@ -1,4 +1,3 @@
-import 'package:cafeease_desktop/models/order_item.dart';
 import 'package:cafeease_desktop/providers/inventory_provider.dart';
 import 'package:cafeease_desktop/providers/order_item_provider.dart';
 import 'package:cafeease_desktop/providers/order_provider.dart';

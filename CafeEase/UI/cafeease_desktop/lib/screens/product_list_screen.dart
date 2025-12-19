@@ -82,7 +82,6 @@ Future<void> _loadProducts() async {
       _isLoading = false;
     });
 
-    // ✅ OVDJE MORA BITI
     await _loadInventoryForProducts();
   } catch (e) {
     setState(() => _isLoading = false);
@@ -109,7 +108,6 @@ Future<void> _loadInventoryForProducts() async {
     }
   }
 
-  // ✅ JEDAN JEDINI setState
   setState(() {
     _stockByProduct
       ..clear()
