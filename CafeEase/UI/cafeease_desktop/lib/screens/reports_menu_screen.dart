@@ -1,3 +1,4 @@
+import 'package:cafeease_desktop/screens/top_products_report_screen.dart';
 import 'package:flutter/material.dart';
 import 'orders_report_screen.dart';
 import 'inventory_report_screen.dart';
@@ -19,7 +20,7 @@ class ReportsMenuScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'View and analyze key business data such as orders and inventory.',
+              'View and analyze key business data such as orders, inventory and top products.',
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
 
@@ -52,6 +53,17 @@ class ReportsMenuScreen extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const InventoryReportScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _ReportCard(
+                      title: 'Top products report',
+                      icon: Icons.emoji_events,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const TopProductsReportScreen(),
                           ),
                         );
                       },
