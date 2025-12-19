@@ -19,7 +19,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<ProductUpdateRequest, Database.Product>();
             CreateMap<OrderInsertRequest, Database.Order>();
             CreateMap<Database.Order, Model.Order>();
-            CreateMap<Database.OrderItem, Model.OrderItem>();
+            CreateMap<Database.OrderItem, Model.OrderItem>().ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
             CreateMap<OrderItemInsertRequest, Database.OrderItem>();
             CreateMap<OrderItemUpdateRequest, Database.OrderItem>();
             CreateMap<Database.Payment, Model.Payment>();

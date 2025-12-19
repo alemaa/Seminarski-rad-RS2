@@ -6,6 +6,7 @@ using CafeEase.Services;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 namespace CafeEase.Services
 {
     public class OrderItemService : BaseCRUDService<Model.OrderItem, Database.OrderItem, OrderItemSearchObject, OrderItemInsertRequest, OrderItemUpdateRequest>, IOrderItemService
@@ -19,6 +20,7 @@ namespace CafeEase.Services
             IQueryable<Database.OrderItem> query,
             OrderItemSearchObject? search = null)
         {
+            query = query.Include(x => x.Product);
             if (search?.OrderId.HasValue == true)
                 query = query.Where(x => x.OrderId == search.OrderId);
 

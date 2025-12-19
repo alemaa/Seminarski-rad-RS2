@@ -7,6 +7,7 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using CafeEase.Services.Exceptions;
 namespace CafeEase.Services {
     public class OrderService : BaseCRUDService< Model.Order, Database.Order,OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
     {
@@ -53,8 +54,57 @@ namespace CafeEase.Services {
 
             entity.OrderDate = DateTime.Now;
             entity.TotalAmount = total;
-            entity.Status = "New";
+            entity.Status = "Pending";
         }
+        public override async Task<Model.Order> Update(
+            int id,
+            OrderUpdateRequest update)
+        {
+            var entity = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (entity == null)
+                throw new UserException("Order not found");
+
+            var allowedStatuses = new[] { "Pending", "Confirmed", "Cancelled", "Paid" };
+
+            if (!allowedStatuses.Contains(update.Status))
+                throw new UserException("Invalid order status");
+
+            var oldStatus = entity.Status;
+
+            // ✅ PROMJENA STATUSA
+            entity.Status = update.Status;
+
+            // 🔥 KLJUČNA LOGIKA: SMANJENJE INVENTORY
+            if (oldStatus != "Paid" && update.Status == "Paid")
+            {
+                foreach (var item in entity.OrderItems)
+                {
+                    var inventory = await _context.Inventories
+                        .FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
+
+                    if (inventory == null)
+                        throw new UserException(
+                            $"Inventory not found for product {item.ProductId}"
+                        );
+
+                    if (inventory.Quantity < item.Quantity)
+                        throw new UserException(
+                            $"Not enough stock for product {item.ProductId}"
+                        );
+
+                    inventory.Quantity -= item.Quantity;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Order>(entity);
+        }
+
+
         public override IQueryable<Database.Order> AddFilter(
             IQueryable<Database.Order> query,
             OrderSearchObject? search = null)
