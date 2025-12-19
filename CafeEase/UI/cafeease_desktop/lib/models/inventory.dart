@@ -7,8 +7,9 @@ class Inventory {
   int? id;
   int? productId;
   int? quantity;
+  String? productName;
 
-  Inventory({this.id, this.productId, this.quantity});
+  Inventory({this.id, this.productId, this.quantity, this.productName});
 
   factory Inventory.fromJson(Map<String, dynamic> json) =>
       _$InventoryFromJson(json);
