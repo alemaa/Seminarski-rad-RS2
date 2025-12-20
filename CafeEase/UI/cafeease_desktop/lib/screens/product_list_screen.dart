@@ -19,7 +19,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Timer? _debounce;
   final Map<int, int> _stockByProduct = {};
 
-
   List<Product> _products = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
@@ -61,60 +60,60 @@ class _ProductListScreenState extends State<ProductListScreen> {
     } catch (_) {}
   }
 
-Future<void> _loadProducts() async {
-  final provider = context.read<ProductProvider>();
-
-  try {
-    final filter = <String, dynamic>{};
-
-    if (_searchText.trim().isNotEmpty) {
-      filter['nameFTS'] = _searchText.trim();
-    }
-
-    if (_selectedCategoryId != null) {
-      filter['categoryId'] = _selectedCategoryId;
-    }
-
-    final result = await provider.get(filter: filter);
-
-    setState(() {
-      _products = result.result;
-      _isLoading = false;
-    });
-
-    await _loadInventoryForProducts();
-  } catch (e) {
-    setState(() => _isLoading = false);
-  }
-}
-
-Future<void> _loadInventoryForProducts() async {
-  final inventoryProvider = context.read<InventoryProvider>();
-
-  final Map<int, int> tempStock = {};
-
-  for (var product in _products) {
-    if (product.id == null) continue;
+  Future<void> _loadProducts() async {
+    final provider = context.read<ProductProvider>();
 
     try {
-      final result = await inventoryProvider.get(
-        filter: {'productId': product.id},
-      );
+      final filter = <String, dynamic>{};
 
-      tempStock[product.id!] =
-          result.result.isNotEmpty ? result.result.first.quantity! : 0;
-    } catch (_) {
-      tempStock[product.id!] = 0;
+      if (_searchText.trim().isNotEmpty) {
+        filter['nameFTS'] = _searchText.trim();
+      }
+
+      if (_selectedCategoryId != null) {
+        filter['categoryId'] = _selectedCategoryId;
+      }
+
+      final result = await provider.get(filter: filter);
+
+      setState(() {
+        _products = result.result;
+        _isLoading = false;
+      });
+
+      await _loadInventoryForProducts();
+    } catch (e) {
+      setState(() => _isLoading = false);
     }
   }
 
-  setState(() {
-    _stockByProduct
-      ..clear()
-      ..addAll(tempStock);
-  });
-}
+  Future<void> _loadInventoryForProducts() async {
+    final inventoryProvider = context.read<InventoryProvider>();
 
+    final Map<int, int> tempStock = {};
+
+    for (var product in _products) {
+      if (product.id == null) continue;
+
+      try {
+        final result = await inventoryProvider.get(
+          filter: {'productId': product.id},
+        );
+
+        tempStock[product.id!] = result.result.isNotEmpty
+            ? result.result.first.quantity!
+            : 0;
+      } catch (_) {
+        tempStock[product.id!] = 0;
+      }
+    }
+
+    setState(() {
+      _stockByProduct
+        ..clear()
+        ..addAll(tempStock);
+    });
+  }
 
   Widget _buildProductImage(String? imageBase64) {
     if (imageBase64 == null || imageBase64.isEmpty) {
@@ -267,8 +266,8 @@ Future<void> _loadInventoryForProducts() async {
                               ),
                             ),
                             subtitle: Text(
-  '${product.price?.toStringAsFixed(2)} KM • Stock: ${_stockByProduct[product.id] ?? 0}',
-),
+                              '${product.price?.toStringAsFixed(2)} KM • Stock: ${_stockByProduct[product.id] ?? 0}',
+                            ),
 
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
