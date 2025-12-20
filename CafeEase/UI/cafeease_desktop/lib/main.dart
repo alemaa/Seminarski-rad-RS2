@@ -3,6 +3,7 @@ import 'package:cafeease_desktop/providers/order_item_provider.dart';
 import 'package:cafeease_desktop/providers/order_provider.dart';
 import 'package:cafeease_desktop/providers/reservation_provider.dart';
 import 'package:cafeease_desktop/providers/table_provider.dart';
+import 'package:cafeease_desktop/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/product_provider.dart';
@@ -20,6 +21,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => OrderItemProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const CafeEaseApp(),
     ),

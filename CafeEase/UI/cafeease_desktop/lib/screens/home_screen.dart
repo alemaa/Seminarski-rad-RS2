@@ -1,5 +1,6 @@
 import 'package:cafeease_desktop/screens/category_list_screen.dart';
 import 'package:cafeease_desktop/screens/table_list_screen.dart';
+import 'package:cafeease_desktop/screens/user_list_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/authorization.dart';
 import 'login_screen.dart';
@@ -134,6 +135,15 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const ReportsMenuScreen()),
+                      );
+                    },
+                  ),
+                    _buildCard(
+                    icon: Icons.bar_chart,
+                    title: 'User management',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const UserListScreen()),
                       );
                     },
                   ),
