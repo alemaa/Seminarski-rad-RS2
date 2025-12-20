@@ -14,6 +14,8 @@ class TableListScreen extends StatefulWidget {
 class _TableListScreenState extends State<TableListScreen> {
   List<model.Table> _tables = [];
   bool _loading = true;
+  bool? _selectedIsOccupied;
+  int? _selectedCapacity;
 
   @override
   void initState() {
@@ -23,7 +25,19 @@ class _TableListScreenState extends State<TableListScreen> {
 
   Future<void> _loadTables() async {
     final provider = context.read<TableProvider>();
-    final result = await provider.get();
+
+    final filter = <String, dynamic>{};
+
+    if (_selectedIsOccupied != null) {
+      filter['isOccupied'] = _selectedIsOccupied;
+    }
+
+    if (_selectedCapacity != null) {
+      filter['capacity'] = _selectedCapacity;
+    }
+
+    final result = await provider.get(filter: filter);
+
     setState(() {
       _tables = result.result;
       _loading = false;
@@ -55,62 +69,122 @@ class _TableListScreenState extends State<TableListScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _tables.length,
-              itemBuilder: (context, index) {
-                final table = _tables[index];
-
-                return Card(
-                  color: table.isOccupied == true
-                      ? const Color(0xFFC4A484)
-                      : const Color(0xFFD2B48C),
-                  elevation: 2,
-                  shadowColor: Colors.black26,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.table_restaurant,
-                      color: table.isOccupied == true
-                          ? Colors.red
-                          : Colors.green,
-                    ),
-                    title: Text(
-                      'Table ${table.number}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF3E2723),
-                      ),
-                    ),
-                    subtitle: Text(
-                      'Capacity: ${table.capacity} | '
-                      '${table.isOccupied == true ? "Occupied" : "Free"}',
-                      style: const TextStyle(color: Color(0xFF5D4037)),
-                    ),
-                    trailing: const Icon(
-                      Icons.chevron_right,
-                      color: Color(0xFF6B3E2E),
-                    ),
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TableDetailScreen(table: table),
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<bool?>(
+                          value: _selectedIsOccupied,
+                          decoration: const InputDecoration(
+                            labelText: 'Status',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: null, child: Text('All')),
+                            DropdownMenuItem(value: false, child: Text('Free')),
+                            DropdownMenuItem(
+                              value: true,
+                              child: Text('Occupied'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() => _selectedIsOccupied = value);
+                            _loadTables();
+                          },
                         ),
-                      );
+                      ),
+                      const SizedBox(width: 12),
 
-                      if (result == 'refresh') {
-                        _loadTables();
-                      }
-                    },
+                      Expanded(
+                        child: DropdownButtonFormField<int?>(
+                          value: _selectedCapacity,
+                          decoration: const InputDecoration(
+                            labelText: 'Min capacity',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: null, child: Text('All')),
+                            DropdownMenuItem(value: 2, child: Text('2+')),
+                            DropdownMenuItem(value: 4, child: Text('4+')),
+                            DropdownMenuItem(value: 6, child: Text('6+')),
+                            DropdownMenuItem(value: 8, child: Text('8+')),
+                          ],
+                          onChanged: (value) {
+                            setState(() => _selectedCapacity = value);
+                            _loadTables();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
+
+                  const SizedBox(height: 16),
+
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _tables.length,
+                      itemBuilder: (context, index) {
+                        final table = _tables[index];
+
+                        return Card(
+                          color: table.isOccupied == true
+                              ? const Color(0xFFC4A484)
+                              : const Color(0xFFD2B48C),
+                          elevation: 2,
+                          shadowColor: Colors.black26,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.table_restaurant,
+                              color: table.isOccupied == true
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                            title: Text(
+                              'Table ${table.number}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3E2723),
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Capacity: ${table.capacity} | '
+                              '${table.isOccupied == true ? "Occupied" : "Free"}',
+                              style: const TextStyle(color: Color(0xFF5D4037)),
+                            ),
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              color: Color(0xFF6B3E2E),
+                            ),
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TableDetailScreen(table: table),
+                                ),
+                              );
+
+                              if (result == 'refresh') {
+                                _loadTables();
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
   }
