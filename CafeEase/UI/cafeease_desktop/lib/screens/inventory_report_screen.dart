@@ -63,7 +63,7 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
               pw.SizedBox(height: 20),
 
               pw.Table.fromTextArray(
-                headers: ['Product', 'Quantity', 'Status'],
+                headers: ['Product', 'Quantity', 'Stock status'],
                 data: _inventory.map((i) {
                   final isLow = (i.quantity ?? 0) <= 5;
 

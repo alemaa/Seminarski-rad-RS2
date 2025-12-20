@@ -1,3 +1,4 @@
+import 'package:cafeease_desktop/screens/sales_summary_report_screen.dart';
 import 'package:cafeease_desktop/screens/top_products_report_screen.dart';
 import 'package:flutter/material.dart';
 import 'orders_report_screen.dart';
@@ -64,6 +65,17 @@ class ReportsMenuScreen extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const TopProductsReportScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                     _ReportCard(
+                      title: 'Sales summary report',
+                      icon: Icons.emoji_events,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SalesSummaryReportScreen(),
                           ),
                         );
                       },
