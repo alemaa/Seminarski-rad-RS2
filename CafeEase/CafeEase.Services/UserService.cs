@@ -8,6 +8,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using CafeEase.Services.Database;
+using Microsoft.Ajax.Utilities;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.Services
 {
@@ -45,6 +47,29 @@ namespace CafeEase.Services
             return Convert.ToBase64String(hash);
         }
 
+        public override IQueryable<Database.User> AddFilter(IQueryable<Database.User> query, UserSearchObject? search = null)
+        {
+            if (search == null)
+                return query;
+
+            if (search == null)
+                return query;
+
+            if (!string.IsNullOrWhiteSpace(search.NameFTS))
+            {
+                var term = search.NameFTS.ToLower();
+
+                query = query.Where(x =>
+                    (x.FirstName + " " + x.LastName).ToLower().Contains(term) ||
+                    x.FirstName.ToLower().Contains(term) ||
+                    x.LastName.ToLower().Contains(term) ||
+                    x.Email.ToLower().Contains(term)
+                );
+            }
+
+            return query;
+        }
+
         public override IQueryable<Database.User> AddInclude(IQueryable<Database.User> query, UserSearchObject search = null)
         {
             if (search?.IncludeRole == true)
@@ -67,6 +92,22 @@ namespace CafeEase.Services
 
             if (hash != entity.PasswordHash)
                 return null;
+
+            return _mapper.Map<Model.User>(entity);
+        }
+
+        public async Task<Model.User> Delete(int id)
+        {
+            var entity = await _context.Users.FindAsync(id);
+
+            if (entity == null)
+                throw new UserException("User not found");
+
+            if (entity.RoleId == 1)
+                throw new UserException("Admin user cannot be deleted.");
+
+            _context.Users.Remove(entity);
+            await _context.SaveChangesAsync();
 
             return _mapper.Map<Model.User>(entity);
         }

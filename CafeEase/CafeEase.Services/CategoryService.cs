@@ -17,9 +17,15 @@ namespace CafeEase.Services
         {
             if (!string.IsNullOrWhiteSpace(search?.Name))
             {
-                query = query.Where(x => x.Name.Contains(search.Name));
-            }
+                var term = search.Name.ToLower();
 
+                query = query.Where(p => p.Name != null &&
+                    (
+                        p.Name.ToLower().StartsWith(term) ||
+                        p.Name.ToLower().Contains(" " + term)
+                    )
+                );
+            }
             return query;
         }
     }

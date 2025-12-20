@@ -31,9 +31,9 @@ namespace CafeEase.Services
                 throw new UserException("Selected table is already occupied");
             }
 
-            if(insert.NumberOfGuests > table.Capacity)
+            if (insert.NumberOfGuests > table.Capacity)
             {
-                throw new UserException("Table capacity is " + table.Capacity +". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
+                throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
             table.IsOccupied = true;
             entity.UserId = 1;
@@ -55,6 +55,12 @@ namespace CafeEase.Services
             if (!string.IsNullOrWhiteSpace(search?.Status))
             {
                 query = query.Where(x => x.Status == search.Status);
+            }
+
+            if (search.Date.HasValue)
+            {
+                var date = search.Date.Value.Date;
+                query = query.Where(x => x.ReservationDateTime.Date == date);
             }
 
             return base.AddFilter(query, search);

@@ -74,10 +74,8 @@ namespace CafeEase.Services {
 
             var oldStatus = entity.Status;
 
-            // ✅ PROMJENA STATUSA
             entity.Status = update.Status;
 
-            // 🔥 KLJUČNA LOGIKA: SMANJENJE INVENTORY
             if (oldStatus != "Paid" && update.Status == "Paid")
             {
                 foreach (var item in entity.OrderItems)
@@ -117,6 +115,14 @@ namespace CafeEase.Services {
 
             if (!string.IsNullOrWhiteSpace(search?.Status))
                 query = query.Where(x => x.Status == search.Status);
+
+            if (search.Date.HasValue)
+            {
+                var date = search.Date.Value.Date;
+
+                query = query.Where(o =>
+                    o.OrderDate.Date == date);
+            }
 
             return base.AddFilter(query, search);
         }
