@@ -50,7 +50,9 @@ class _UserListScreenState extends State<UserListScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
 
-      ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
     }
   }
 
@@ -69,23 +71,21 @@ class _UserListScreenState extends State<UserListScreen> {
         title: const Text('Users'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-       floatingActionButton: FloatingActionButton(
-    backgroundColor: const Color(0xFF8B5A3C),
-    foregroundColor: Colors.white,
-    child: const Icon(Icons.add),
-    onPressed: () async {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const UserEditScreen(),
-        ),
-      );
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF8B5A3C),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserEditScreen()),
+          );
 
-      if (result == 'refresh') {
-        _loadUsers();
-      }
-    },
-  ),
+          if (result == 'refresh') {
+            _loadUsers();
+          }
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
