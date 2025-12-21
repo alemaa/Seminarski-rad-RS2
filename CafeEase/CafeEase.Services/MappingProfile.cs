@@ -34,7 +34,9 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Review, Model.Review>();
             CreateMap<ReviewInsertRequest, Database.Review>();
             CreateMap<ReviewUpdateRequest, Database.Review>();
-            CreateMap<Database.Reservation, Model.Reservation>().ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number));
+            CreateMap<Database.Reservation, Model.Reservation>().ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number)).
+                ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User != null ? src.User.FirstName + " " + src.User.LastName : null))
+                .ForMember(dest => dest.UserMail, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null));
             CreateMap<ReservationInsertRequest, Database.Reservation>();
             CreateMap<ReservationUpdateRequest, Database.Reservation>();
             CreateMap<Database.Recommendation, Model.Recommendation>().ReverseMap();
@@ -44,6 +46,8 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Inventory, Model.Inventory>().ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
             CreateMap<InventoryInsertRequest, Database.Inventory>();
             CreateMap<InventoryUpdateRequest, Database.Inventory>();
+            CreateMap<Database.City, Model.City>();
+            CreateMap<CityUpsertRequest, Database.City>();
         }
     }
 }

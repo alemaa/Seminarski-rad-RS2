@@ -13,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<CafeEaseDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IUserService, UserService>();
@@ -28,6 +30,7 @@ builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IRecommendationService, RecommendationService>();
 builder.Services.AddTransient<ITableService, TableService>();
 builder.Services.AddTransient<IInventoryService, InventoryService>();   
+builder.Services.AddTransient<ICityService, CityService>(); 
 
 builder.Services.AddControllers(options =>
 {
