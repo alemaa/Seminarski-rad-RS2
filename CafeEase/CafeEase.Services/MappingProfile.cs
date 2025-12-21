@@ -31,7 +31,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.Promotion, Model.Promotion>();
             CreateMap<PromotionInsertRequest, Database.Promotion>();
             CreateMap<PromotionUpdateRequest, Database.Promotion>();
-            CreateMap<Database.Review, Model.Review>();
+            CreateMap<Database.Review, Model.Review>().ForMember(d => d.UserFullName, o => o.MapFrom(s => s.User.FirstName + " " + s.User.LastName)).ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.Name));
             CreateMap<ReviewInsertRequest, Database.Review>();
             CreateMap<ReviewUpdateRequest, Database.Review>();
             CreateMap<Database.Reservation, Model.Reservation>().ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number)).
