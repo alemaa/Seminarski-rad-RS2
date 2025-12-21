@@ -9,23 +9,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Linq.Expressions;
 
 namespace CafeEase.Services
 {
     public class ReservationService : BaseCRUDService<Model.Reservation, Database.Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
-        public ReservationService(CafeEaseDbContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public ReservationService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(context, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public override async Task BeforeInsert(Database.Reservation entity, ReservationInsertRequest insert)
         {
+            var userIdentifier = _httpContextAccessor.HttpContext?.User?
+                .Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+   
+            if (string.IsNullOrWhiteSpace(userIdentifier))
+                throw new UserException("User not authenticated");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == userIdentifier);
+
+            if (user == null)
+                throw new UserException("User not found");
+
+            entity.UserId = user.Id;
+
             var table = await _context.Tables.FindAsync(insert.TableId);
+
             if (table == null)
             {
                 throw new UserException("Selected table does not exist");
             }
+
             if(table.IsOccupied)
             {
                 throw new UserException("Selected table is already occupied");
@@ -35,8 +56,9 @@ namespace CafeEase.Services
             {
                 throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
+
             table.IsOccupied = true;
-            entity.UserId = 1;
+            
             entity.Status = "Pending";
         }
 
@@ -110,7 +132,7 @@ namespace CafeEase.Services
         }
         public override IQueryable<Database.Reservation> AddInclude(IQueryable<Database.Reservation> query,ReservationSearchObject? search = null)
         {
-            return query.Include(r => r.Table);
+            return query.Include(r => r.User).Include(r => r.Table);
         }
 
         public override async Task<Model.Reservation> Delete(int id)

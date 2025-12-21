@@ -14,6 +14,8 @@ Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
   reservationDateTime: DateTime.parse(json['reservationDateTime'] as String),
   numberOfGuests: (json['numberOfGuests'] as num).toInt(),
   status: json['status'] as String,
+  userFullName: json['userFullName'] as String?,
+  userEmail: json['userEmail'] as String?,
 );
 
 Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
@@ -25,4 +27,6 @@ Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
       'reservationDateTime': instance.reservationDateTime.toIso8601String(),
       'numberOfGuests': instance.numberOfGuests,
       'status': instance.status,
+      'userFullName': instance.userFullName,
+      'userEmail': instance.userEmail,
     };

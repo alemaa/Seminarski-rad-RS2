@@ -46,7 +46,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
         _reservations = result.result;
         _isLoading = false;
       });
-      
     } catch (e) {
       setState(() => _isLoading = false);
 
@@ -210,7 +209,9 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                         'Date: ${_formatDate(r.reservationDateTime)}',
                                       ),
                                       Text('Guests: ${r.numberOfGuests}'),
-                                      Text('UserId: ${r.userId}'),
+                                      Text(
+                                        'User: ${r.userFullName ?? 'Unknown'}',
+                                      ),
                                     ],
                                   ),
                                   trailing: Container(

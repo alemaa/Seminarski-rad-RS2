@@ -8,7 +8,6 @@ namespace CafeEase.Model.Requests
 {
     public class ReservationInsertRequest
     {
-        public int UserId { get; set; }
         public int TableId { get; set; }
         public DateTime ReservationDateTime { get; set; }
         public int NumberOfGuests { get; set; }
