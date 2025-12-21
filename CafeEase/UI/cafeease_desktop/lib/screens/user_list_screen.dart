@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../providers/user_provider.dart';
 import 'user_detail_screen.dart';
+import 'user_edit_screen.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({Key? key}) : super(key: key);
@@ -68,6 +69,23 @@ class _UserListScreenState extends State<UserListScreen> {
         title: const Text('Users'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
+       floatingActionButton: FloatingActionButton(
+    backgroundColor: const Color(0xFF8B5A3C),
+    foregroundColor: Colors.white,
+    child: const Icon(Icons.add),
+    onPressed: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const UserEditScreen(),
+        ),
+      );
+
+      if (result == 'refresh') {
+        _loadUsers();
+      }
+    },
+  ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
