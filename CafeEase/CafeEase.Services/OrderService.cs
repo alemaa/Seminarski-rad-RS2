@@ -10,8 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using CafeEase.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-namespace CafeEase.Services {
-    public class OrderService : BaseCRUDService< Model.Order, Database.Order,OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
+namespace CafeEase.Services
+{
+    public class OrderService : BaseCRUDService<Model.Order, Database.Order, OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         public OrderService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
@@ -20,7 +21,7 @@ namespace CafeEase.Services {
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public override async Task BeforeInsert(Database.Order entity,OrderInsertRequest insert)
+        public override async Task BeforeInsert(Database.Order entity, OrderInsertRequest insert)
         {
             decimal total = 0;
 
@@ -119,24 +120,36 @@ namespace CafeEase.Services {
                 .Include(o => o.Table)
                 .Include(o => o.City);
         }
-
         public override IQueryable<Database.Order> AddFilter(IQueryable<Database.Order> query, OrderSearchObject? search = null)
         {
-            if (search?.UserId.HasValue == true)
-                query = query.Where(x => x.UserId == search.UserId);
+            if (search == null)
+                return base.AddFilter(query, search);
 
-            if (search?.TableId.HasValue == true)
-                query = query.Where(x => x.TableId == search.TableId);
+            if (search.OrderId.HasValue)
+                query = query.Where(o => o.Id == search.OrderId);
 
-            if (!string.IsNullOrWhiteSpace(search?.Status))
-                query = query.Where(x => x.Status == search.Status);
+            if (search.UserId.HasValue)
+                query = query.Where(o => o.UserId == search.UserId);
+
+            if (!string.IsNullOrWhiteSpace(search.UserName))
+            {
+                var userName = search.UserName.ToLower();
+
+                query = query.Where(o =>
+                    o.User.FirstName.ToLower().Contains(userName) ||
+                    o.User.LastName.ToLower().Contains(userName));
+            }
+
+            if (search.TableId.HasValue)
+                query = query.Where(o => o.TableId == search.TableId);
+
+            if (!string.IsNullOrWhiteSpace(search.Status))
+                query = query.Where(o => o.Status == search.Status);
 
             if (search.Date.HasValue)
             {
                 var date = search.Date.Value.Date;
-
-                query = query.Where(o =>
-                    o.OrderDate.Date == date);
+                query = query.Where(o => o.OrderDate.Date == date);
             }
 
             return base.AddFilter(query, search);

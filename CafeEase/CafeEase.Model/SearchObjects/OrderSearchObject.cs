@@ -12,5 +12,7 @@ namespace CafeEase.Model.SearchObjects
         public int? TableId { get; set; }
         public string? Status { get; set; }
         public DateTime? Date {  get; set; }
+        public int? OrderId { get; set; }
+        public string? UserName { get; set; }
     }
 }
