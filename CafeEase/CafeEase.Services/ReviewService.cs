@@ -28,6 +28,7 @@ namespace CafeEase.Services
         {
             entity.DateCreated = DateTime.Now;
 
+
             var user = _httpContextAccessor.HttpContext?.User;
 
             if (user == null || !user.Identity.IsAuthenticated)
@@ -44,6 +45,18 @@ namespace CafeEase.Services
                 throw new UserException("User not found");
 
             entity.UserId = dbUser.Id;
+        }
+
+        public override async Task<Model.Review> Insert(ReviewInsertRequest request)
+        {
+            var entity = await base.Insert(request);
+
+            var fullEntity = await _context.Reviews
+                .Include(r => r.Product)
+                .Include(r => r.User)
+                .FirstAsync(r => r.Id == entity.Id);
+
+            return _mapper.Map<Model.Review>(fullEntity);
         }
 
         public override IQueryable<Database.Review> AddInclude(IQueryable<Database.Review> query, ReviewSearchObject? search = null)
