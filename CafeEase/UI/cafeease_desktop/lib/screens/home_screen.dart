@@ -60,13 +60,11 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             Expanded(
-              child: GridView(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 300,
-                  mainAxisSpacing: 20,
-                  crossAxisSpacing: 20,
-                  childAspectRatio: 1.6,
-                ),
+              child: GridView.count(
+                crossAxisCount: 3,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: 2,
                 padding: const EdgeInsets.all(24),
                 children: [
                   _buildCard(
@@ -157,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-                    _buildCard(
+                  _buildCard(
                     icon: Icons.discount,
                     title: 'Promotion',
                     onTap: () {
