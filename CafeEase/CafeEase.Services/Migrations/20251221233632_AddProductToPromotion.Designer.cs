@@ -4,6 +4,7 @@ using CafeEase.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    partial class CafeEaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251221233632_AddProductToPromotion")]
+    partial class AddProductToPromotion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -337,27 +340,17 @@ namespace CafeEase.Services.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ProductId");
+
                     b.ToTable("Promotions");
-                });
-
-            modelBuilder.Entity("CafeEase.Services.Database.PromotionCategory", b =>
-                {
-                    b.Property<int>("PromotionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PromotionId", "CategoryId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Recommendation", b =>
@@ -681,23 +674,13 @@ namespace CafeEase.Services.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("CafeEase.Services.Database.PromotionCategory", b =>
+            modelBuilder.Entity("CafeEase.Services.Database.Promotion", b =>
                 {
-                    b.HasOne("CafeEase.Services.Database.Category", "Category")
-                        .WithMany("PromotionCategories")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("CafeEase.Services.Database.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
 
-                    b.HasOne("CafeEase.Services.Database.Promotion", "Promotion")
-                        .WithMany("PromotionCategories")
-                        .HasForeignKey("PromotionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Promotion");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Reservation", b =>
@@ -752,8 +735,6 @@ namespace CafeEase.Services.Migrations
             modelBuilder.Entity("CafeEase.Services.Database.Category", b =>
                 {
                     b.Navigation("Products");
-
-                    b.Navigation("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.City", b =>
@@ -772,11 +753,6 @@ namespace CafeEase.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("CafeEase.Services.Database.Promotion", b =>
-                {
-                    b.Navigation("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Role", b =>
