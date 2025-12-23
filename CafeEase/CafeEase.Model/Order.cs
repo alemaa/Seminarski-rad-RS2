@@ -12,5 +12,6 @@ namespace CafeEase.Model
         public string? Status { get; set; }
         public int UserId { get; set; }
         public int TableId { get; set; }
+        public string UserFullName { get; set; }
     }
 }

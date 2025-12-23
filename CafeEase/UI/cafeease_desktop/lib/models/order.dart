@@ -10,6 +10,7 @@ class Order {
   String? status;
   int? userId;
   int? tableId;
+  String? userFullName;
 
   Order({
     this.id,
@@ -18,6 +19,7 @@ class Order {
     this.status,
     this.userId,
     this.tableId,
+    this.userFullName,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) =>

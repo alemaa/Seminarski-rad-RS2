@@ -8,7 +8,6 @@ namespace CafeEase.Model.Requests
 {
     public class OrderItemInsertRequest
     {
-        public int OrderId {  get; set; }
         public int ProductId { get; set; }
         public int Quantity { get; set; }
     }

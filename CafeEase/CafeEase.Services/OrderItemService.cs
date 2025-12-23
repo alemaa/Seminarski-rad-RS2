@@ -36,7 +36,6 @@ namespace CafeEase.Services
             if (product == null)
                 throw new Exception("Product not found");
 
-            entity.OrderId = insert.OrderId;
             entity.ProductId = insert.ProductId;
             entity.Quantity = insert.Quantity;
             entity.Price = product.Price;

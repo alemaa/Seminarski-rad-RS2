@@ -8,12 +8,16 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using CafeEase.Services.Exceptions;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 namespace CafeEase.Services {
     public class OrderService : BaseCRUDService< Model.Order, Database.Order,OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
     {
-        public OrderService(CafeEaseDbContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public OrderService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(context, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public override async Task BeforeInsert(Database.Order entity,OrderInsertRequest insert)
@@ -24,8 +28,7 @@ namespace CafeEase.Services {
             {
                 foreach (var item in insert.Items)
                 {
-                    var product = await _context.Products
-                        .FirstOrDefaultAsync(x => x.Id == item.ProductId);
+                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
 
                     if (product == null)
                         throw new Exception("Product not found");
@@ -36,19 +39,31 @@ namespace CafeEase.Services {
 
                 entity.OrderItems = insert.Items.Select(item =>
                 {
-                    var product = _context.Products
-                        .First(x => x.Id == item.ProductId);
+                    var product = _context.Products.First(x => x.Id == item.ProductId);
 
                     return new Database.OrderItem
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        Price = product.Price 
+                        Price = product.Price
                     };
                 }).ToList();
             }
 
-            entity.UserId = insert.UserId;
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user == null || !user.Identity.IsAuthenticated)
+                throw new UserException("User not authenticated");
+
+            var username = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value;
+
+            var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (dbUser == null)
+                throw new UserException("User not found");
+
+            entity.UserId = dbUser.Id;
+
             entity.TableId = insert.TableId;
             entity.CityId = insert.CityId;
 
@@ -56,13 +71,9 @@ namespace CafeEase.Services {
             entity.TotalAmount = total;
             entity.Status = "Pending";
         }
-        public override async Task<Model.Order> Update(
-            int id,
-            OrderUpdateRequest update)
+        public override async Task<Model.Order> Update(int id, OrderUpdateRequest update)
         {
-            var entity = await _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == id);
+            var entity = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == id);
 
             if (entity == null)
                 throw new UserException("Order not found");
@@ -80,8 +91,7 @@ namespace CafeEase.Services {
             {
                 foreach (var item in entity.OrderItems)
                 {
-                    var inventory = await _context.Inventories
-                        .FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
+                    var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
 
                     if (inventory == null)
                         throw new UserException(
@@ -102,10 +112,15 @@ namespace CafeEase.Services {
             return _mapper.Map<Model.Order>(entity);
         }
 
+        public override IQueryable<Database.Order> AddInclude(IQueryable<Database.Order> query, OrderSearchObject? search = null)
+        {
+            return query
+                .Include(o => o.User)
+                .Include(o => o.Table)
+                .Include(o => o.City);
+        }
 
-        public override IQueryable<Database.Order> AddFilter(
-            IQueryable<Database.Order> query,
-            OrderSearchObject? search = null)
+        public override IQueryable<Database.Order> AddFilter(IQueryable<Database.Order> query, OrderSearchObject? search = null)
         {
             if (search?.UserId.HasValue == true)
                 query = query.Where(x => x.UserId == search.UserId);
