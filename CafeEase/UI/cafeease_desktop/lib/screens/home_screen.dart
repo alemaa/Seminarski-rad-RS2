@@ -1,4 +1,5 @@
 import 'package:cafeease_desktop/screens/category_list_screen.dart';
+import 'package:cafeease_desktop/screens/promotion_list_screen.dart';
 import 'package:cafeease_desktop/screens/review_list_screen.dart';
 import 'package:cafeease_desktop/screens/table_list_screen.dart';
 import 'package:cafeease_desktop/screens/user_list_screen.dart';
@@ -146,12 +147,23 @@ class HomeScreen extends StatelessWidget {
                     },
                   ),
                   _buildCard(
-                    icon: Icons.bar_chart,
+                    icon: Icons.manage_accounts,
                     title: 'User management',
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const UserListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                    _buildCard(
+                    icon: Icons.discount,
+                    title: 'Promotion',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PromotionListScreen(),
                         ),
                       );
                     },
