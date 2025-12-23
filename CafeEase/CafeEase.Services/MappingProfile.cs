@@ -2,6 +2,7 @@
 using CafeEase.Model;
 using CafeEase.Model.Requests;
 using CafeEase.Services.Database;
+using System.Linq;
 
 namespace CafeEase.Services.Mapping
 {
@@ -18,7 +19,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<ProductInsertRequest, Database.Product>();
             CreateMap<ProductUpdateRequest, Database.Product>();
             CreateMap<OrderInsertRequest, Database.Order>();
-            CreateMap<Database.Order, Model.Order>();
+            CreateMap<Database.Order, Model.Order>().ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName));
             CreateMap<Database.OrderItem, Model.OrderItem>().ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
             CreateMap<OrderItemInsertRequest, Database.OrderItem>();
             CreateMap<OrderItemUpdateRequest, Database.OrderItem>();
@@ -28,7 +29,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.LoyaltyPoints, Model.LoyaltyPoints>();
             CreateMap<LoyaltyPointsInsertRequest, Database.LoyaltyPoints>();
             CreateMap<LoyaltyPointsUpdateRequest, Database.LoyaltyPoints>();
-            CreateMap<Database.Promotion, Model.Promotion>();
+            CreateMap<Database.Promotion, Model.Promotion>().ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.PromotionCategories.Where(pc => pc.Category != null).Select(pc => pc.Category)));
             CreateMap<PromotionInsertRequest, Database.Promotion>();
             CreateMap<PromotionUpdateRequest, Database.Promotion>();
             CreateMap<Database.Review, Model.Review>().ForMember(d => d.UserFullName, o => o.MapFrom(s => s.User.FirstName + " " + s.User.LastName)).ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.Name));
