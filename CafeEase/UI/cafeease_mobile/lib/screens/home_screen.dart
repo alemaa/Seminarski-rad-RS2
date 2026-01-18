@@ -3,6 +3,9 @@ import '../utils/util.dart';
 import 'login_screen.dart';
 import 'product_list_screen.dart';
 import 'cart_screen.dart';
+import 'order_screen.dart';
+import 'review_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -93,19 +96,37 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.receipt_long,
                     title: 'My Orders',
                     subtitle: 'Order history',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const OrdersScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildCard(
                     icon: Icons.star_rate,
                     title: 'Add Review',
                     subtitle: 'Rate products',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReviewsScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildCard(
                     icon: Icons.person,
                     title: 'Profile',
                     subtitle: 'Account info',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
