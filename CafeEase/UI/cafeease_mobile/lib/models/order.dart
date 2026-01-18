@@ -11,6 +11,7 @@ class Order {
   double? totalAmount;
   int? tableId;
   int? userId;
+  String? userFullName;
   List<OrderItem>? items;
 
   Order({
@@ -20,6 +21,7 @@ class Order {
     this.totalAmount,
     this.tableId,
     this.userId,
+    this.userFullName,
     this.items,
   });
 
