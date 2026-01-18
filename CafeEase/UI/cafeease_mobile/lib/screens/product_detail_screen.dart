@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../screens/add_review_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -100,27 +101,54 @@ class ProductDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5A3C),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+            Column(
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5A3C),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await cart.add(product);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Added to cart')),
+                    );
+                  },
+                  icon:
+                      const Icon(Icons.add_shopping_cart, color: Colors.white),
+                  label: const Text(
+                    'Add to cart',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-                onPressed: () async {
-                  await cart.add(product);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to cart')),
-                  );
-                },
-                icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
-                label: const Text('Add to cart',
-                    style: TextStyle(color: Colors.white)),
-              ),
-            ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF8B5A3C)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddReviewScreen(
+                          productId: product.id!,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.star, color: Color(0xFF8B5A3C)),
+                  label: const Text(
+                    'Add review',
+                    style: TextStyle(color: Color(0xFF8B5A3C)),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),
