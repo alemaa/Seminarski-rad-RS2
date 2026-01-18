@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
 import '../utils/util.dart';
 import 'home_screen.dart';
+import '../providers/user_provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final productProvider = context.read<ProductProvider>();
+    final userProvider = context.read<UserProvider>();
 
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
@@ -34,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (username.isEmpty || password.isEmpty) {
       _showErrorDialog(
         title: 'Login failed',
-        message: 'Unesi username i password.',
+        message: 'Enter username and password.',
       );
       return;
     }
@@ -47,6 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await productProvider.get();
 
+      final usersResponse = await userProvider.get();
+
+      final loggedUser = usersResponse.result.firstWhere(
+        (u) => u.username == Authorization.username,
+      );
+      Authorization.userId = loggedUser.id;
+
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
@@ -55,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       Authorization.username = null;
       Authorization.password = null;
+      Authorization.userId = null;
 
       if (!mounted) return;
 
@@ -186,6 +197,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(fontSize: 16),
                               ),
                       ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterScreen()),
+                        );
+                      },
+                      child: const Text("Don’t have an account? Register"),
                     ),
                   ],
                 ),
