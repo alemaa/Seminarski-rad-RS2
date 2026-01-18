@@ -47,6 +47,22 @@ class CartProvider with ChangeNotifier {
     await _saveToStorage();
   }
 
+  Future<void> addToCartWithQty(Product product, int qty) async {
+    if (qty <= 0) return;
+
+    final item = findInCart(product);
+
+    if (item != null) {
+      item.count += qty;
+    } else {
+      cart.items.add(CartItem(product, qty));
+    }
+
+    _calculateTotal();
+    notifyListeners();
+    await _saveToStorage();
+  }
+
   Future<void> decreaseQuantity(Product product) async {
     final item = findInCart(product);
     if (item == null) return;
