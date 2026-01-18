@@ -87,6 +87,19 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return fromJson(data);
   }
 
+  Future<void> updateVoid(int id, dynamic request) async {
+    var uri = Uri.parse('$_baseUrl$_endpoint/$id');
+    var headers = createHeaders();
+
+    var response = await http.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(request),
+    );
+
+    isValidResponse(response);
+  }
+
   Future<void> delete(int id) async {
     var uri = Uri.parse('$_baseUrl$_endpoint/$id');
     var headers = createHeaders();
@@ -98,6 +111,13 @@ abstract class BaseProvider<T> with ChangeNotifier {
   void isValidResponse(http.Response response) {
     if (response.statusCode < 300) return;
 
+    if (response.statusCode == 401) {
+      throw Exception("Incorrect username or password");
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception("Access denied");
+    }
     try {
       final decoded = jsonDecode(response.body);
 
