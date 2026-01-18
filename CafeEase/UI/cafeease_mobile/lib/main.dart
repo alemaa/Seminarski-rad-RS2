@@ -5,6 +5,9 @@ import 'providers/product_provider.dart';
 import 'providers/category_provider.dart';
 import 'screens/login_screen.dart';
 import 'providers/cart_provider.dart';
+import 'providers/order_item_provider.dart';
+import 'providers/review_provider.dart';
+import 'providers/user_provider.dart';
 
 void main() {
   runApp(
@@ -14,6 +17,9 @@ void main() {
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => OrderItemProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const CafeEaseApp(),
     ),
