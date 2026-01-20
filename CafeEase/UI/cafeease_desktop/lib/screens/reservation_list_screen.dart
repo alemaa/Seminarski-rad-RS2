@@ -55,6 +55,11 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     }
   }
 
+  bool _isCancelled(String? status) {
+    final s = (status ?? '').toLowerCase();
+    return s == 'cancelled' || s == 'canceled';
+  }
+
   Color _statusColor(String? status) {
     final s = (status ?? '').toLowerCase();
     if (s == 'approved' || s == 'confirmed') return Colors.green;
@@ -93,7 +98,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
         title: const Text('Reservations'),
         backgroundColor: const Color(0xFF6F4E37),
       ),
-
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -132,7 +136,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                       _loadReservations();
                     },
                   ),
-
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -170,7 +173,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                       ],
                     ),
                   ),
-
                   Expanded(
                     child: _reservations.isEmpty
                         ? const Center(child: Text('No reservations found.'))
@@ -180,24 +182,43 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                 const SizedBox(height: 10),
                             itemBuilder: (context, index) {
                               final r = _reservations[index];
+                              final isCancelled = _isCancelled(r.status);
 
                               return Card(
-                                color: const Color(0xFFCDB08F),
-                                elevation: 4,
+                                color: isCancelled
+                                    ? Colors.grey.shade300
+                                    : const Color(0xFFCDB08F),
+                                elevation: isCancelled ? 1 : 4,
                                 shadowColor: Colors.black26,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
+                                  side: isCancelled
+                                      ? BorderSide(
+                                          color: Colors.red.shade300,
+                                          width: 1,
+                                        )
+                                      : BorderSide.none,
                                 ),
                                 child: ListTile(
-                                  leading: const Icon(
-                                    Icons.event_seat,
-                                    color: Color(0xFF6F4E37),
+                                  leading: Icon(
+                                    isCancelled
+                                        ? Icons.event_busy
+                                        : Icons.event_seat,
+                                    color: isCancelled
+                                        ? Colors.red.shade400
+                                        : const Color(0xFF6F4E37),
                                     size: 32,
                                   ),
                                   title: Text(
                                     'Table: ${r.tableNumber}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: isCancelled
+                                          ? Colors.grey.shade700
+                                          : Colors.black,
+                                      decoration: isCancelled
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
                                     ),
                                   ),
                                   subtitle: Column(
@@ -207,10 +228,27 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         'Date: ${_formatDate(r.reservationDateTime)}',
+                                        style: TextStyle(
+                                          color: isCancelled
+                                              ? Colors.grey.shade700
+                                              : Colors.black87,
+                                        ),
                                       ),
-                                      Text('Guests: ${r.numberOfGuests}'),
+                                      Text(
+                                        'Guests: ${r.numberOfGuests}',
+                                        style: TextStyle(
+                                          color: isCancelled
+                                              ? Colors.grey.shade700
+                                              : Colors.black87,
+                                        ),
+                                      ),
                                       Text(
                                         'User: ${r.userFullName ?? 'Unknown'}',
+                                        style: TextStyle(
+                                          color: isCancelled
+                                              ? Colors.grey.shade700
+                                              : Colors.black87,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -232,21 +270,23 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                       ),
                                     ),
                                   ),
-                                  onTap: () async {
-                                    final result = await Navigator.of(context)
-                                        .push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                ReservationDetailScreen(
-                                                  reservation: r,
+                                  onTap: isCancelled
+                                      ? null
+                                      : () async {
+                                          final result =
+                                              await Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      ReservationDetailScreen(
+                                                        reservation: r,
+                                                      ),
                                                 ),
-                                          ),
-                                        );
+                                              );
 
-                                    if (result == 'refresh') {
-                                      _loadReservations();
-                                    }
-                                  },
+                                          if (result == 'refresh') {
+                                            _loadReservations();
+                                          }
+                                        },
                                 ),
                               );
                             },
@@ -255,7 +295,6 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                 ],
               ),
             ),
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF8B5A3C),
         foregroundColor: Colors.white,
