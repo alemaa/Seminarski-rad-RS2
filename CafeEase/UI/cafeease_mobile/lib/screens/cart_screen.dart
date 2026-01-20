@@ -294,8 +294,7 @@ class _CartScreenState extends State<CartScreen> {
                               .toList();
 
                           final request = OrderRequest(
-                            tableId: 2,
-                            cityId: 1,
+                            tableId: 1,
                             items: items,
                           );
 
@@ -312,7 +311,7 @@ class _CartScreenState extends State<CartScreen> {
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content: Text("Failed to place order: $e")),
+                                  content: Text(e.toString())),
                             );
                           }
                         },
