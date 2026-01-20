@@ -33,7 +33,8 @@ namespace CafeEase.Services.Database
                  Email = "admin@cafeease.com",
                  PasswordHash = "L0uD9aDjQiZ6US9mT63C+tMvcSk=",
                  PasswordSalt = "js30TX4cHnStZnZM8pWbcg==",
-                 RoleId = 1
+                 RoleId = 1,
+                 CityId = 1,
              },
              new User
              {
@@ -44,7 +45,8 @@ namespace CafeEase.Services.Database
                  Email = "mobileuser@cafeease.com",
                  PasswordHash = "w6NEGcaz3XwZej0uJcY1mJIWrAI=",
                  PasswordSalt = "tNcmHa/vi33ilAmQImsPhg==",
-                 RoleId = 2
+                 RoleId = 2,
+                 CityId = 2,
              },
              new User
              {
@@ -55,7 +57,8 @@ namespace CafeEase.Services.Database
                  Email = "test@cafeease.com",
                  PasswordHash = "dlKlLumk23Dx2D3OgAiBbZsFmfo=",
                  PasswordSalt = "ym5obohaOyqCOlyuhaGxGQ==",
-                 RoleId = 2
+                 RoleId = 2,
+                 CityId = 2,
              }
             );
 

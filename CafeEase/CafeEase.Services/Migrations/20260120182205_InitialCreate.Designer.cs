@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    [Migration("20251215185916_InitialCreate")]
+    [Migration("20260120182205_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -169,9 +169,6 @@ namespace CafeEase.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
@@ -188,8 +185,6 @@ namespace CafeEase.Services.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CityId");
 
                     b.HasIndex("TableId");
 
@@ -346,6 +341,21 @@ namespace CafeEase.Services.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Promotions");
+                });
+
+            modelBuilder.Entity("CafeEase.Services.Database.PromotionCategory", b =>
+                {
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PromotionId", "CategoryId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Recommendation", b =>
@@ -516,6 +526,9 @@ namespace CafeEase.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CityId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
@@ -539,6 +552,8 @@ namespace CafeEase.Services.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CityId");
+
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
@@ -547,6 +562,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 1,
+                            CityId = 1,
                             Email = "admin@cafeease.com",
                             FirstName = "Admin",
                             LastName = "Admin",
@@ -558,6 +574,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 2,
+                            CityId = 2,
                             Email = "mobileuser@cafeease.com",
                             FirstName = "Mobile",
                             LastName = "User",
@@ -569,6 +586,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 3,
+                            CityId = 2,
                             Email = "test@cafeease.com",
                             FirstName = "Test",
                             LastName = "User",
@@ -603,12 +621,6 @@ namespace CafeEase.Services.Migrations
 
             modelBuilder.Entity("CafeEase.Services.Database.Order", b =>
                 {
-                    b.HasOne("CafeEase.Services.Database.City", "City")
-                        .WithMany("Orders")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("CafeEase.Services.Database.Table", "Table")
                         .WithMany("Orders")
                         .HasForeignKey("TableId")
@@ -620,8 +632,6 @@ namespace CafeEase.Services.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("City");
 
                     b.Navigation("Table");
 
@@ -669,6 +679,25 @@ namespace CafeEase.Services.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("CafeEase.Services.Database.PromotionCategory", b =>
+                {
+                    b.HasOne("CafeEase.Services.Database.Category", "Category")
+                        .WithMany("PromotionCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeEase.Services.Database.Promotion", "Promotion")
+                        .WithMany("PromotionCategories")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Promotion");
+                });
+
             modelBuilder.Entity("CafeEase.Services.Database.Reservation", b =>
                 {
                     b.HasOne("CafeEase.Services.Database.Table", "Table")
@@ -709,11 +738,17 @@ namespace CafeEase.Services.Migrations
 
             modelBuilder.Entity("CafeEase.Services.Database.User", b =>
                 {
+                    b.HasOne("CafeEase.Services.Database.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId");
+
                     b.HasOne("CafeEase.Services.Database.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("City");
 
                     b.Navigation("Role");
                 });
@@ -721,11 +756,8 @@ namespace CafeEase.Services.Migrations
             modelBuilder.Entity("CafeEase.Services.Database.Category", b =>
                 {
                     b.Navigation("Products");
-                });
 
-            modelBuilder.Entity("CafeEase.Services.Database.City", b =>
-                {
-                    b.Navigation("Orders");
+                    b.Navigation("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Order", b =>
@@ -739,6 +771,11 @@ namespace CafeEase.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("CafeEase.Services.Database.Promotion", b =>
+                {
+                    b.Navigation("PromotionCategories");
                 });
 
             modelBuilder.Entity("CafeEase.Services.Database.Role", b =>

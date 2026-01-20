@@ -123,6 +123,30 @@ namespace CafeEase.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PromotionCategories",
+                columns: table => new
+                {
+                    PromotionId = table.Column<int>(type: "int", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PromotionCategories", x => new { x.PromotionId, x.CategoryId });
+                    table.ForeignKey(
+                        name: "FK_PromotionCategories_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PromotionCategories_Promotions_PromotionId",
+                        column: x => x.PromotionId,
+                        principalTable: "Promotions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -134,11 +158,17 @@ namespace CafeEase.Services.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RoleId = table.Column<int>(type: "int", nullable: false)
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    CityId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Cities_CityId",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Users_Roles_RoleId",
                         column: x => x.RoleId,
@@ -198,18 +228,11 @@ namespace CafeEase.Services.Migrations
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    TableId = table.Column<int>(type: "int", nullable: false),
-                    CityId = table.Column<int>(type: "int", nullable: false)
+                    TableId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Orders_Cities_CityId",
-                        column: x => x.CityId,
-                        principalTable: "Cities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Orders_Tables_TableId",
                         column: x => x.TableId,
@@ -384,12 +407,12 @@ namespace CafeEase.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Email", "FirstName", "LastName", "PasswordHash", "PasswordSalt", "RoleId", "Username" },
+                columns: new[] { "Id", "CityId", "Email", "FirstName", "LastName", "PasswordHash", "PasswordSalt", "RoleId", "Username" },
                 values: new object[,]
                 {
-                    { 1, "admin@cafeease.com", "Admin", "Admin", "L0uD9aDjQiZ6US9mT63C+tMvcSk=", "js30TX4cHnStZnZM8pWbcg==", 1, "desktop" },
-                    { 2, "mobileuser@cafeease.com", "Mobile", "User", "w6NEGcaz3XwZej0uJcY1mJIWrAI=", "tNcmHa/vi33ilAmQImsPhg==", 2, "mobile" },
-                    { 3, "test@cafeease.com", "Test", "User", "dlKlLumk23Dx2D3OgAiBbZsFmfo=", "ym5obohaOyqCOlyuhaGxGQ==", 2, "test" }
+                    { 1, 1, "admin@cafeease.com", "Admin", "Admin", "L0uD9aDjQiZ6US9mT63C+tMvcSk=", "js30TX4cHnStZnZM8pWbcg==", 1, "desktop" },
+                    { 2, 2, "mobileuser@cafeease.com", "Mobile", "User", "w6NEGcaz3XwZej0uJcY1mJIWrAI=", "tNcmHa/vi33ilAmQImsPhg==", 2, "mobile" },
+                    { 3, 2, "test@cafeease.com", "Test", "User", "dlKlLumk23Dx2D3OgAiBbZsFmfo=", "ym5obohaOyqCOlyuhaGxGQ==", 2, "test" }
                 });
 
             migrationBuilder.InsertData(
@@ -429,11 +452,6 @@ namespace CafeEase.Services.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_CityId",
-                table: "Orders",
-                column: "CityId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Orders_TableId",
                 table: "Orders",
                 column: "TableId");
@@ -451,6 +469,11 @@ namespace CafeEase.Services.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",
                 table: "Products",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PromotionCategories_CategoryId",
+                table: "PromotionCategories",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
@@ -474,6 +497,11 @@ namespace CafeEase.Services.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Users_CityId",
+                table: "Users",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
                 table: "Users",
                 column: "RoleId");
@@ -495,7 +523,7 @@ namespace CafeEase.Services.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "Promotions");
+                name: "PromotionCategories");
 
             migrationBuilder.DropTable(
                 name: "Recommendations");
@@ -510,10 +538,10 @@ namespace CafeEase.Services.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Promotions");
 
             migrationBuilder.DropTable(
-                name: "Cities");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Tables");
@@ -523,6 +551,9 @@ namespace CafeEase.Services.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "Cities");
 
             migrationBuilder.DropTable(
                 name: "Roles");
