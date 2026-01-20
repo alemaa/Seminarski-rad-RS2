@@ -95,6 +95,80 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  Future<void> _save() async {
+    if (_isSaving) return;
+
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedCategory?.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a category.")),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final productProvider = context.read<ProductProvider>();
+      final inventoryProvider = context.read<InventoryProvider>();
+
+      final request = {
+        "name": _nameController.text.trim(),
+        "price": double.parse(_priceController.text.trim()),
+        "description": _descriptionController.text.trim(),
+        "image": _base64Image ?? widget.product?.image,
+        "categoryId": _selectedCategory!.id,
+      };
+
+      int? productId;
+
+      if (isEdit) {
+        await productProvider.update(widget.product!.id!, request);
+        productId = widget.product!.id;
+      } else {
+        final created = await productProvider.insert(request);
+        productId = created.id;
+      }
+
+      if (productId == null) {
+        throw Exception("Product ID is missing after save.");
+      }
+
+      final invRes = await inventoryProvider.get(
+        filter: {"productId": productId},
+      );
+
+      final existingInv = (invRes.result.isNotEmpty)
+          ? invRes.result.first
+          : null;
+
+      if (existingInv == null) {
+        await inventoryProvider.insert({
+          "productId": productId,
+          "quantity": _quantity,
+        });
+      } else {
+        await inventoryProvider.update(existingInv.id!, {
+          "quantity": _quantity,
+        });
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context, 'refresh');
+    } catch (e, st) {
+      debugPrint("ADD/EDIT PRODUCT FAILED: $e");
+      debugPrint(st.toString());
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
@@ -266,7 +340,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                       ),
-                      
+
                     const SizedBox(height: 24),
 
                     SizedBox(
@@ -281,59 +355,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
 
-                        onPressed: _isSaving
-                            ? null
-                            : () async {
-                                if (!_formKey.currentState!.validate()) return;
-
-                                setState(() => _isSaving = true);
-
-                                final request = {
-                                  "name": _nameController.text,
-                                  "price": double.parse(_priceController.text),
-                                  "description": _descriptionController.text,
-                                  'image':
-                                      _base64Image ?? widget.product?.image,
-                                  "categoryId": _selectedCategory!.id,
-                                };
-
-                                try {
-                                  if (isEdit) {
-                                    await provider.update(
-                                      widget.product!.id!,
-                                      request,
-                                    );
-                                  } else {
-                                    await provider.insert(request);
-                                  }
-                                  final inventoryProvider = context
-                                      .read<InventoryProvider>();
-
-                                  if (_inventory == null) {
-                                    await inventoryProvider.insert({
-                                      'productId': widget.product!.id,
-                                      'quantity': _quantity,
-                                    });
-                                  } else {
-                                    await inventoryProvider.update(
-                                      _inventory!.id!,
-                                      {'quantity': _quantity},
-                                    );
-                                  }
-
-                                  if (!mounted) return;
-                                  Navigator.pop(context, 'refresh');
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Operation failed'),
-                                    ),
-                                  );
-                                } finally {
-                                  setState(() => _isSaving = false);
-                                }
-                              },
-
+                        onPressed: _isSaving ? null : _save,
                         child: _isSaving
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
