@@ -17,14 +17,28 @@ namespace CafeEase.Services
             IQueryable<Database.Table> query,
             TableSearchObject? search = null)
         {
-            if (search?.IsOccupied.HasValue == true)
-            {
-                query = query.Where(x => x.IsOccupied == search.IsOccupied);
-            }
-
             if (search?.Capacity.HasValue == true)
             {
                 query = query.Where(x => x.Capacity >= search.Capacity);
+            }
+
+            if (search?.Date.HasValue == true)
+            {
+                var day = search.Date.Value.Date;
+
+                var occupiedIds = _context.Reservations.Where(r => r.ReservationDateTime.Date == day
+                && r.Status != "Cancelled").Select(r => r.TableId).Distinct();
+
+                if (search.IsOccupied.HasValue)
+                {
+                    if (search.IsOccupied.Value) {
+                        query = query.Where(t => occupiedIds.Contains(t.Id));
+                    }
+
+                    else {
+                        query = query.Where(t => !occupiedIds.Contains(t.Id));
+                    }
+                }
             }
 
             return base.AddFilter(query, search);

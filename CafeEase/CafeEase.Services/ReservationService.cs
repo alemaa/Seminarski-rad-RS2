@@ -47,17 +47,27 @@ namespace CafeEase.Services
                 throw new UserException("Selected table does not exist");
             }
 
-            if(table.IsOccupied)
+            var date = insert.ReservationDateTime.Date;
+            var alreadyReservedThatDay = await _context.Reservations.AnyAsync(r =>
+            r.TableId == insert.TableId &&
+            r.ReservationDateTime.Date == date &&
+            r.Status != "Cancelled");
+
+
+            if (alreadyReservedThatDay)
             {
-                throw new UserException("Selected table is already occupied");
+                throw new Exception("Selected table is already reserved for that day.");
+            }
+
+            if(insert.ReservationDateTime.Date == DateTime.Today)
+            {
+                table.IsOccupied = true;
             }
 
             if (insert.NumberOfGuests > table.Capacity)
             {
                 throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
-
-            table.IsOccupied = true;
             
             entity.Status = "Pending";
         }
@@ -97,32 +107,57 @@ namespace CafeEase.Services
             if (entity == null)
                 throw new UserException("Reservation not found");
 
+            var targetTableId = update.TableId ?? entity.TableId;
+            var targetDate = (update.ReservationDateTime ?? entity.ReservationDateTime).Date;
+            var targetGuests = update.NumberOfGuests ?? entity.NumberOfGuests;
+
+            var table = entity.Table;
+            if (table == null || table.Id != targetTableId)
+                table = await _context.Tables.FindAsync(targetTableId);
+
+            if (table == null)
+                throw new UserException("Table not found");
+
+            if (targetGuests > table.Capacity)
+                throw new UserException($"Table capacity is {table.Capacity}. Cannot reserve for {targetGuests} guests.");
+
+            var changingTableOrDate = targetTableId != entity.TableId || targetDate != entity.ReservationDateTime.Date;
+            if (changingTableOrDate)
+            {
+                var alreadyReservedThatDay = await _context.Reservations.AnyAsync(r =>
+                    r.Id != id &&
+                    r.TableId == targetTableId &&
+                    r.ReservationDateTime.Date == targetDate &&
+                    r.Status != "Cancelled");
+
+                if (alreadyReservedThatDay)
+                    throw new UserException("Selected table is already reserved for that day.");
+            }
+
             var oldStatus = entity.Status;
 
             _mapper.Map(update, entity);
 
             if (oldStatus != "Cancelled" && entity.Status == "Cancelled")
             {
-                if (entity.Table != null)
+                if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
                 {
-                    entity.Table.IsOccupied = false;
+                    var anyOtherToday = await _context.Reservations.AnyAsync(r =>
+                        r.Id != id &&
+                        r.TableId == table.Id &&
+                        r.ReservationDateTime.Date == DateTime.Today &&
+                        r.Status != "Cancelled");
+
+                    table.IsOccupied = anyOtherToday;
                 }
             }
-
-            if (oldStatus == "Cancelled" &&
-                (entity.Status == "Pending" || entity.Status == "Confirmed"))
+            else if (oldStatus == "Cancelled" && (entity.Status == "Pending" || entity.Status == "Confirmed"))
             {
-                if (entity.Table == null)
-                    throw new UserException("Table not found");
-
-                if (entity.Table.IsOccupied)
-                    throw new UserException("Table is already occupied");
-
-                entity.Table.IsOccupied = true;
+                if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
+                    table.IsOccupied = true;
             }
 
             await _context.SaveChangesAsync();
-
             return _mapper.Map<Model.Reservation>(entity);
         }
 
@@ -140,12 +175,6 @@ namespace CafeEase.Services
             var entity = await _context.Reservations.FindAsync(id);
             if (entity == null)
                 return null;
-
-            var table = await _context.Tables.FindAsync(entity.TableId);
-            if (table != null)
-            {
-                table.IsOccupied = false;
-            }
 
             _context.Reservations.Remove(entity);
             await _context.SaveChangesAsync();
