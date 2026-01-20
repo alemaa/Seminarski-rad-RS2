@@ -73,20 +73,40 @@ public class RecommendationService : IRecommendationService
 
     public async Task<List<Model.Product>> GetRecommendedProducts(int productId)
     {
-        var recs = _context.Recommendations
+        var recs = await _context.Recommendations
             .Where(r => r.ProductId == productId)
             .OrderByDescending(r => r.Score)
             .Take(3)
-            .ToList();
+            .ToListAsync();
 
-        var products = recs
-            .Select(r => r.RecommendedProductId)
-            .ToList();
+        if (recs.Any())
+        {
+            var productIds = recs
+                .Select(r => r.RecommendedProductId)
+                .Where(id => id != productId) 
+                .Distinct()
+                .ToList();
 
-        var dbProducts = _context.Products
-            .Where(p => products.Contains(p.Id))
-            .ToList();
+            var dbProducts = await _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
 
-        return _mapper.Map<List<Model.Product>>(dbProducts);
+            return _mapper.Map<List<Model.Product>>(dbProducts);
+        }
+
+        var popularIds = await _context.OrderItems
+            .GroupBy(oi => oi.ProductId)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .Where(id => id != productId)
+            .Take(3)
+            .ToListAsync();
+
+        var fallbackProducts = await _context.Products
+            .Where(p => popularIds.Contains(p.Id))
+            .ToListAsync();
+
+        return _mapper.Map<List<Model.Product>>(fallbackProducts);
     }
+
 }
