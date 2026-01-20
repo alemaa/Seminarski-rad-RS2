@@ -16,5 +16,7 @@ namespace CafeEase.Services.Database
         public virtual Role Role { get; set; }
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual LoyaltyPoints LoyaltyPoints { get; set; }
+        public int? CityId { get; set; }
+        public virtual City? City { get; set; }
     }
 }

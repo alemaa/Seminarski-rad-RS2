@@ -21,10 +21,32 @@ namespace CafeEase.Services
         }
         public override async Task BeforeInsert(User entity, UserInsertRequest insert)
         {
+   
+            var cityExists = await _context.Cities.AnyAsync(c => c.Id == insert.CityId);
+            if (!cityExists)
+                throw new UserException("Selected city does not exist");
+
+            // 2) provjeri username
+            var usernameTaken = await _context.Users.AnyAsync(u => u.Username == insert.Username);
+            if (usernameTaken)
+                throw new UserException("Username is already taken");
+
+            // 3) provjeri email
+            var emailTaken = await _context.Users.AnyAsync(u => u.Email == insert.Email);
+            if (emailTaken)
+                throw new UserException("Email is already taken");
+
             entity.PasswordSalt = GenerateSalt();
             entity.PasswordHash = GenerateHash(entity.PasswordSalt, insert.Password);
         }
 
+        public override async Task BeforeUpdate(User entity, UserUpdateRequest update)
+        {
+           
+            var cityExists = await _context.Cities.AnyAsync(c => c.Id == update.CityId);
+            if (!cityExists)
+                throw new Exception("Selected city does not exist.");
+        }
         public static string GenerateSalt()
         {
             using var provider = new RNGCryptoServiceProvider();
@@ -73,9 +95,10 @@ namespace CafeEase.Services
         public override IQueryable<Database.User> AddInclude(IQueryable<Database.User> query, UserSearchObject search = null)
         {
             if (search?.IncludeRole == true)
-            {
                 query = query.Include(x => x.Role);
-            }
+
+            query = query.Include(x => x.City);
+
             return base.AddInclude(query, search);
         }
 

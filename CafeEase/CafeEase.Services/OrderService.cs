@@ -66,7 +66,6 @@ namespace CafeEase.Services
             entity.UserId = dbUser.Id;
 
             entity.TableId = insert.TableId;
-            entity.CityId = insert.CityId;
 
             entity.OrderDate = DateTime.Now;
             entity.TotalAmount = total;
@@ -117,8 +116,7 @@ namespace CafeEase.Services
         {
             return query
                 .Include(o => o.User)
-                .Include(o => o.Table)
-                .Include(o => o.City);
+                .Include(o => o.Table);
         }
         public override IQueryable<Database.Order> AddFilter(IQueryable<Database.Order> query, OrderSearchObject? search = null)
         {

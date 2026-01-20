@@ -17,9 +17,6 @@ namespace CafeEase.Services.Database
         public int TableId { get; set; }
         public virtual Table Table { get; set; }
 
-        public int CityId { get; set; }
-        public virtual City City { get; set; }
-
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }

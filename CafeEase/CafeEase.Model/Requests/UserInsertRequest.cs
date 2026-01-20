@@ -27,5 +27,7 @@ namespace CafeEase.Model.Requests
 
         [Required]
         public int RoleId { get; set; }
+        [Required]
+        public int CityId { get; set; }
     }
 }

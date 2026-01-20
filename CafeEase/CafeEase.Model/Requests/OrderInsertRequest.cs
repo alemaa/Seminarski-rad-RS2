@@ -9,7 +9,6 @@ namespace CafeEase.Model.Requests
     public class OrderInsertRequest
     {
         public int TableId { get; set; }
-        public int CityId { get; set; }
         public List<OrderItemInsertRequest>? Items { get; set; }
     }
 }
