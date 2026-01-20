@@ -87,6 +87,32 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return fromJson(data);
   }
 
+  Future<String> postCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.post(uri, headers: createHeaders());
+    isValidResponse(response);
+    return response.body;
+  }
+
+  Future<String> deleteCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.delete(uri, headers: createHeaders());
+    isValidResponse(response);
+
+    return response.body;
+  }
+
+  Future<dynamic> getCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.get(uri, headers: createHeaders());
+    isValidResponse(response);
+    final body = utf8.decode(response.bodyBytes);
+
+    if (body.trim().isEmpty) return null;
+
+    return jsonDecode(body);
+  }
+
   Future<void> updateVoid(int id, dynamic request) async {
     var uri = Uri.parse('$_baseUrl$_endpoint/$id');
     var headers = createHeaders();
@@ -118,9 +144,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
     if (response.statusCode == 403) {
       throw Exception("Access denied");
     }
+
     try {
       final decoded = jsonDecode(response.body);
-
       if (decoded is Map && decoded.containsKey('errors')) {
         if (decoded['errors']['userError'] != null &&
             decoded['errors']['userError'] is List &&

@@ -10,6 +10,7 @@ class User {
   String? username;
   String? email;
   int? roleId;
+  int? cityId;
 
   User({
     this.id,
@@ -18,6 +19,7 @@ class User {
     this.username,
     this.email,
     this.roleId,
+    this.cityId,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

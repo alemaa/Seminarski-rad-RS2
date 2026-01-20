@@ -11,6 +11,7 @@ class UserInsertRequest {
   String? password;
   String? passwordConfirmation;
   int? roleId;
+  int? cityId;
 
   UserInsertRequest({
     this.firstName,
@@ -20,6 +21,7 @@ class UserInsertRequest {
     this.password,
     this.passwordConfirmation,
     this.roleId,
+    this.cityId
   });
 
   factory UserInsertRequest.fromJson(Map<String, dynamic> json) =>

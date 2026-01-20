@@ -13,6 +13,7 @@ UserUpdateRequest _$UserUpdateRequestFromJson(Map<String, dynamic> json) =>
       email: json['email'] as String?,
       username: json['username'] as String?,
       roleId: (json['roleId'] as num?)?.toInt(),
+      cityId: (json['cityId'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UserUpdateRequestToJson(UserUpdateRequest instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$UserUpdateRequestToJson(UserUpdateRequest instance) =>
       'email': instance.email,
       'username': instance.username,
       'roleId': instance.roleId,
+      'cityId': instance.cityId,
     };

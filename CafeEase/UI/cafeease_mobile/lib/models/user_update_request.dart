@@ -8,9 +8,10 @@ class UserUpdateRequest {
   String? email;
   String? username;
   int? roleId;
+  int? cityId;
 
   UserUpdateRequest(
-      {this.firstName, this.lastName, this.email, this.username, this.roleId});
+      {this.firstName, this.lastName, this.email, this.username, this.roleId,this.cityId});
 
   factory UserUpdateRequest.fromJson(Map<String, dynamic> json) =>
       _$UserUpdateRequestFromJson(json);
