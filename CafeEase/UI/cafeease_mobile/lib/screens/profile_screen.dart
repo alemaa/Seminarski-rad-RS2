@@ -5,6 +5,8 @@ import '../models/user_update_request.dart';
 import '../providers/user_provider.dart';
 import '../utils/util.dart';
 import 'login_screen.dart';
+import '../models/city.dart';
+import '../providers/city_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +20,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _loading = true;
   bool _saving = false;
   bool _deleting = false;
+
+  int? _selectedCityId;
+  List<City> _cities = [];
+  bool _citiesLoading = false;
 
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
@@ -36,6 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadMe();
+    _loadCities();
   }
 
   Future<void> _loadMe() async {
@@ -55,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _lastName.text = user.lastName ?? "";
         _email.text = user.email ?? "";
         _username.text = user.username ?? "";
+        _selectedCityId = user.cityId;
         _loading = false;
       });
     } catch (e) {
@@ -64,6 +72,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SnackBar(content: Text("Failed to load profile: $e")),
         );
       }
+    }
+  }
+
+  Future<void> _loadCities() async {
+    setState(() => _citiesLoading = true);
+
+    try {
+      final cityProvider = context.read<CityProvider>();
+      final res = await cityProvider.getCities();
+
+      final list = res.result;
+      final unique = <int, City>{};
+      for (final c in list) {
+        final id = c.id;
+        if (id == null) continue;
+        unique[id] = c;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _cities = unique.values.toList();
+        _citiesLoading = false;
+
+        if (_selectedCityId != null &&
+            !_cities.any((x) => x.id == _selectedCityId)) {
+          _selectedCityId = null;
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _citiesLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load cities: $e")),
+      );
     }
   }
 
@@ -93,44 +135,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    if (_selectedCityId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a city.")),
+      );
+      return;
+    }
+
     setState(() => _saving = true);
 
     try {
       final userProvider = context.read<UserProvider>();
-
       final req = UserUpdateRequest(
         firstName: _firstName.text.trim(),
         lastName: _lastName.text.trim(),
         email: _email.text.trim(),
         username: _username.text.trim(),
         roleId: _user!.roleId,
+        cityId: _selectedCityId!,
       );
 
       await userProvider.updateUserVoid(_user!.id!, req);
-
-      if (req.username != null && req.username!.trim().isNotEmpty) {
-        Authorization.username = req.username!.trim();
-      }
-
       final freshUser = await userProvider.getById(_user!.id!);
 
+      if (!mounted) return;
       setState(() {
         _user = freshUser;
         _saving = false;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated")),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated")),
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() => _saving = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update profile: $e")),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update profile: $e")),
+      );
     }
   }
 
@@ -382,6 +424,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 label: "Username",
                                 icon: Icons.alternate_email,
                                 validator: (v) => _required(v, "Username"),
+                              ),
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<int>(
+                                value: (_selectedCityId != null &&
+                                        _cities.any(
+                                            (c) => c.id == _selectedCityId))
+                                    ? _selectedCityId
+                                    : null,
+                                decoration: _decor("City", Icons.location_city),
+                                hint: const Text("Select city"),
+                                items: _cities
+                                    .map((c) => DropdownMenuItem<int>(
+                                          value: c.id,
+                                          child: Text(c.name ?? ""),
+                                        ))
+                                    .toList(),
+                                onChanged: _citiesLoading
+                                    ? null
+                                    : (v) =>
+                                        setState(() => _selectedCityId = v),
+                                validator: (v) =>
+                                    v == null ? "City is required" : null,
                               ),
                               const SizedBox(height: 12),
                               _field(

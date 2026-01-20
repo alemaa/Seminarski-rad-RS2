@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/user_insert_request.dart';
 import '../providers/user_provider.dart';
+import '../providers/city_provider.dart';
+import '../models/city.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -25,6 +27,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscure1 = true;
   bool _obscure2 = true;
 
+  int? _selectedCityId;
+  List<City> _cities = [];
+  bool _citiesLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCities();
+  }
+
   @override
   void dispose() {
     _firstName.dispose();
@@ -34,6 +46,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _password.dispose();
     _password2.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCities() async {
+    setState(() => _citiesLoading = true);
+
+    try {
+      final cityProvider = context.read<CityProvider>();
+      final res = await cityProvider.getCities();
+
+      final list = res.result;
+      final unique = <int, City>{};
+      for (final c in list) {
+        final id = c.id;
+        if (id == null) continue;
+        unique[id] = c;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _cities = unique.values.toList();
+        _citiesLoading = false;
+
+        if (_selectedCityId != null &&
+            !_cities.any((x) => x.id == _selectedCityId)) {
+          _selectedCityId = null;
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _citiesLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load cities: $e")),
+      );
+    }
   }
 
   String? _req(String? v, String msg) {
@@ -53,7 +99,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
-
+    if (_selectedCityId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a city.")),
+      );
+      return;
+    }
     setState(() => _loading = true);
 
     try {
@@ -64,6 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         lastName: _lastName.text.trim(),
         email: _email.text.trim(),
         username: _username.text.trim(),
+        cityId: _selectedCityId!,
         password: _password.text,
         passwordConfirmation: _password2.text,
         roleId: 2,
@@ -187,6 +239,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: _dec("Email"),
                     validator: _emailVal,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: _selectedCityId,
+                    decoration: _dec("City"),
+                    items: _cities
+                        .map((c) => DropdownMenuItem<int>(
+                              value: c.id,
+                              child: Text(c.name ?? ""),
+                            ))
+                        .toList(),
+                    onChanged: _citiesLoading
+                        ? null
+                        : (v) => setState(() => _selectedCityId = v),
+                    validator: (v) =>
+                        v == null ? "Please select a city." : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
