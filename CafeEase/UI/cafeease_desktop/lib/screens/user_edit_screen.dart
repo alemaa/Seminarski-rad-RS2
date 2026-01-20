@@ -18,6 +18,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
+  late TextEditingController _userNameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
@@ -35,6 +36,10 @@ class _UserEditScreenState extends State<UserEditScreen> {
     _lastNameController = TextEditingController(
       text: widget.user?.lastName ?? '',
     );
+
+    _userNameController = TextEditingController(
+      text: widget.user?.username ?? '',
+    );
     _emailController = TextEditingController(text: widget.user?.email ?? '');
 
     _passwordController = TextEditingController();
@@ -48,6 +53,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _userNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -64,6 +70,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
     final request = {
       'firstName': _firstNameController.text,
       'lastName': _lastNameController.text,
+      'userName': _userNameController.text,
       'email': _emailController.text,
       'roleId': _selectedRoleId,
     };
@@ -117,6 +124,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
                   _buildField(_firstNameController, 'First name'),
                   _buildField(_lastNameController, 'Last name'),
+                  _buildField(_userNameController, 'Username'),
                   _buildField(
                     _emailController,
                     'Email',
