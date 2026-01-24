@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:cafeease_mobile/screens/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/order_request.dart';
 import '../providers/cart_provider.dart';
-import '../providers/order_provider.dart';
+import '../screens/payment_screen.dart';
+import '../utils/app_session.dart';
+import '../widgets/select_table_dialog.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -35,6 +37,18 @@ class _CartScreenState extends State<CartScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            tooltip: "Menu",
+            icon: const Icon(Icons.view_list_rounded, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProductListScreen(),
+                ),
+              );
+            },
+          ),
           if (items.isNotEmpty)
             TextButton.icon(
               onPressed: _confirmClear,
@@ -67,18 +81,49 @@ class _CartScreenState extends State<CartScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFC7A48B)),
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.shopping_cart_outlined,
-                size: 48, color: Color(0xFF6F4E37)),
-            SizedBox(height: 12),
-            Text(
+            const Icon(
+              Icons.shopping_cart_outlined,
+              size: 48,
+              color: Color(0xFF6F4E37),
+            ),
+            const SizedBox(height: 12),
+            const Text(
               "Your cart is empty",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
-            SizedBox(height: 6),
-            Text("Add some products to continue."),
+            const SizedBox(height: 6),
+            const Text("Add some products to continue."),
+            const SizedBox(height: 18),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B5A3C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.view_list, color: Colors.white),
+                label: const Text(
+                  "Go to menu",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -282,38 +327,19 @@ class _CartScreenState extends State<CartScreen> {
                   onPressed: cartProvider.items.isEmpty
                       ? null
                       : () async {
-                          final orderProvider = context.read<OrderProvider>();
+                          if (AppSession.tableId == null) {
+                            await showSelectTableDialog(context);
+                            if (AppSession.tableId == null) return;
+                          }
 
-                          final items = cartProvider.items
-                              .map(
-                                (e) => OrderItemRequest(
-                                  productId: e.product.id!,
-                                  quantity: e.count,
-                                ),
-                              )
-                              .toList();
-
-                          final request = OrderRequest(
-                            tableId: 1,
-                            items: items,
+                          final ok = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PaymentScreen(),
+                            ),
                           );
 
-                          try {
-                            await orderProvider.createOrder(request);
-
-                            await cartProvider.clear();
-
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text("Order placed successfully")),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(e.toString())),
-                            );
-                          }
+                          if (ok == true && mounted) {}
                         },
                 ),
               ),
