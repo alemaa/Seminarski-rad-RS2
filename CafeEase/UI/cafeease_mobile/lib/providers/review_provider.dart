@@ -12,4 +12,9 @@ class ReviewProvider extends BaseProvider<Review> {
     final response = await insert(request.toJson());
     return response;
   }
+
+  Future<List<Review>> getbyProductId(int productId) async {
+    final res = await get(filter: {"productId": productId});
+    return res.result;
+  }
 }
