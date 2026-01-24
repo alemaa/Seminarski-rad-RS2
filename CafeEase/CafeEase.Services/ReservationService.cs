@@ -136,7 +136,12 @@ namespace CafeEase.Services
 
             var oldStatus = entity.Status;
 
+            var oldTableId = entity.TableId;
+
             _mapper.Map(update, entity);
+
+            if (update.TableId == null)
+                entity.TableId = oldTableId;
 
             if (oldStatus != "Cancelled" && entity.Status == "Cancelled")
             {
