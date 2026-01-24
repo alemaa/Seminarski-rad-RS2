@@ -1,5 +1,3 @@
-import 'package:cafeease_mobile/providers/city_provider.dart';
-import 'package:cafeease_mobile/providers/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/product_provider.dart';
@@ -12,6 +10,9 @@ import 'providers/user_provider.dart';
 import 'providers/recommendation_provider.dart';
 import 'providers/reservation_provider.dart';
 import 'providers/table_provider.dart';
+import 'providers/city_provider.dart';
+import 'providers/order_provider.dart';
+import 'providers/payment_provider.dart';
 
 void main() {
   runApp(
@@ -28,6 +29,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => TableProvider()),
         ChangeNotifierProvider(create: (_) => CityProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: const CafeEaseApp(),
     ),
