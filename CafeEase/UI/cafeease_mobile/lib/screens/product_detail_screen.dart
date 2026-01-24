@@ -1,13 +1,41 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../models/product.dart';
 import 'package:provider/provider.dart';
+
+import '../models/product.dart';
+import '../models/review.dart';
 import '../providers/cart_provider.dart';
+import '../providers/review_provider.dart';
 import '../screens/add_review_screen.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final Product product;
   const ProductDetailScreen({super.key, required this.product});
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  Future<List<Review>>? _reviewsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  void _loadReviews() {
+    final pid = widget.product.id;
+    if (pid == null) {
+      _reviewsFuture = Future.value(<Review>[]);
+      return;
+    }
+
+    _reviewsFuture = context
+        .read<ReviewProvider>()
+        .get(filter: {"productId": pid}).then((res) => res.result);
+  }
 
   Widget _buildImage(String? base64Img) {
     if (base64Img == null || base64Img.isEmpty) {
@@ -49,9 +77,25 @@ class ProductDetailScreen extends StatelessWidget {
     }
   }
 
+  double _avgRating(List<Review> reviews) {
+    final rated = reviews.where((r) => r.rating != null).toList();
+    if (rated.isEmpty) return 0.0;
+    final sum = rated.fold<int>(0, (a, b) => a + (b.rating ?? 0));
+    return sum / rated.length;
+  }
+
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return "";
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    return "$d.$m.$y";
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = context.read<CartProvider>();
+    final product = widget.product;
 
     return Scaffold(
       backgroundColor: const Color(0xFFEFE1D1),
@@ -91,12 +135,168 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Expanded(
               child: SingleChildScrollView(
-                child: Text(
-                  (product.description?.trim().isNotEmpty ?? false)
-                      ? product.description!.trim()
-                      : 'No description.',
-                  style:
-                      const TextStyle(fontSize: 14, color: Color(0xFF5D4037)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (product.description?.trim().isNotEmpty ?? false)
+                          ? product.description!.trim()
+                          : 'No description.',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      "Reviews",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF3E2723),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Review>>(
+                      future: _reviewsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              "Failed to load reviews: ${snapshot.error}",
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          );
+                        }
+
+                        final reviews = snapshot.data ?? [];
+                        final avg = _avgRating(reviews);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.star,
+                                      color: Color(0xFF8B5A3C)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    avg == 0
+                                        ? "No rating"
+                                        : avg.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF3E2723),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "(${reviews.length})",
+                                    style: const TextStyle(
+                                      color: Color(0xFF5D4037),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      setState(() => _loadReviews());
+                                    },
+                                    icon: const Icon(Icons.refresh,
+                                        color: Color(0xFF8B5A3C)),
+                                    label: const Text(
+                                      "Refresh",
+                                      style:
+                                          TextStyle(color: Color(0xFF8B5A3C)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            if (reviews.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Text(
+                                  "No reviews yet.",
+                                  style: TextStyle(color: Color(0xFF5D4037)),
+                                ),
+                              )
+                            else
+                              ...reviews.map((r) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.65),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            r.userFullName ?? "User",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFF3E2723),
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            "${r.rating ?? "-"}★",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFF8B5A3C),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      if (r.dateCreated != null)
+                                        Text(
+                                          _formatDate(r.dateCreated),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6F4E37),
+                                          ),
+                                        ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        (r.comment?.trim().isNotEmpty ?? false)
+                                            ? r.comment!.trim()
+                                            : "(No comment)",
+                                        style: const TextStyle(
+                                          color: Color(0xFF5D4037),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -112,6 +312,7 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   onPressed: () async {
                     await cart.add(product);
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Added to cart')),
                     );
@@ -131,15 +332,18 @@ class ProductDetailScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    if (product.id == null) return;
+
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AddReviewScreen(
-                          productId: product.id!,
-                        ),
+                        builder: (_) => AddReviewScreen(productId: product.id!),
                       ),
                     );
+
+                    if (!mounted) return;
+                    setState(() => _loadReviews());
                   },
                   icon: const Icon(Icons.star, color: Color(0xFF8B5A3C)),
                   label: const Text(
