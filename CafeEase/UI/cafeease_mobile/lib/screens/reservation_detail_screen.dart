@@ -113,12 +113,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     try {
       final provider = context.read<ReservationProvider>();
 
-      await provider.update(r.id!, {
-        "status": "Cancelled",
-        "date": r.reservationDateTime?.toIso8601String(),
-        "no": r.numberOfGuests,
-        "t": r.tableNumber
-      });
+      await provider.cancelReservation(r.id!, r);
 
       if (!mounted) return;
 
