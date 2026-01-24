@@ -41,34 +41,43 @@ namespace CafeEase.Services
                 loyalty.Points += (int)(order.TotalAmount / 10);
             }
 
-            var factory = new ConnectionFactory { 
-                HostName = "localhost"
-            };
+            try
+            {
 
-            await using var connection = await factory.CreateConnectionAsync();
-            await using var channel = await connection.CreateChannelAsync();
-
-            await channel.QueueDeclareAsync(
-                queue: "payment_completed",
-                durable: false,
-                exclusive: false,
-                autoDelete: false);
-
-            var body = Encoding.UTF8.GetBytes(
-                JsonSerializer.Serialize(new PaymentCompleted
+                var factory = new ConnectionFactory
                 {
-                    OrderId = insert.OrderId,
-                    UserId = order.UserId,
-                    Amount = order.TotalAmount
-                })
-            );
+                    HostName = "localhost"
+                };
 
-            await channel.BasicPublishAsync(
-                exchange: "",
-                routingKey: "payment_completed",
-                mandatory: false,
-                body: body);
+                await using var connection = await factory.CreateConnectionAsync();
+                await using var channel = await connection.CreateChannelAsync();
 
+                await channel.QueueDeclareAsync(
+                    queue: "payment_completed",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false);
+
+                var body = Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize(new PaymentCompleted
+                    {
+                        OrderId = insert.OrderId,
+                        UserId = order.UserId,
+                        Amount = order.TotalAmount
+                    })
+                );
+
+                await channel.BasicPublishAsync(
+                    exchange: "",
+                    routingKey: "payment_completed",
+                    mandatory: false,
+                    body: body);
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Rabbit publish failed, continuing without message.");
+            }
         }
 
         public override IQueryable<Database.Payment> AddFilter(IQueryable<Database.Payment> query, PaymentSearchObject? search = null)
