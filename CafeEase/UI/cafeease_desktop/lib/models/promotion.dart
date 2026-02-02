@@ -12,6 +12,7 @@ class Promotion {
   final DateTime startDate;
   final DateTime endDate;
   final List<Category> categories;
+  final String? targetSegment;
 
   Promotion({
     required this.id,
@@ -21,12 +22,11 @@ class Promotion {
     required this.startDate,
     required this.endDate,
     required this.categories,
+    required this.targetSegment,
   });
 
   factory Promotion.fromJson(Map<String, dynamic> json) =>
       _$PromotionFromJson(json);
-      
 
   Map<String, dynamic> toJson() => _$PromotionToJson(this);
-
 }

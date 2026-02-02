@@ -16,6 +16,7 @@ Promotion _$PromotionFromJson(Map<String, dynamic> json) => Promotion(
   categories: (json['categories'] as List<dynamic>)
       .map((e) => Category.fromJson(e as Map<String, dynamic>))
       .toList(),
+  targetSegment: json['targetSegment'] as String?,
 );
 
 Map<String, dynamic> _$PromotionToJson(Promotion instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$PromotionToJson(Promotion instance) => <String, dynamic>{
   'startDate': instance.startDate.toIso8601String(),
   'endDate': instance.endDate.toIso8601String(),
   'categories': instance.categories,
+  'targetSegment': instance.targetSegment,
 };
