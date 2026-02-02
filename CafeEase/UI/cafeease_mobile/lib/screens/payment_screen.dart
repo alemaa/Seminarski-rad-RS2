@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/payment_provider.dart';
@@ -8,6 +7,8 @@ import '../models/order_request.dart';
 import '../models/payment_insert_request.dart';
 import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
+import '../providers/loyalty_points_provider.dart';
+import '../utils/util.dart';
 
 enum PayType { cash, inApp }
 
@@ -22,12 +23,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _formKey = GlobalKey<FormState>();
   PayType _payType = PayType.cash;
 
+  int? _loyaltyPoints;
+  bool _loadingLoyalty = false;
+
   final _nameCtrl = TextEditingController();
   final _cardCtrl = TextEditingController();
   final _expiryCtrl = TextEditingController();
   final _cvvCtrl = TextEditingController();
 
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadLoyalty());
+  }
 
   @override
   void dispose() {
@@ -58,6 +68,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     return res == true;
+  }
+
+  Future<void> _loadLoyalty() async {
+    setState(() => _loadingLoyalty = true);
+
+    try {
+      final loyaltyProvider = context.read<LoyaltyPointsProvider>();
+
+      final res =
+          await loyaltyProvider.get(filter: {"UserId": Authorization.userId});
+
+      final points = res.result.isNotEmpty ? (res.result.first.points) : 0;
+      setState(() => _loyaltyPoints = points);
+
+      debugPrint("LOYALTY UPDATED UI: $points");
+    } catch (e) {
+      debugPrint("LOYALTY LOAD FAILED: $e");
+    } finally {
+      if (mounted) setState(() => _loadingLoyalty = false);
+    }
   }
 
   String? _validateCard(String? v) {
@@ -143,7 +173,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
 
         await paymentProvider.createPayment(payReq);
+
+        await orderProvider.updateOrder(createdOrder.id!, {
+          "status": "Paid",
+        });
       }
+
+      await _loadLoyalty();
 
       await cartProvider.clear();
 
@@ -181,6 +217,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _summaryCard(cartProvider.total),
+          const SizedBox(height: 12),
+          _loyaltyCard(),
           const SizedBox(height: 12),
           _orderItemsCard(cartProvider),
           const SizedBox(height: 12),
@@ -236,6 +274,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _loyaltyCard() {
+    final points = _loyaltyPoints ?? 0;
+
+    final offerText = points >= 100
+        ? "🎉 Offer unlocked: 10% off next order"
+        : points >= 50
+            ? "🎉 Offer unlocked: 5% off next order"
+            : "Collect points to unlock special offers";
+
+    return Card(
+      color: Colors.brown.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Loyalty program",
+                style: TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
+            _loadingLoyalty
+                ? const Text("Loading points...")
+                : Text("Your points: $points",
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(offerText,
+                style: const TextStyle(fontStyle: FontStyle.italic)),
+          ],
+        ),
       ),
     );
   }
