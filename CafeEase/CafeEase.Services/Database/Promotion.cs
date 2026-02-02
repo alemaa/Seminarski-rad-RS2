@@ -14,6 +14,7 @@ namespace CafeEase.Services.Database
         public double DiscountPercent { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public string? TargetSegment { get; set; }
         public ICollection<PromotionCategory> PromotionCategories { get; set; } = new List<PromotionCategory>();
     }
 }

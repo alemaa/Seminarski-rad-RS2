@@ -14,5 +14,6 @@ namespace CafeEase.Model.Requests
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public List<int>? CategoryIds { get; set; }
+        public string? TargetSegment { get; set; }
     }
 }

@@ -9,5 +9,7 @@ namespace CafeEase.Model.SearchObjects
     public class PromotionSearchObject : BaseSearchObject
     {
         public bool? ActiveOnly { get; set; }
+        public string? Role { get; set; }
+        public string? Segment { get; set; }
     }
 }

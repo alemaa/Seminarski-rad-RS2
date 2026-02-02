@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
 using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
@@ -28,6 +29,10 @@ namespace CafeEase.Services
                 query = query.Where(x =>
                     x.StartDate <= now &&
                     x.EndDate >= now);
+            }
+            if (!string.IsNullOrWhiteSpace(search?.Segment))
+            {
+                query = query.Where(p => p.TargetSegment == null || p.TargetSegment == "ALL" || p.TargetSegment == search.Segment);
             }
 
             return base.AddFilter(query, search);

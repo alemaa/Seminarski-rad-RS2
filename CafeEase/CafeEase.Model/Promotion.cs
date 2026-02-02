@@ -12,6 +12,8 @@ namespace CafeEase.Model
         public double DiscountPercent { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public string? Role { get; set; }   
+        public string? TargetSegment { get; set; }
         public List<Category> Categories { get; set; } = new();  
     }
 }
