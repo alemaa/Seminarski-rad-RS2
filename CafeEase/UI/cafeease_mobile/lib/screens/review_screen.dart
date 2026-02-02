@@ -24,21 +24,22 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
   final _formKey = GlobalKey<FormState>();
   int? _productId;
-  int _rating = 5;
+  int? _rating;
   final _commentCtrl = TextEditingController();
 
   bool _productsLoading = true;
   List<Product> _products = [];
 
   int? _filterProductId;
-  int? _filterRating; 
+  int? _filterRating;
 
   @override
   void initState() {
     super.initState();
     _productId = widget.initialProductId;
-
     _filterProductId = widget.initialProductId;
+
+    _rating = null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadProducts();
@@ -124,7 +125,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
       final req = ReviewInsertRequest(
         productId: _productId!,
-        rating: _rating,
+        rating: _rating!,
         comment: _commentCtrl.text.trim(),
       );
 
@@ -136,7 +137,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       );
 
       _commentCtrl.clear();
-      setState(() => _rating = 5);
+      _formKey.currentState?.reset();
+      setState(() {
+        _productId = null;
+        _rating = null;
+      });
 
       await _loadMyReviews();
     } catch (e) {
@@ -190,7 +195,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               style: TextStyle(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-
             _productsLoading
                 ? const LinearProgressIndicator()
                 : DropdownButtonFormField<int?>(
@@ -216,9 +220,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                       _loadMyReviews();
                     },
                   ),
-
             const SizedBox(height: 10),
-
             DropdownButtonFormField<int?>(
               value: _filterRating,
               decoration: const InputDecoration(
@@ -241,7 +243,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 _loadMyReviews();
               },
             ),
-
             const SizedBox(height: 10),
             Row(
               children: [
@@ -375,20 +376,24 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                           padding: EdgeInsets.all(8),
                           child: LinearProgressIndicator(),
                         )
-                      : DropdownButtonFormField<int>(
+                      : DropdownButtonFormField<int?>(
                           value: _productId,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             hintText: "Select product",
                           ),
-                          items: _products
-                              .map(
-                                (p) => DropdownMenuItem<int>(
-                                  value: p.id,
-                                  child: Text(p.name ?? "Product #${p.id}"),
-                                ),
-                              )
-                              .toList(),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text("Select product"),
+                            ),
+                            ..._products.map(
+                              (p) => DropdownMenuItem<int?>(
+                                value: p.id,
+                                child: Text(p.name ?? "Product #${p.id}"),
+                              ),
+                            ),
+                          ],
                           onChanged: (v) => setState(() => _productId = v),
                           validator: (v) =>
                               v == null ? "Select a product" : null,
@@ -397,15 +402,23 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   const Text("Rating",
                       style: TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
-                  DropdownButtonFormField<int>(
+                  DropdownButtonFormField<int?>(
                     value: _rating,
                     decoration:
                         const InputDecoration(border: OutlineInputBorder()),
-                    items: [1, 2, 3, 4, 5]
-                        .map((x) =>
-                            DropdownMenuItem(value: x, child: Text("$x / 5")))
-                        .toList(),
-                    onChanged: (v) => setState(() => _rating = v ?? 5),
+                    items: const [
+                      DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text("Select rating"),
+                      ),
+                      DropdownMenuItem<int?>(value: 1, child: Text("1 / 5")),
+                      DropdownMenuItem<int?>(value: 2, child: Text("2 / 5")),
+                      DropdownMenuItem<int?>(value: 3, child: Text("3 / 5")),
+                      DropdownMenuItem<int?>(value: 4, child: Text("4 / 5")),
+                      DropdownMenuItem<int?>(value: 5, child: Text("5 / 5")),
+                    ],
+                    onChanged: (v) => setState(() => _rating = v),
+                    validator: (v) => v == null ? "Select a rating" : null,
                   ),
                   const SizedBox(height: 14),
                   const Text("Comment",
