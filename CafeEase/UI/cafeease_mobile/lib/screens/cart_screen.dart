@@ -6,6 +6,7 @@ import '../providers/cart_provider.dart';
 import '../screens/payment_screen.dart';
 import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
+import '../providers/inventory_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -38,17 +39,17 @@ class _CartScreenState extends State<CartScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            tooltip: "Menu",
-            icon: const Icon(Icons.view_list_rounded, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ProductListScreen(),
-                ),
-              );
-            },
-          ),
+              tooltip: "Menu",
+              icon: const Icon(Icons.view_list_rounded, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProductListScreen(),
+                  ),
+                );
+                setState(() {});
+              }),
           if (items.isNotEmpty)
             TextButton.icon(
               onPressed: _confirmClear,
@@ -208,7 +209,25 @@ class _CartScreenState extends State<CartScreen> {
                   IconButton(
                     icon: const Icon(Icons.add),
                     color: const Color(0xFF6F4E37),
-                    onPressed: () => _cartProvider.addToCart(product),
+                    onPressed: () async {
+                      final inventoryProvider =
+                          context.read<InventoryProvider>();
+
+                      final stock = await inventoryProvider
+                          .getStockForProduct(product.id!);
+                      if (count >= stock) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Only $stock ${product.name ?? 'items'} available.'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      await _cartProvider.addToCart(product);
+                    },
                   ),
                 ],
               ),
@@ -370,6 +389,7 @@ class _CartScreenState extends State<CartScreen> {
             onPressed: () {
               Navigator.pop(context);
               _cartProvider.clear();
+              AppSession.clearTable();
             },
             child: const Text("Clear", style: TextStyle(color: Colors.white)),
           ),
