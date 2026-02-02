@@ -6,7 +6,7 @@ import '../providers/promotion_provider.dart';
 import 'promotion_edit_screen.dart';
 
 class PromotionListScreen extends StatefulWidget {
-  const PromotionListScreen({Key? key}) : super(key: key);
+  const PromotionListScreen({super.key});
 
   @override
   State<PromotionListScreen> createState() => _PromotionListScreenState();
@@ -156,6 +156,8 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                               Text(
                                 'Discount: ${p.discountPercent.toStringAsFixed(0)}%',
                               ),
+                              Text('Segment: ${p.targetSegment ?? "ALL"}'),
+
                               Text(
                                 p.categories.isEmpty
                                     ? 'Categories: -'

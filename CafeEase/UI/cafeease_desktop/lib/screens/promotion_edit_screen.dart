@@ -31,6 +31,9 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
   bool _loadingCategories = true;
   bool _isSaving = false;
 
+  final _segments = const ["ALL", "VIP", "NEW", "INACTIVE"];
+  String? _selectedSegment;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,7 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
           .map((c) => c.id!)
           .toList();
     }
+    _selectedSegment = widget.promotion?.targetSegment ?? "ALL";
     _nameController = TextEditingController(text: widget.promotion?.name ?? '');
     _descController = TextEditingController(
       text: widget.promotion?.description ?? '',
@@ -117,13 +121,13 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
     final provider = context.read<PromotionProvider>();
 
     final request = {
-      'id': widget.promotion!.id,
       'name': _nameController.text,
       'description': _descController.text,
       'discountPercent': discount,
       'startDate': _startDate!.toIso8601String(),
       'endDate': _endDate!.toIso8601String(),
       'categoryIds': selectedCategoryIds,
+      'targetSegment': _selectedSegment,
     };
 
     try {
@@ -192,6 +196,26 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedSegment,
+                      items: _segments
+                          .map(
+                            (s) => DropdownMenuItem(value: s, child: Text(s)),
+                          )
+                          .toList(),
+                      onChanged: (v) =>
+                          setState(() => _selectedSegment = v ?? "ALL"),
+                      decoration: InputDecoration(
+                        labelText: "Target segment",
+                        filled: true,
+                        fillColor: Colors.brown.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
