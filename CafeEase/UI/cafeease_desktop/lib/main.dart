@@ -26,7 +26,6 @@ void main() {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => PromotionProvider()),
-        
       ],
       child: const CafeEaseApp(),
     ),
@@ -34,7 +33,7 @@ void main() {
 }
 
 class CafeEaseApp extends StatelessWidget {
-  const CafeEaseApp({Key? key}) : super(key: key);
+  const CafeEaseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
