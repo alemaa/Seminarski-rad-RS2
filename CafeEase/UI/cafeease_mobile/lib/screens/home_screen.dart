@@ -144,6 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
               'Choose an option below.',
               style: TextStyle(fontSize: 14, color: Color(0xFF5D4037)),
             ),
+            const SizedBox(height: 6),
+            const Text(
+              "Earn points with every order and unlock special offers!",
+              style: TextStyle(fontSize: 11, color: Color(0xFF5D4037)),
+            ),
             const SizedBox(height: 8),
             Card(
               elevation: 1,
