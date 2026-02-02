@@ -4,6 +4,7 @@ using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
 using CafeEase.Services.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -27,7 +28,7 @@ namespace CafeEase.Services
         {
             entity.Status = "Completed";
 
-            var order = await _context.Orders.FindAsync(insert.OrderId);
+            var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == insert.OrderId);
             if (order == null)
             {
                 throw new UserException("Order not found");
@@ -35,15 +36,62 @@ namespace CafeEase.Services
 
             order.Status = "Paid";
 
-            var loyalty = _context.LoyaltyPoints.FirstOrDefault(x => x.UserId == order.UserId);
-            if (loyalty != null)
+            var requested = order.OrderItems
+                .GroupBy(x => x.ProductId)
+                .Select(g => new { ProductId = g.Key, Qty = g.Sum(x => x.Quantity) })
+                .ToList();
+
+            var productIds = requested.Select(x => x.ProductId).ToList();
+
+            var inventories = await _context.Inventories
+                .Where(i => productIds.Contains(i.ProductId))
+                .ToListAsync();
+
+            foreach (var r in requested)
             {
-                loyalty.Points += (int)(order.TotalAmount / 10);
+                var inv = inventories.FirstOrDefault(i => i.ProductId == r.ProductId);
+                if (inv == null)
+                    throw new UserException("The selected product is currently unavailable.");
+
+                if (inv.Quantity < r.Qty)
+                {
+                    var product = await _context.Products.AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.Id == r.ProductId);
+
+                    var name = product?.Name ?? $"ID {r.ProductId}";
+                    throw new UserException($"Not enough stock available for {name}.");
+                }
+            }
+
+            foreach (var r in requested)
+            {
+                var inv = inventories.First(i => i.ProductId == r.ProductId);
+                inv.Quantity -= r.Qty;
+            }
+
+            var earnedPoints = (int)Math.Floor(order.TotalAmount);
+
+            var loyalty = await _context.LoyaltyPoints
+                .FirstOrDefaultAsync(x => x.UserId == order.UserId);
+
+            if (loyalty == null)
+            {
+                loyalty = new Database.LoyaltyPoints
+                {
+                    UserId = order.UserId,
+                    Points = earnedPoints,
+                    LastUpdated = DateTime.Now
+                };
+                _context.LoyaltyPoints.Add(loyalty);
+            }
+            else
+            {
+                loyalty.Points += earnedPoints;
+                loyalty.LastUpdated = DateTime.Now;
             }
 
             try
             {
-
                 var factory = new ConnectionFactory
                 {
                     HostName = "localhost"
@@ -78,6 +126,16 @@ namespace CafeEase.Services
             {
                 _logger.LogError(ex, "Rabbit publish failed, continuing without message.");
             }
+        }
+
+        public override async Task<Model.Payment> Insert(PaymentInsertRequest insert)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var result = await base.Insert(insert);
+
+            await transaction.CommitAsync();
+            return result;
         }
 
         public override IQueryable<Database.Payment> AddFilter(IQueryable<Database.Payment> query, PaymentSearchObject? search = null)
