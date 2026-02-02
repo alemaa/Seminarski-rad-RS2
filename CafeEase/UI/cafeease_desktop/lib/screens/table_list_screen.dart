@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/table.dart' as model;
 import '../providers/table_provider.dart';
 import 'table_detail_screen.dart';
-import '../providers/order_provider.dart';
-import '../screens/order_detail_screen.dart';
+import 'table_orders_screen.dart';
 
 class TableListScreen extends StatefulWidget {
   const TableListScreen({super.key});
@@ -174,51 +173,15 @@ class _TableListScreenState extends State<TableListScreen> {
                                   size: 18,
                                 ),
                                 tooltip: 'Open order',
+
                                 onPressed: () async {
-                                  final orderProvider = context
-                                      .read<OrderProvider>();
-
-                                  try {
-                                    final result = await orderProvider.get(
-                                      filter: {
-                                        'tableId': table.id,
-                                        'active': true,
-                                      },
-                                    );
-
-                                    if (result.result.isEmpty) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'This table currently has no active orders.',
-                                          ),
-                                          backgroundColor: Colors.orange,
-                                        ),
-                                      );
-                                      return;
-                                    }
-
-                                    final order = result.result.first;
-
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            OrderDetailScreen(order: order),
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Unable to load order. Please try again later.',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          TableOrdersScreen(table: table),
+                                    ),
+                                  );
                                 },
                               ),
                             ),

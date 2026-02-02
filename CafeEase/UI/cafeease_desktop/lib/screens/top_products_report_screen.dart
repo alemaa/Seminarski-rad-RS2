@@ -10,7 +10,6 @@ class TopProductsReportScreen extends StatefulWidget {
   @override
   State<TopProductsReportScreen> createState() =>
       _TopProductsReportScreenState();
-      
 }
 
 class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
@@ -69,7 +68,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
     final provider = context.read<OrderItemProvider>();
 
     try {
-      final result = await provider.get();
+      final result = await provider.get(filter: {"paidOnly": true});
 
       for (var item in result.result) {
         final name = item.productName ?? 'Unknown';
