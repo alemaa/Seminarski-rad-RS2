@@ -12,4 +12,8 @@ class OrderProvider extends BaseProvider<Order> {
     final response = await insert(request.toJson());
     return response;
   }
+
+  Future<Order> updateOrder(int id, Map<String, dynamic> request) async {
+    return await update(id, request);
+  }
 }

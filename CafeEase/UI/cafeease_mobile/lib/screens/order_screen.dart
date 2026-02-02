@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../models/order.dart';
 import '../providers/order_provider.dart';
 import 'order_detail_screen.dart';
@@ -9,6 +8,7 @@ import '../utils/util.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_item_provider.dart';
 import '../providers/product_provider.dart';
+import '../widgets/loyalty_info_widget.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -26,7 +26,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     "Pending",
     "Paid",
     "Completed",
-    "Cancelled",
   ];
 
   String _selectedStatus = "All";
@@ -383,6 +382,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: _buildFilters(),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: LoyaltyInfoWidget(),
           ),
           Expanded(child: _buildOrdersList()),
         ],
