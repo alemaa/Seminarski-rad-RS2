@@ -20,9 +20,12 @@ namespace CafeEase.Services
             IQueryable<Database.OrderItem> query,
             OrderItemSearchObject? search = null)
         {
-            query = query.Include(x => x.Product);
+            query = query.Include(x => x.Product).Include(x => x.Order);
             if (search?.OrderId.HasValue == true)
                 query = query.Where(x => x.OrderId == search.OrderId);
+
+            if (search?.PaidOnly == true)
+                query = query.Where(x => x.Order.Status == "Paid");
 
             return base.AddFilter(query, search);
         }
