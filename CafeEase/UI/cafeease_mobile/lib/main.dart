@@ -43,7 +43,7 @@ void main() {
 }
 
 class CafeEaseApp extends StatelessWidget {
-  const CafeEaseApp({Key? key}) : super(key: key);
+  const CafeEaseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
