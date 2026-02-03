@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cafeease_mobile/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/category.dart';
@@ -9,6 +10,12 @@ import '../providers/product_provider.dart';
 import 'product_detail_screen.dart';
 import '../providers/cart_provider.dart';
 import 'cart_screen.dart';
+import '../widgets/loyalty_info_widget.dart';
+import '../providers/inventory_provider.dart';
+import '../models/promotion.dart';
+import '../providers/loyalty_points_provider.dart';
+import '../providers/promotion_provider.dart';
+import '../utils/segment_utils.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -19,6 +26,7 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   Timer? _debounce;
+  final Map<int, int> _stockByProduct = {};
 
   bool _isLoading = true;
   bool _isSearching = false;
@@ -29,11 +37,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
   String _searchText = '';
   int? _selectedCategoryId;
 
+  bool _loadingPromos = true;
+  List<Promotion> _promos = [];
+
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _loadProducts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPromotions();
+    });
   }
 
   @override
@@ -89,12 +103,113 @@ class _ProductListScreenState extends State<ProductListScreen> {
       if (!mounted) return;
       setState(() {
         _products = result.result;
+        _loadInventoryForProducts();
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadPromotions() async {
+    final promoProvider = context.read<PromotionProvider>();
+    final loyaltyProvider = context.read<LoyaltyPointsProvider>();
+
+    setState(() => _loadingPromos = true);
+
+    try {
+      final loyaltyRes =
+          await loyaltyProvider.get(filter: {"userId": Authorization.userId});
+      final points =
+          loyaltyRes.result.isNotEmpty ? loyaltyRes.result.first.points : 0;
+
+      final segment = getUserSegment(points);
+
+      final promoRes = await promoProvider.get(filter: {
+        "activeOnly": true,
+        "targetSegment": segment,
+      });
+
+      setState(() {
+        _promos = promoRes.result;
+        _loadingPromos = false;
+      });
+    } catch (e) {
+      setState(() => _loadingPromos = false);
+    }
+  }
+
+  Future<void> _loadInventoryForProducts() async {
+    final inventoryProvider = context.read<InventoryProvider>();
+
+    final temp = <int, int>{};
+
+    for (final p in _products) {
+      final id = p.id;
+      if (id == null) continue;
+
+      try {
+        temp[id] = await inventoryProvider.getStockForProduct(id);
+      } catch (_) {
+        temp[id] = 0;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _stockByProduct
+        ..clear()
+        ..addAll(temp);
+    });
+  }
+
+  Widget _buildPromotions() {
+    if (_loadingPromos) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_promos.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      color: Colors.brown.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Promotions for you",
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            ..._promos.take(3).map((p) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        p.name ?? "",
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    Text(
+                      "${(p.discountPercent ?? 0).toStringAsFixed(0)}%",
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildProductImage(String? imageBase64) {
@@ -261,66 +376,99 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
+                  const LoyaltyInfoWidget(),
+                  const SizedBox(height: 12),
+                  _buildPromotions(),
+                  const SizedBox(
+                    height: 12,
+                  ),
                   Expanded(
                     child: RefreshIndicator(
-                      onRefresh: _loadProducts,
+                      onRefresh: () async {
+                        await _loadPromotions();
+                        await _loadProducts();
+                      },
                       child: ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: _products.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final product = _products[index];
+                          final stock = _stockByProduct[product.id ?? -1] ?? 0;
+                          final outOfStock = stock <= 0;
 
-                          return Card(
-                            color: const Color(0xFFD2B48C),
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              leading: _buildProductImage(product.image),
-                              title: Text(
-                                product.name ?? '',
-                                style: const TextStyle(
-                                  color: Color(0xFF3E2723),
-                                  fontWeight: FontWeight.w600,
+                          return Opacity(
+                            opacity: outOfStock ? 0.45 : 1.0,
+                            child: Card(
+                              color: const Color(0xFFD2B48C),
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                leading: _buildProductImage(product.image),
+                                title: Text(
+                                  product.name ?? '',
+                                  style: const TextStyle(
+                                    color: Color(0xFF3E2723),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                              subtitle: Text(
-                                '${(product.price ?? 0).toStringAsFixed(2)} KM',
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    tooltip: 'Add to cart',
-                                    icon: const Icon(Icons.add_shopping_cart),
-                                    onPressed: () async {
-                                      await context
-                                          .read<CartProvider>()
-                                          .addToCart(product);
+                                subtitle: Text(
+                                  '${(product.price ?? 0).toStringAsFixed(2)} KM',
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: outOfStock
+                                          ? 'Out of stock'
+                                          : 'Add to cart',
+                                      icon: const Icon(Icons.add_shopping_cart),
+                                      onPressed: outOfStock
+                                          ? null
+                                          : () {
+                                              final cart =
+                                                  context.read<CartProvider>();
+                                              final currentQty =
+                                                  cart.getQuantity(product);
 
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                '${product.name ?? 'Product'} added to cart')),
-                                      );
-                                    },
-                                  ),
-                                  const Icon(Icons.chevron_right),
-                                ],
+                                              if (currentQty >= stock) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Only $stock ${product.name} available.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+
+                                              cart.addToCart(product);
+
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(
+                                                        '${product.name} added to cart')),
+                                              );
+                                            },
+                                    ),
+                                    const Icon(Icons.chevron_right),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ProductDetailScreen(product: product),
+                                    ),
+                                  );
+                                },
                               ),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        ProductDetailScreen(product: product),
-                                  ),
-                                );
-                              },
                             ),
                           );
                         },

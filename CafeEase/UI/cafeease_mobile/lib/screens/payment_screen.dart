@@ -9,6 +9,9 @@ import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
 import '../providers/loyalty_points_provider.dart';
 import '../utils/util.dart';
+import '../models/promotion.dart';
+import '../utils/segment_utils.dart';
+import '../providers/promotion_provider.dart';
 
 enum PayType { cash, inApp }
 
@@ -32,11 +35,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _cvvCtrl = TextEditingController();
 
   bool _submitting = false;
+  bool _loadingPromos = true;
+  List<Promotion> _promos = [];
+  int _points = 0;
+  String _segment = "ALL";
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadLoyalty());
+    _loadPromotionsForUser();
   }
 
   @override
@@ -46,6 +54,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _expiryCtrl.dispose();
     _cvvCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPromotionsForUser() async {
+    final promoProvider = context.read<PromotionProvider>();
+    final loyaltyProvider = context.read<LoyaltyPointsProvider>();
+
+    setState(() => _loadingPromos = true);
+
+    try {
+      final loyaltyRes = await loyaltyProvider.get(
+        filter: {"UserId": Authorization.userId},
+      );
+      _points =
+          loyaltyRes.result.isNotEmpty ? loyaltyRes.result.first.points : 0;
+
+      _segment = getUserSegment(_points);
+
+      final promoRes = await promoProvider.get(filter: {
+        "activeOnly": true,
+        "segment": _segment,
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _promos = promoRes.result;
+        _loadingPromos = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingPromos = false);
+    }
   }
 
   Future<bool> _confirmSend() async {
@@ -202,6 +241,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  double _bestDiscountPercent(List<Promotion> promos) {
+    if (promos.isEmpty) return 0;
+    double best = 0;
+    for (final p in promos) {
+      final d = p.discountPercent ?? 0;
+      if (d > best) best = d;
+    }
+    return best;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
@@ -281,12 +330,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _loyaltyCard() {
     final points = _loyaltyPoints ?? 0;
 
-    final offerText = points >= 100
-        ? "🎉 Offer unlocked: 10% off next order"
-        : points >= 50
-            ? "🎉 Offer unlocked: 5% off next order"
-            : "Collect points to unlock special offers";
-
     return Card(
       color: Colors.brown.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -303,15 +346,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 : Text("Your points: $points",
                     style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
-            Text(offerText,
-                style: const TextStyle(fontStyle: FontStyle.italic)),
           ],
         ),
       ),
     );
   }
 
-  Widget _summaryCard(double total) {
+  Widget _summaryCard(double subtotal) {
+    final best = _bestDiscountPercent(_promos);
+    final discountAmount = subtotal * (best / 100.0);
+    final finalTotal = subtotal - discountAmount;
+
     return Card(
       color: Colors.brown.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -323,13 +368,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const Text("Summary",
                 style: TextStyle(fontWeight: FontWeight.w900)),
             const SizedBox(height: 10),
-            Text("Total: ${total.toStringAsFixed(2)} KM",
+            Text("Subtotal: ${subtotal.toStringAsFixed(2)} KM",
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-            Text(
-              "Table: ${AppSession.tableId ?? '-'}",
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text("Table: ${AppSession.tableId ?? '-'}",
+                style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            if (_loadingPromos)
+              const Text("Checking promotions...")
+            else if (best > 0)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("🎉 Discount: ${best.toStringAsFixed(0)}%",
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text("-${discountAmount.toStringAsFixed(2)} KM",
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Text("Total: ${finalTotal.toStringAsFixed(2)} KM",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900)),
+                ],
+              )
+            else
+              Text("Total: ${subtotal.toStringAsFixed(2)} KM",
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w900)),
           ],
         ),
       ),
