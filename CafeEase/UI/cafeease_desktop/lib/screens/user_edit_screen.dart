@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/user.dart';
 import '../providers/user_provider.dart';
+import '../models/city.dart';
+import '../providers/city_provider.dart';
 
 class UserEditScreen extends StatefulWidget {
   final User? user;
 
-  const UserEditScreen({Key? key, this.user}) : super(key: key);
+  const UserEditScreen({super.key, this.user});
 
   @override
   State<UserEditScreen> createState() => _UserEditScreenState();
@@ -26,6 +27,10 @@ class _UserEditScreenState extends State<UserEditScreen> {
   int? _selectedRoleId;
   bool _isSaving = false;
 
+  int? _selectedCityId;
+  List<City> _cities = [];
+  bool _citiesLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,10 +48,13 @@ class _UserEditScreenState extends State<UserEditScreen> {
     _emailController = TextEditingController(text: widget.user?.email ?? '');
 
     _passwordController = TextEditingController();
-
     _confirmPasswordController = TextEditingController();
 
     _selectedRoleId = widget.user?.roleId;
+
+    _selectedCityId = widget.user?.cityId;
+
+    _loadCities();
   }
 
   @override
@@ -73,11 +81,14 @@ class _UserEditScreenState extends State<UserEditScreen> {
       'userName': _userNameController.text,
       'email': _emailController.text,
       'roleId': _selectedRoleId,
+      'cityId': _selectedCityId,
     };
+
     if (widget.user == null) {
       request['password'] = _passwordController.text;
       request['passwordConfirmation'] = _confirmPasswordController.text;
     }
+
     try {
       if (widget.user == null) {
         await provider.insert(request);
@@ -96,6 +107,40 @@ class _UserEditScreenState extends State<UserEditScreen> {
     }
   }
 
+  Future<void> _loadCities() async {
+    setState(() => _citiesLoading = true);
+
+    try {
+      final cityProvider = context.read<CityProvider>();
+      final res = await cityProvider.getCities();
+
+      final list = res.result;
+      final unique = <int, City>{};
+      for (final c in list) {
+        final id = c.id;
+        if (id == null) continue;
+        unique[id] = c;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _cities = unique.values.toList();
+        _citiesLoading = false;
+
+        if (_selectedCityId != null &&
+            !_cities.any((x) => x.id == _selectedCityId)) {
+          _selectedCityId = null;
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _citiesLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load cities: $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,98 +150,138 @@ class _UserEditScreenState extends State<UserEditScreen> {
         backgroundColor: const Color(0xFF8B5A3C),
       ),
       body: Center(
-        child: Card(
-          color: const Color(0xFFD2B48C),
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            width: 420,
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.person, size: 48, color: Color(0xFF6F4E37)),
-                  const SizedBox(height: 16),
-
-                  _buildField(_firstNameController, 'First name'),
-                  _buildField(_lastNameController, 'Last name'),
-                  _buildField(_userNameController, 'Username'),
-                  _buildField(
-                    _emailController,
-                    'Email',
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  if (widget.user == null) ...[
-                    _buildField(
-                      _passwordController,
-                      'Password',
-                      isPassword: true,
-                    ),
-                    _buildField(
-                      _confirmPasswordController,
-                      'Confirm password',
-                      isPassword: true,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required field';
-                        if (v != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-
-                  const SizedBox(height: 12),
-
-                  DropdownButtonFormField<int>(
-                    value: _selectedRoleId,
-                    decoration: InputDecoration(
-                      labelText: 'Role',
-                      filled: true,
-                      fillColor: Colors.brown.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Card(
+            color: const Color(0xFFD2B48C),
+            elevation: 6,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person,
+                        size: 48,
+                        color: Color(0xFF6F4E37),
                       ),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 1, child: Text('Admin')),
-                      DropdownMenuItem(value: 2, child: Text('User')),
+                      const SizedBox(height: 16),
+
+                      _buildField(_firstNameController, 'First name'),
+                      _buildField(_lastNameController, 'Last name'),
+                      _buildField(_userNameController, 'Username'),
+                      _buildField(
+                        _emailController,
+                        'Email',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+
+                      if (widget.user == null) ...[
+                        _buildField(
+                          _passwordController,
+                          'Password',
+                          isPassword: true,
+                        ),
+                        _buildField(
+                          _confirmPasswordController,
+                          'Confirm password',
+                          isPassword: true,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Required field';
+                            if (v != _passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+
+                      const SizedBox(height: 12),
+
+                      _citiesLoading
+                          ? const LinearProgressIndicator()
+                          : DropdownButtonFormField<int?>(
+                              value: _selectedCityId,
+                              decoration: InputDecoration(
+                                labelText: 'City',
+                                filled: true,
+                                fillColor: Colors.brown.shade50,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              items: _cities
+                                  .map(
+                                    (c) => DropdownMenuItem<int?>(
+                                      value: c.id,
+                                      child: Text(c.name ?? ''),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _selectedCityId = v),
+                              validator: (v) =>
+                                  v == null ? 'Please select a city' : null,
+                            ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<int>(
+                        value: _selectedRoleId,
+                        decoration: InputDecoration(
+                          labelText: 'Role',
+                          filled: true,
+                          fillColor: Colors.brown.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('Admin')),
+                          DropdownMenuItem(value: 2, child: Text('User')),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _selectedRoleId = value);
+                        },
+                        validator: (value) =>
+                            value == null ? 'Please select role' : null,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              196,
+                              145,
+                              108,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _isSaving ? null : _save,
+                          child: _isSaving
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text('Save'),
+                        ),
+                      ),
                     ],
-                    onChanged: (value) {
-                      setState(() => _selectedRoleId = value);
-                    },
-                    validator: (value) =>
-                        value == null ? 'Please select role' : null,
                   ),
-
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          196,
-                          145,
-                          108,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _isSaving ? null : _save,
-                      child: _isSaving
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Save'),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

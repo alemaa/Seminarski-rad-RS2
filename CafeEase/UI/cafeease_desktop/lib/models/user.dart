@@ -12,6 +12,7 @@ class User {
   final String? email;
   final int roleId;
   final Role? role;
+  int? cityId;
 
   User({
     required this.id,
@@ -21,10 +22,10 @@ class User {
     this.email,
     required this.roleId,
     this.role,
+    this.cityId,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$UserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
