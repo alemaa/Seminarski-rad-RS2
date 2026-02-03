@@ -92,16 +92,25 @@ namespace CafeEase.Services
 
             try
             {
+                var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+                var rabbitUser = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest";
+                var rabbitPass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
+                var rabbitVHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
+                var queueName = Environment.GetEnvironmentVariable("RABBITMQ_QUEUE") ?? "payment_completed";
+
                 var factory = new ConnectionFactory
                 {
-                    HostName = "localhost"
+                    HostName = rabbitHost,
+                    UserName = rabbitUser,
+                    Password = rabbitPass,
+                    VirtualHost = rabbitVHost,
                 };
 
                 await using var connection = await factory.CreateConnectionAsync();
                 await using var channel = await connection.CreateChannelAsync();
 
                 await channel.QueueDeclareAsync(
-                    queue: "payment_completed",
+                    queue: queueName,
                     durable: false,
                     exclusive: false,
                     autoDelete: false);
@@ -117,7 +126,7 @@ namespace CafeEase.Services
 
                 await channel.BasicPublishAsync(
                     exchange: "",
-                    routingKey: "payment_completed",
+                    routingKey: queueName,
                     mandatory: false,
                     body: body);
             }

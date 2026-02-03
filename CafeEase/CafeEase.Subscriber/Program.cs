@@ -6,15 +6,32 @@ using CafeEase.Model.Messages;
 
 Console.WriteLine("CafeEase Subscriber started...");
 
-var factory = new ConnectionFactory { 
-    HostName = "localhost"
+var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+var rabbitUser = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest";
+var rabbitPass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
+var rabbitVHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
+var queueName = Environment.GetEnvironmentVariable("RABBITMQ_QUEUE") ?? "payment_completed";
+
+Console.WriteLine($"RabbitMQ: user={rabbitUser}, vhost={rabbitVHost}, queue={queueName}");
+
+if (string.IsNullOrWhiteSpace(rabbitHost))
+{
+    Console.WriteLine("❌ RabbitMQ host missing. Set RABBITMQ_HOST.");
+    return;
+}
+
+var factory = new ConnectionFactory {
+    HostName = rabbitHost,
+    UserName = rabbitUser,
+    Password = rabbitPass,
+    VirtualHost = rabbitVHost,
 };
 
 var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 
 await channel.QueueDeclareAsync(
-    queue: "payment_completed",
+    queue: queueName,
     durable: false,
     exclusive: false,
     autoDelete: false);
@@ -26,13 +43,19 @@ consumer.ReceivedAsync += async (model, ea) =>
     var json = Encoding.UTF8.GetString(ea.Body.ToArray());
     var message = JsonSerializer.Deserialize<PaymentCompleted>(json);
 
+    if (message == null)
+    {
+        Console.WriteLine("Received invalid PaymentCompleted message (null).");
+        return;
+    }
+
     Console.WriteLine($"PaymentCompleted: Order={message.OrderId}, Amount={message.Amount}, User={message.UserId}");
 
     await Task.CompletedTask;
 };
 
 await channel.BasicConsumeAsync(
-    queue: "payment_completed",
+    queue: queueName,
     autoAck: true,
     consumer: consumer);
 
