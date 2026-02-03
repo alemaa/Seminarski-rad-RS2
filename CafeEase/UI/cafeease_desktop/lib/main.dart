@@ -1,3 +1,4 @@
+import 'package:cafeease_desktop/providers/city_provider.dart';
 import 'package:cafeease_desktop/providers/inventory_provider.dart';
 import 'package:cafeease_desktop/providers/order_item_provider.dart';
 import 'package:cafeease_desktop/providers/order_provider.dart';
@@ -26,6 +27,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => PromotionProvider()),
+        ChangeNotifierProvider(create: (_) => CityProvider()),
       ],
       child: const CafeEaseApp(),
     ),
