@@ -5,7 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class TopProductsReportScreen extends StatefulWidget {
-  const TopProductsReportScreen({Key? key}) : super(key: key);
+  const TopProductsReportScreen({super.key});
 
   @override
   State<TopProductsReportScreen> createState() =>
@@ -40,7 +40,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
               pw.Text('Total products sold: ${sortedProducts.length}'),
               pw.SizedBox(height: 20),
 
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['Rank', 'Product', 'Quantity sold'],
                 data: sortedProducts.asMap().entries.map((entry) {
                   final index = entry.key;

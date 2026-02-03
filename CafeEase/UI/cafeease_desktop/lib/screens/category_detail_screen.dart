@@ -7,7 +7,7 @@ import '../providers/category_provider.dart';
 class CategoryDetailScreen extends StatefulWidget {
   final Category? category;
 
-  const CategoryDetailScreen({Key? key, this.category}) : super(key: key);
+  const CategoryDetailScreen({super.key, this.category});
 
   @override
   State<CategoryDetailScreen> createState() => _CategoryDetailScreenState();
@@ -34,14 +34,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE6D4C3),
       appBar: AppBar(
-        title: Text(widget.category == null
-            ? 'Add Category'
-            : 'Edit Category'),
+        title: Text(widget.category == null ? 'Add Category' : 'Edit Category'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
       body: Center(
         child: Card(
-           color:const Color(0xFFF2E9E2),
+          color: const Color(0xFFF2E9E2),
           margin: const EdgeInsets.all(24),
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -56,17 +54,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                       filled: true,
                       fillColor: Color(0xFFEDE3DB),
                       focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF9C6B4E),
-                        width: 1.5,
-                      )
+                        borderSide: BorderSide(
+                          color: Color(0xFF9C6B4E),
+                          width: 1.5,
+                        ),
                       ),
                       labelText: 'Category name',
                     ),
                     validator: (value) =>
-                        value == null || value.isEmpty
-                            ? 'Required'
-                            : null,
+                        value == null || value.isEmpty ? 'Required' : null,
                   ),
                   const SizedBox(height: 24),
 
@@ -75,24 +71,26 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                     height: 45,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFC9A97F),
-                          foregroundColor: Color(0xFF4A2C2A),
-                          shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(30),
-                          ),
+                        backgroundColor: Color(0xFFC9A97F),
+                        foregroundColor: Color(0xFF4A2C2A),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                       onPressed: _saving
                           ? null
                           : () async {
                               if (!_formKey.currentState!.validate()) return;
+                              final navigator = Navigator.of(context);
 
                               setState(() => _saving = true);
 
                               try {
                                 if (widget.category == null) {
                                   await provider.insert(
-                                    Category(name: _nameController.text)
-                                        .toJson(),
+                                    Category(
+                                      name: _nameController.text,
+                                    ).toJson(),
                                   );
                                 } else {
                                   await provider.update(
@@ -104,7 +102,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                                   );
                                 }
 
-                                Navigator.pop(context, 'refresh');
+                                navigator.pop('refresh');
                               } finally {
                                 setState(() => _saving = false);
                               }
@@ -133,7 +131,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                         child: const Text('Delete'),
                       ),
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),

@@ -6,7 +6,7 @@ import '../../models/review.dart';
 import '../../providers/review_provider.dart';
 
 class ReviewListScreen extends StatefulWidget {
-  const ReviewListScreen({Key? key}) : super(key: key);
+  const ReviewListScreen({super.key});
 
   @override
   State<ReviewListScreen> createState() => _ReviewListScreenState();

@@ -7,7 +7,7 @@ import '../providers/reservation_provider.dart';
 import 'reservation_detail_screen.dart';
 
 class ReservationListScreen extends StatefulWidget {
-  const ReservationListScreen({Key? key}) : super(key: key);
+  const ReservationListScreen({super.key});
 
   @override
   State<ReservationListScreen> createState() => _ReservationListScreenState();

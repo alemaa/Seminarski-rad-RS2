@@ -11,7 +11,7 @@ import 'user_edit_screen.dart';
 class UserDetailScreen extends StatefulWidget {
   final User user;
 
-  const UserDetailScreen({Key? key, required this.user}) : super(key: key);
+  const UserDetailScreen({super.key, required this.user});
 
   @override
   State<UserDetailScreen> createState() => _UserDetailScreenState();
@@ -37,7 +37,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         _orders = result.result;
         _isLoading = false;
       });
-
     } catch (e) {
       setState(() => _isLoading = false);
     }
@@ -102,19 +101,22 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit, color: Colors.black),
             onPressed: () async {
+              final navigator = Navigator.of(context);
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => UserEditScreen(user: widget.user),
                 ),
               );
-
               if (result == 'refresh') {
-                Navigator.pop(context, 'refresh');
+                navigator.pop('refresh');
               }
             },
           ),
-          IconButton(icon: const Icon(Icons.delete, color: Colors.black), onPressed: _confirmDelete),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.black),
+            onPressed: _confirmDelete,
+          ),
         ],
       ),
       body: Padding(

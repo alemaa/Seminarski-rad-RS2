@@ -13,7 +13,7 @@ import '../providers/inventory_provider.dart';
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
 
-  const ProductDetailScreen({Key? key, this.product}) : super(key: key);
+  const ProductDetailScreen({super.key, this.product});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -68,7 +68,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           _quantity = _inventory!.quantity!;
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load inventory')));
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -117,9 +123,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         "name": _nameController.text.trim(),
         "price": double.parse(_priceController.text.trim()),
         "description": _descriptionController.text.trim(),
-        "image": _base64Image ?? widget.product?.image,
         "categoryId": _selectedCategory!.id,
       };
+      if (_base64Image != null) {
+        request["image"] = _base64Image!;
+      } else if (isEdit && widget.product?.image != null) {
+        request["image"] = widget.product!.image!;
+      }
 
       int? productId;
 
@@ -339,6 +349,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             fit: BoxFit.cover,
                           ),
                         ),
+                      )
+                    else if (isEdit &&
+                        (widget.product?.image?.isNotEmpty ?? false))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(
+                            base64Decode(widget.product!.image!),
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
 
                     const SizedBox(height: 24),
@@ -402,7 +426,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                             if (confirm == true) {
                               await provider.delete(widget.product!.id!);
-                              if (!mounted) return;
+                              if (!context.mounted) return;
                               Navigator.pop(context, 'refresh');
                             }
                           },

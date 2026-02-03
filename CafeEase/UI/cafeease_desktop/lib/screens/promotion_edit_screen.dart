@@ -9,7 +9,7 @@ import '../providers/promotion_provider.dart';
 class PromotionEditScreen extends StatefulWidget {
   final Promotion? promotion;
 
-  const PromotionEditScreen({Key? key, this.promotion}) : super(key: key);
+  const PromotionEditScreen({super.key, this.promotion});
 
   @override
   State<PromotionEditScreen> createState() => _PromotionEditScreenState();

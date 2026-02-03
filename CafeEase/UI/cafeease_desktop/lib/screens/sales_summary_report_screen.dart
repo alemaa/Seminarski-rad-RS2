@@ -9,7 +9,7 @@ import '../models/order.dart';
 import '../providers/order_provider.dart';
 
 class SalesSummaryReportScreen extends StatefulWidget {
-  const SalesSummaryReportScreen({Key? key}) : super(key: key);
+  const SalesSummaryReportScreen({super.key});
 
   @override
   State<SalesSummaryReportScreen> createState() =>

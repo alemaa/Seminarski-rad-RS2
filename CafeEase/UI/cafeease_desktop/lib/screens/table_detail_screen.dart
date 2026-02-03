@@ -6,7 +6,7 @@ import '../providers/table_provider.dart';
 class TableDetailScreen extends StatefulWidget {
   final model.Table? table;
 
-  const TableDetailScreen({Key? key, this.table}) : super(key: key);
+  const TableDetailScreen({super.key, this.table});
 
   @override
   State<TableDetailScreen> createState() => _TableDetailScreenState();

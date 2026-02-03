@@ -9,7 +9,7 @@ import '../models/table.dart' as model;
 class ReservationDetailScreen extends StatefulWidget {
   final Reservation? reservation;
 
-  const ReservationDetailScreen({Key? key, this.reservation}) : super(key: key);
+  const ReservationDetailScreen({super.key, this.reservation});
 
   @override
   State<ReservationDetailScreen> createState() =>

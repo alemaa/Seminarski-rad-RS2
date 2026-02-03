@@ -6,7 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class InventoryReportScreen extends StatefulWidget {
-  const InventoryReportScreen({Key? key}) : super(key: key);
+  const InventoryReportScreen({super.key});
 
   @override
   State<InventoryReportScreen> createState() => _InventoryReportScreenState();
@@ -62,7 +62,7 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
 
               pw.SizedBox(height: 20),
 
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['Product', 'Quantity', 'Stock status'],
                 data: _inventory.map((i) {
                   final isLow = (i.quantity ?? 0) <= 5;

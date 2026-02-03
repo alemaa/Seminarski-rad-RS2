@@ -5,7 +5,7 @@ import 'orders_report_screen.dart';
 import 'inventory_report_screen.dart';
 
 class ReportsMenuScreen extends StatelessWidget {
-  const ReportsMenuScreen({Key? key}) : super(key: key);
+  const ReportsMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

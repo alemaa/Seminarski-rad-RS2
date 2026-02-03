@@ -7,7 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class OrdersReportScreen extends StatefulWidget {
-  const OrdersReportScreen({Key? key}) : super(key: key);
+  const OrdersReportScreen({super.key});
   
 
   @override
@@ -132,7 +132,7 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
 
               pw.SizedBox(height: 20),
 
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['ID', 'Date', 'Status', 'Total'],
                 data: _orders.map((o) {
                   return [

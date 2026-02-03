@@ -9,17 +9,15 @@ import '../models/order.dart';
 import 'order_detail_screen.dart';
 
 class OrderListScreen extends StatefulWidget {
-  const OrderListScreen({Key? key}) : super(key: key);
+  const OrderListScreen({super.key});
 
   @override
   State<OrderListScreen> createState() => _OrderListScreenState();
 }
 
 class _OrderListScreenState extends State<OrderListScreen> {
-  final TextEditingController _orderNumberController =
-      TextEditingController();
-  final TextEditingController _userNameController =
-      TextEditingController();
+  final TextEditingController _orderNumberController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
 
   Timer? _debounce;
 
@@ -84,10 +82,14 @@ class _OrderListScreenState extends State<OrderListScreen> {
         _orders = result.result;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -159,8 +161,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     child: Text(
                       _selectedDate == null
                           ? 'Select date'
-                          : DateFormat('dd.MM.yyyy')
-                              .format(_selectedDate!),
+                          : DateFormat('dd.MM.yyyy').format(_selectedDate!),
                     ),
                   ),
                 ),
@@ -183,11 +184,9 @@ class _OrderListScreenState extends State<OrderListScreen> {
               items: const [
                 DropdownMenuItem(value: null, child: Text('All')),
                 DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-                DropdownMenuItem(
-                    value: 'Confirmed', child: Text('Confirmed')),
+                DropdownMenuItem(value: 'Confirmed', child: Text('Confirmed')),
                 DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                DropdownMenuItem(
-                    value: 'Cancelled', child: Text('Cancelled')),
+                DropdownMenuItem(value: 'Cancelled', child: Text('Cancelled')),
               ],
               onChanged: (value) {
                 setState(() => _selectedStatus = value);
@@ -196,68 +195,63 @@ class _OrderListScreenState extends State<OrderListScreen> {
             ),
 
             const SizedBox(height: 16),
-            
+
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _orders.isEmpty
-                      ? const Center(child: Text('No orders found'))
-                      : ListView.separated(
-                          itemCount: _orders.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final order = _orders[index];
+                  ? const Center(child: Text('No orders found'))
+                  : ListView.separated(
+                      itemCount: _orders.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final order = _orders[index];
 
-                            return Card(
-                              color: const Color(0xFFD2B48C),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        return Card(
+                          color: const Color(0xFFD2B48C),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              'Order #${order.id}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3E2723),
                               ),
-                              child: ListTile(
-                                title: Text(
-                                  'Order #${order.id}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF3E2723),
-                                  ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Date: ${DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!)}',
                                 ),
-                                subtitle: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Date: ${DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!)}',
-                                    ),
-                                    Text('Table ID: ${order.tableId}'),
-                                    Text(
-                                        'User: ${order.userFullName ?? '-'}'),
-                                    Text(
-                                      'Total: ${order.totalAmount?.toStringAsFixed(2)} KM',
-                                    ),
-                                    Text('Status: ${order.status}'),
-                                  ],
+                                Text('Table ID: ${order.tableId}'),
+                                Text('User: ${order.userFullName ?? '-'}'),
+                                Text(
+                                  'Total: ${order.totalAmount?.toStringAsFixed(2)} KM',
                                 ),
-                                trailing:
-                                    const Icon(Icons.chevron_right),
-                                onTap: () async {
-                                  final result =
-                                      await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          OrderDetailScreen(order: order),
-                                    ),
-                                  );
+                                Text('Status: ${order.status}'),
+                              ],
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      OrderDetailScreen(order: order),
+                                ),
+                              );
 
-                                  if (result == 'refresh') {
-                                    _loadOrders();
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
+                              if (result == 'refresh') {
+                                _loadOrders();
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

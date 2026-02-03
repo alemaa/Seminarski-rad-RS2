@@ -6,7 +6,7 @@ import 'user_detail_screen.dart';
 import 'user_edit_screen.dart';
 
 class UserListScreen extends StatefulWidget {
-  const UserListScreen({Key? key}) : super(key: key);
+  const UserListScreen({super.key});
 
   @override
   State<UserListScreen> createState() => _UserListScreenState();
