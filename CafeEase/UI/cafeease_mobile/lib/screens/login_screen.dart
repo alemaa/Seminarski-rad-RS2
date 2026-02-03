@@ -20,6 +20,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
+  String? _usernameError;
+  String? _passwordError;
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -34,11 +37,23 @@ class _LoginScreenState extends State<LoginScreen> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
-      _showErrorDialog(
-        title: 'Login failed',
-        message: 'Enter username and password.',
-      );
+    setState(() {
+      _usernameError = null;
+      _passwordError = null;
+    });
+
+    bool hasError = false;
+    if (username.isEmpty) {
+      _usernameError = 'Enter username.';
+      hasError = true;
+    }
+    if (password.isEmpty) {
+      _passwordError = 'Enter password.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setState(() {});
       return;
     }
 
@@ -152,10 +167,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        errorText: _usernameError,
                       ),
                       textInputAction: TextInputAction.next,
+                      onChanged: (_) {
+                        if (_usernameError != null) {
+                          setState(() => _usernameError = null);
+                        }
+                      },
                     ),
+
                     const SizedBox(height: 16),
+                    
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
@@ -167,9 +190,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        errorText: _passwordError,
                       ),
+                      onChanged: (_) {
+                        if (_passwordError != null) {
+                          setState(() => _passwordError = null);
+                        }
+                      },
                       onSubmitted: (_) => _isLoading ? null : _login(),
                     ),
+
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
