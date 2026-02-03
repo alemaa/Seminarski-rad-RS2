@@ -120,8 +120,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final points = res.result.isNotEmpty ? (res.result.first.points) : 0;
       setState(() => _loyaltyPoints = points);
-
-      debugPrint("LOYALTY UPDATED UI: $points");
     } catch (e) {
       debugPrint("LOYALTY LOAD FAILED: $e");
     } finally {

@@ -18,7 +18,7 @@ import '../providers/promotion_provider.dart';
 import '../utils/segment_utils.dart';
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
+  const ProductListScreen({super.key});
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
