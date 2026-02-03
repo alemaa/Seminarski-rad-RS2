@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -74,35 +75,40 @@ namespace CafeEase.Services.Database
                     Id = 1,
                     Name = "Espresso",
                     Price = 2.5m,
-                    CategoryId = 1
+                    CategoryId = 1,
+                    Image = ConvertImageToByteArray("espresso.jpg"),
                 },
                 new Product
                 {
                     Id = 2,
                     Name = "Cappuccino",
                     Price = 3.0m,
-                    CategoryId = 1
+                    CategoryId = 1,
+                    Image = ConvertImageToByteArray("cappuccino.jpg"),
                 },
                 new Product
                 {
                     Id = 3,
                     Name = "Latte",
                     Price = 3.20m,
-                    CategoryId = 1
+                    CategoryId = 1,
+                    Image = ConvertImageToByteArray("latte.jpg"),
                 },
                 new Product
                 {
                     Id = 4,
                     Name = "Ice Coffee",
                     Price = 3.50m,
-                    CategoryId = 2
+                    CategoryId = 2,
+                    Image = ConvertImageToByteArray("icedcoffee.jpg"),
                 },
                 new Product
                 {
                     Id = 5,
                     Name = "Cheesecake",
                     Price = 4.00m,
-                    CategoryId = 3
+                    CategoryId = 3,
+                    Image = ConvertImageToByteArray("cheesecake3.jpg"),
                 }
              );
 
@@ -120,8 +126,16 @@ namespace CafeEase.Services.Database
              modelBuilder.Entity<LoyaltyPoints>().HasData(
                 new LoyaltyPoints { Id = 1, UserId = 2, Points = 0 }
              );
+        }
+        private byte[] ConvertImageToByteArray(string fileName)
+        {
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            var fullPath = Path.Combine(basePath, fileName);
 
+            if (!File.Exists(fullPath))
+                throw new FileNotFoundException($"File {fileName} not found in {fullPath}");
 
+            return File.ReadAllBytes(fullPath);
         }
     }
 }
