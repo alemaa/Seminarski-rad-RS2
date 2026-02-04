@@ -8,7 +8,6 @@ import 'package:printing/printing.dart';
 
 class OrdersReportScreen extends StatefulWidget {
   const OrdersReportScreen({super.key});
-  
 
   @override
   State<OrdersReportScreen> createState() => _OrdersReportScreenState();
@@ -182,24 +181,56 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _pickDateFrom,
-                    child: Text(
-                      _dateFrom == null
-                          ? 'Date from'
-                          : DateFormat('dd.MM.yyyy').format(_dateFrom!),
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _pickDateFrom,
+                          child: Text(
+                            _dateFrom == null
+                                ? 'Date from'
+                                : DateFormat('dd.MM.yyyy').format(_dateFrom!),
+                          ),
+                        ),
+                      ),
+                      if (_dateFrom != null)
+                        IconButton(
+                          tooltip: 'Clear date from',
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            setState(() => _dateFrom = null);
+                            _loadOrders();
+                          },
+                        ),
+                    ],
                   ),
                 ),
+
                 const SizedBox(width: 8),
+
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _pickDateTo,
-                    child: Text(
-                      _dateTo == null
-                          ? 'Date to'
-                          : DateFormat('dd.MM.yyyy').format(_dateTo!),
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _pickDateTo,
+                          child: Text(
+                            _dateTo == null
+                                ? 'Date to'
+                                : DateFormat('dd.MM.yyyy').format(_dateTo!),
+                          ),
+                        ),
+                      ),
+                      if (_dateTo != null)
+                        IconButton(
+                          tooltip: 'Clear date to',
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            setState(() => _dateTo = null);
+                            _loadOrders();
+                          },
+                        ),
+                    ],
                   ),
                 ),
               ],
