@@ -264,10 +264,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.shopping_cart),
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    final shouldRefresh = await Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CartScreen()),
                     );
+
+                    if (shouldRefresh == true) {
+                      await _loadProducts(); 
+                    }
                   },
                 ),
                 if (cart.items.isNotEmpty)

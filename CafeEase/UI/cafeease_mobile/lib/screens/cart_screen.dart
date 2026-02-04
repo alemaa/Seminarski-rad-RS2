@@ -351,14 +351,15 @@ class _CartScreenState extends State<CartScreen> {
                             if (AppSession.tableId == null) return;
                           }
 
-                          final ok = await Navigator.push<bool>(
+                          final paidOrPlaced = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const PaymentScreen(),
-                            ),
+                                builder: (_) => const PaymentScreen()),
                           );
 
-                          if (ok == true && mounted) {}
+                          if (paidOrPlaced == true) {
+                            Navigator.pop(context, true);
+                          }
                         },
                 ),
               ),

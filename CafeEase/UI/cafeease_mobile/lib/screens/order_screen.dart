@@ -26,6 +26,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     "Pending",
     "Paid",
     "Completed",
+    "Cancelled"
   ];
 
   String _selectedStatus = "All";
