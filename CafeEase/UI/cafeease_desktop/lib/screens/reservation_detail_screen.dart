@@ -22,6 +22,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   int? _selectedTableId;
   bool _loadingTables = true;
 
+  String _toYmd(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   late TextEditingController _guestsController;
 
   DateTime? _reservationDate;
@@ -49,19 +52,23 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   Future<void> _loadTables() async {
     final tableProvider = context.read<TableProvider>();
 
+    setState(() => _loadingTables = true);
+
     try {
-      final result = await tableProvider.get();
+      final day = _reservationDate ?? DateTime.now();
+
+      final result = await tableProvider.get(filter: {'date': _toYmd(day)});
 
       setState(() {
         _availableTables = result.result;
         _loadingTables = false;
 
-        if (widget.reservation != null) {
+        if (isEdit) {
           _selectedTableId = widget.reservation!.tableId;
         }
       });
     } catch (e) {
-      _loadingTables = false;
+      setState(() => _loadingTables = false);
     }
   }
 
@@ -91,6 +98,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         time.minute,
       );
     });
+    _loadTables();
   }
 
   @override
