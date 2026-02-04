@@ -23,6 +23,18 @@ namespace CafeEase.WebAPI.Authentication
         {
             _userService = userService;
         }
+        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            if (Context.Items.ContainsKey("DesktopDenied"))
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                Response.ContentType = "application/json";
+                await Response.WriteAsync("{\"errors\":{\"userError\":[\"Desktop access denied.\"]}}");
+                return;
+            }
+
+            await base.HandleChallengeAsync(properties);
+        }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -51,6 +63,15 @@ namespace CafeEase.WebAPI.Authentication
                 {
                     return AuthenticateResult.Fail("Invalid email or password");
                 }
+
+                var client = Request.Headers["X-Client"].ToString();
+
+                if (client == "Desktop" && user.RoleId == 2)
+                {
+                    Context.Items["DesktopDenied"] = true;
+                    return AuthenticateResult.Fail("Desktop access denied.");
+                }
+
 
                 var claims = new List<Claim>
                 {

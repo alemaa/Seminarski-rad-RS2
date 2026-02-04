@@ -33,9 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.4),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.4)),
           ),
 
           Center(
@@ -106,8 +104,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 45,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 196, 145, 108),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            196,
+                            145,
+                            108,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -115,10 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading
                             ? null
                             : () async {
-                                Authorization.username =
-                                    _usernameController.text.trim();
-                                Authorization.password =
-                                    _passwordController.text.trim();
+                                Authorization.username = _usernameController
+                                    .text
+                                    .trim();
+                                Authorization.password = _passwordController
+                                    .text
+                                    .trim();
 
                                 setState(() => _isLoading = true);
 
@@ -138,7 +142,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                   if (!mounted) return;
 
-                                  _showErrorDialog();
+                                  final msg = e
+                                      .toString()
+                                      .replaceFirst('Exception: ', '')
+                                      .toLowerCase();
+
+                                  if (msg.contains('desktop access denied')) {
+                                    _showErrorDialog(
+                                      title: 'Access denied',
+                                      message:
+                                          'User accounts cannot access the desktop/admin application.',
+                                    );
+                                  } else if (msg.contains('invalid') ||
+                                      msg.contains('unauthorized') ||
+                                      msg.contains('wrong')) {
+                                    _showErrorDialog(
+                                      title: 'Login failed',
+                                      message:
+                                          'Wrong username or password.\nPlease try again.',
+                                    );
+                                  } else {
+                                    _showErrorDialog(
+                                      title: 'Error',
+                                      message: msg,
+                                    );
+                                  }
                                 } finally {
                                   if (mounted) {
                                     setState(() => _isLoading = false);
@@ -166,14 +194,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showErrorDialog() {
+  void _showErrorDialog({required String title, required String message}) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Login failed'),
-        content: const Text(
-          'Wrong username or password.\nPlease try again.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

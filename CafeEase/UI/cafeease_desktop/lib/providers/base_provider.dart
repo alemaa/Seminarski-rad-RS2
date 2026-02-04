@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/search_result.dart';
 import '../utils/authorization.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
@@ -98,31 +100,57 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   bool isValidResponse(http.Response response) {
-    if (response.statusCode < 300) {
-      return true;
+    if (response.statusCode < 300) return true;
+
+    if (response.statusCode == 403) {
+      throw Exception('Desktop access denied.');
+    }
+    if (response.statusCode == 401) {
+      throw Exception('Invalid username or password.');
     }
 
-    try {
-      final decoded = jsonDecode(response.body);
+    final body = response.body.trim();
 
-      if (decoded is Map && decoded.containsKey('errors')) {
-        if (decoded['errors']['userError'] != null &&
-            decoded['errors']['userError'] is List &&
-            decoded['errors']['userError'].isNotEmpty) {
-          throw Exception(decoded['errors']['userError'][0]);
+    if (body.isEmpty) {
+      throw Exception('Server error (${response.statusCode}).');
+    }
+
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(body);
+    } catch (_) {
+      throw Exception(body);
+    }
+
+    if (decoded is Map && decoded.containsKey('errors')) {
+      final errors = decoded['errors'];
+
+      if (errors is Map) {
+        final userErr = errors['userError'];
+        if (userErr is List && userErr.isNotEmpty) {
+          throw Exception(userErr.first.toString());
         }
 
-        final firstKey = decoded['errors'].keys.first;
-        final firstError = decoded['errors'][firstKey];
-        if (firstError is List && firstError.isNotEmpty) {
-          throw Exception(firstError[0]);
+        if (errors.keys.isNotEmpty) {
+          final firstKey = errors.keys.first;
+          final firstError = errors[firstKey];
+
+          if (firstError is List && firstError.isNotEmpty) {
+            throw Exception(firstError.first.toString());
+          }
+
+          if (firstError is String && firstError.isNotEmpty) {
+            throw Exception(firstError);
+          }
         }
       }
-
-      throw Exception('Unexpected server error');
-    } catch (e) {
-      throw Exception(e.toString().replaceFirst('Exception: ', ''));
     }
+
+    if (decoded is Map && decoded.containsKey('message')) {
+      throw Exception(decoded['message'].toString());
+    }
+
+    throw Exception('Unexpected server error (${response.statusCode}).');
   }
 
   Map<String, String> createHeaders() {
@@ -132,7 +160,18 @@ abstract class BaseProvider<T> with ChangeNotifier {
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
-    return {'Content-Type': 'application/json', 'Authorization': basicAuth};
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': basicAuth,
+    };
+
+    if (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      headers['X-Client'] = 'Desktop';
+    }
+
+    return headers;
   }
 
   String getQueryString(
