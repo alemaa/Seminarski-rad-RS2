@@ -4,6 +4,7 @@ import '../models/table.dart' as model;
 import '../providers/table_provider.dart';
 import 'table_detail_screen.dart';
 import 'table_orders_screen.dart';
+import 'table_availability_screen.dart';
 
 class TableListScreen extends StatefulWidget {
   const TableListScreen({super.key});
@@ -15,8 +16,9 @@ class TableListScreen extends StatefulWidget {
 class _TableListScreenState extends State<TableListScreen> {
   List<model.Table> _tables = [];
   bool _loading = true;
-  bool? _selectedIsOccupied;
+
   int? _selectedCapacity;
+  final TextEditingController _tableNumberController = TextEditingController();
 
   @override
   void initState() {
@@ -24,13 +26,20 @@ class _TableListScreenState extends State<TableListScreen> {
     _loadTables();
   }
 
+  @override
+  void dispose() {
+    _tableNumberController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadTables() async {
     final provider = context.read<TableProvider>();
-
     final filter = <String, dynamic>{};
 
-    if (_selectedIsOccupied != null) {
-      filter['isOccupied'] = _selectedIsOccupied;
+    final numText = _tableNumberController.text.trim();
+    final parsedNumber = int.tryParse(numText);
+    if (parsedNumber != null) {
+      filter['number'] = parsedNumber;
     }
 
     if (_selectedCapacity != null) {
@@ -54,7 +63,7 @@ class _TableListScreenState extends State<TableListScreen> {
         backgroundColor: const Color(0xFF8B5A3C),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF8B5A3C),
+        backgroundColor: const Color(0xFF8B5A3C),
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
         onPressed: () async {
@@ -63,9 +72,7 @@ class _TableListScreenState extends State<TableListScreen> {
             MaterialPageRoute(builder: (_) => const TableDetailScreen()),
           );
 
-          if (result == 'refresh') {
-            _loadTables();
-          }
+          if (result == 'refresh') _loadTables();
         },
       ),
       body: _loading
@@ -77,28 +84,17 @@ class _TableListScreenState extends State<TableListScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField<bool?>(
-                          value: _selectedIsOccupied,
+                        child: TextFormField(
+                          controller: _tableNumberController,
+                          keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Status',
+                            labelText: 'Table number',
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: null, child: Text('All')),
-                            DropdownMenuItem(value: false, child: Text('Free')),
-                            DropdownMenuItem(
-                              value: true,
-                              child: Text('Occupied'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() => _selectedIsOccupied = value);
-                            _loadTables();
-                          },
+                          onChanged: (_) => _loadTables(),
                         ),
                       ),
                       const SizedBox(width: 12),
-
                       Expanded(
                         child: DropdownButtonFormField<int?>(
                           value: _selectedCapacity,
@@ -121,8 +117,42 @@ class _TableListScreenState extends State<TableListScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
+                  Card(
+                    color: const Color(0xFF8B5A3C),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.calendar_month,
+                        color: Colors.white,
+                      ),
+                      title: const Text(
+                        'Check availability by date',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        'See free and occupied tables for a selected day',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                      ),
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TableAvailabilityScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
 
                   Expanded(
                     child: ListView.builder(
@@ -131,9 +161,7 @@ class _TableListScreenState extends State<TableListScreen> {
                         final table = _tables[index];
 
                         return Card(
-                          color: table.isOccupied == true
-                              ? const Color(0xFFC4A484)
-                              : const Color(0xFFD2B48C),
+                          color: const Color(0xFFD2B48C),
                           elevation: 2,
                           shadowColor: Colors.black26,
                           shape: RoundedRectangleBorder(
@@ -144,11 +172,9 @@ class _TableListScreenState extends State<TableListScreen> {
                             vertical: 6,
                           ),
                           child: ListTile(
-                            leading: Icon(
+                            leading: const Icon(
                               Icons.table_restaurant,
-                              color: table.isOccupied == true
-                                  ? Colors.red
-                                  : Colors.green,
+                              color: Color(0xFF3E2723),
                             ),
                             title: Text(
                               'Table ${table.number}',
@@ -158,8 +184,7 @@ class _TableListScreenState extends State<TableListScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              'Capacity: ${table.capacity} | '
-                              '${table.isOccupied == true ? "Occupied" : "Free"}',
+                              'Capacity: ${table.capacity}',
                               style: const TextStyle(color: Color(0xFF5D4037)),
                             ),
                             trailing: CircleAvatar(
@@ -169,11 +194,10 @@ class _TableListScreenState extends State<TableListScreen> {
                                 padding: EdgeInsets.zero,
                                 icon: const Icon(
                                   Icons.receipt_long,
-                                  color: Color(0xFF6B3E2E),
+                                  color: Colors.white,
                                   size: 18,
                                 ),
                                 tooltip: 'Open order',
-
                                 onPressed: () async {
                                   await Navigator.push(
                                     context,
@@ -194,9 +218,7 @@ class _TableListScreenState extends State<TableListScreen> {
                                 ),
                               );
 
-                              if (result == 'refresh') {
-                                _loadTables();
-                              }
+                              if (result == 'refresh') _loadTables();
                             },
                           ),
                         );
