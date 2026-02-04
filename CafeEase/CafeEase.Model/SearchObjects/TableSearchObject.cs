@@ -7,5 +7,6 @@ namespace CafeEase.Model.SearchObjects
         public bool? IsOccupied { get; set; }
         public int? Capacity { get; set; }
         public DateTime? Date { get; set; }
+        public int? Number { get; set; }
     }
 }
