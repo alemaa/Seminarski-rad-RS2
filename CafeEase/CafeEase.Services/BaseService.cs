@@ -20,7 +20,7 @@ namespace CafeEase.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<T>> Get(TSearch? search = null)
+        public virtual async Task<PagedResult<T>> Get(TSearch? search = null)
         {
             var query = _context.Set<TDb>().AsQueryable();
 
