@@ -24,7 +24,7 @@ class _LoyaltyInfoWidgetState extends State<LoyaltyInfoWidget> {
     try {
       final provider = context.read<LoyaltyPointsProvider>();
       final res = await provider.get(
-        filter: {"UserId": Authorization.userId},
+        filter: {"userId": Authorization.userId},
       );
 
       setState(() {

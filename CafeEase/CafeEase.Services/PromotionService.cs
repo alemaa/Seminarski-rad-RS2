@@ -32,7 +32,7 @@ namespace CafeEase.Services
             }
             if (!string.IsNullOrWhiteSpace(search?.Segment))
             {
-                query = query.Where(p => p.TargetSegment == null || p.TargetSegment == "ALL" || p.TargetSegment == search.Segment);
+                query = query.Where(p => p.TargetSegment == "ALL" || p.TargetSegment == search.Segment);
             }
 
             return base.AddFilter(query, search);
