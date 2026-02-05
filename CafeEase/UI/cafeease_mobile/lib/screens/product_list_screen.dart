@@ -121,14 +121,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
     try {
       final loyaltyRes =
           await loyaltyProvider.get(filter: {"userId": Authorization.userId});
-      final points =
-          loyaltyRes.result.isNotEmpty ? loyaltyRes.result.first.points : 0;
+
+      final matches = loyaltyRes.result
+          .where((x) => x.userId == Authorization.userId)
+          .toList();
+      final points = matches.isNotEmpty ? matches.first.points : 0;
 
       final segment = getUserSegment(points);
-
       final promoRes = await promoProvider.get(filter: {
         "activeOnly": true,
-        "targetSegment": segment,
+        "segment": segment,
       });
 
       setState(() {
@@ -270,7 +272,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     );
 
                     if (shouldRefresh == true) {
-                      await _loadProducts(); 
+                      await _loadProducts();
                     }
                   },
                 ),

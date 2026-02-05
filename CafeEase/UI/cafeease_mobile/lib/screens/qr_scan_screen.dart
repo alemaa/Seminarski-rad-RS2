@@ -25,9 +25,16 @@ class _QrScanScreenState extends State<QrScanScreen> {
           final raw = barcode?.rawValue;
           if (raw == null) return;
 
+          debugPrint("QR RAW ='${raw}'");
+
+          int? tableId;
+
           final uri = Uri.tryParse(raw);
-          final tableIdStr = uri?.queryParameters['tableId'];
-          final tableId = int.tryParse(tableIdStr ?? '');
+          if (uri != null && uri.queryParameters.containsKey('tableId')) {
+            tableId = int.tryParse(uri.queryParameters['tableId']!);
+          } else {
+            tableId = int.tryParse(raw);
+          }
 
           if (tableId == null || tableId <= 0) {
             ScaffoldMessenger.of(context).showSnackBar(
