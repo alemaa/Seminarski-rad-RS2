@@ -204,14 +204,28 @@ class _UserEditScreenState extends State<UserEditScreen> {
                           _passwordController,
                           'Password',
                           isPassword: true,
+                          validator: (v) {
+                            final value = (v ?? '').trim();
+                            if (value.isEmpty) {
+                              return 'Required field';
+                            }
+                            if (value.length < 4) {
+                              return 'Password must be at least 4 characters';
+                            }
+                            return null;
+                          },
                         ),
+
                         _buildField(
                           _confirmPasswordController,
                           'Confirm password',
                           isPassword: true,
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Required field';
-                            if (v != _passwordController.text) {
+                            final value = (v ?? '').trim();
+                            if (value.isEmpty) {
+                              return 'Required field';
+                            }
+                            if (value != _passwordController.text.trim()) {
                               return 'Passwords do not match';
                             }
                             return null;
