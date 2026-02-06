@@ -73,7 +73,7 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:3000") 
+        builder => builder.AllowAnyOrigin() 
                           .AllowAnyHeader()
                           .AllowAnyMethod());
 });
