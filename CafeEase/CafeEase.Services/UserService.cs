@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using CafeEase.Services.Database;
-using Microsoft.Ajax.Utilities;
 using CafeEase.Services.Exceptions;
 
 namespace CafeEase.Services
@@ -26,12 +25,10 @@ namespace CafeEase.Services
             if (!cityExists)
                 throw new UserException("Selected city does not exist");
 
-            // 2) provjeri username
             var usernameTaken = await _context.Users.AnyAsync(u => u.Username == insert.Username);
             if (usernameTaken)
                 throw new UserException("Username is already taken");
 
-            // 3) provjeri email
             var emailTaken = await _context.Users.AnyAsync(u => u.Email == insert.Email);
             if (emailTaken)
                 throw new UserException("Email is already taken");
