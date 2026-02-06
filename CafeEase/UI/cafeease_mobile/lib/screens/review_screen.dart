@@ -429,11 +429,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     maxLines: 4,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: "Write your comment...",
+                      hintText: "Write your comment(optional)...",
                     ),
                     validator: (v) {
                       final t = (v ?? "").trim();
-                      if (t.isEmpty) return "Comment is required";
+                      if (t.isEmpty) return null;
                       if (t.length < 3) return "Too short";
                       return null;
                     },

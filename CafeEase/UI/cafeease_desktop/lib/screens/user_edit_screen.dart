@@ -164,6 +164,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -181,6 +182,21 @@ class _UserEditScreenState extends State<UserEditScreen> {
                         _emailController,
                         'Email',
                         keyboardType: TextInputType.emailAddress,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Required field';
+                          }
+
+                          final emailRegex = RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
+
+                          if (!emailRegex.hasMatch(v.trim())) {
+                            return 'Invalid email format';
+                          }
+
+                          return null;
+                        },
                       ),
 
                       if (widget.user == null) ...[

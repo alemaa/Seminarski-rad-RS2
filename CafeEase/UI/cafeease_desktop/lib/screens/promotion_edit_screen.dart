@@ -87,34 +87,7 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select start and end date')),
-      );
-      return;
-    }
-
-    if (_endDate!.isBefore(_startDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End date must be after start date')),
-      );
-      return;
-    }
-
-    if (selectedCategoryIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one category')),
-      );
-      return;
-    }
-
     final discount = double.tryParse(_discountController.text);
-    if (discount == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid discount value')));
-      return;
-    }
 
     setState(() => _isSaving = true);
 
@@ -189,12 +162,30 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
                 child: Column(
                   children: [
                     _field(_nameController, 'Name'),
-                    _field(_descController, 'Description'),
+                    _field(_descController, 'Description', required: false),
                     _field(
                       _discountController,
                       'Discount (%)',
                       keyboardType: TextInputType.number,
+                      required: true,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Required field';
+                        }
+
+                        final value = double.tryParse(v);
+                        if (value == null) {
+                          return 'Invalid discount value';
+                        }
+
+                        if (value <= 0 || value > 100) {
+                          return 'Discount must be between 1 and 100';
+                        }
+
+                        return null;
+                      },
                     ),
+
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _selectedSegment,
@@ -216,69 +207,144 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Applies to categories',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    FormField<List<int>>(
+                      initialValue: selectedCategoryIds,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Select at least one category';
+                        }
+                        return null;
+                      },
+                      builder: (state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Applies to categories',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            if (_loadingCategories)
+                              const CircularProgressIndicator()
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: categories.map((c) {
+                                  final selected = selectedCategoryIds.contains(
+                                    c.id,
+                                  );
+                                  return FilterChip(
+                                    label: Text(c.name ?? ''),
+                                    selected: selected,
+                                    onSelected: (v) {
+                                      if (c.id == null) return;
+                                      setState(() {
+                                        v
+                                            ? selectedCategoryIds.add(c.id!)
+                                            : selectedCategoryIds.remove(c.id!);
+                                      });
+
+                                      state.didChange(
+                                        List<int>.from(selectedCategoryIds),
+                                      );
+                                      state.validate();
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8, left: 4),
+                                child: Text(
+                                  state.errorText!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
-                    const SizedBox(height: 8),
-                    if (_loadingCategories)
-                      const CircularProgressIndicator()
-                    else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: categories.map((c) {
-                          final selected = selectedCategoryIds.contains(c.id);
-                          return FilterChip(
-                            label: Text(c.name ?? ''),
-                            selected: selected,
-                            onSelected: (v) {
-                              if (c.id == null) return;
-                              setState(() {
-                                v
-                                    ? selectedCategoryIds.add(c.id!)
-                                    : selectedCategoryIds.remove(c.id!);
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
+
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _pickDate(true),
-                            child: Text(
-                              _startDate == null
-                                  ? 'Start date'
-                                  : _startDate!.toLocal().toString().split(
-                                      ' ',
-                                    )[0],
+                    FormField<DateTime>(
+                      validator: (_) {
+                        if (_startDate == null || _endDate == null) {
+                          return 'Please select start and end date';
+                        }
+                        if (_endDate!.isBefore(_startDate!)) {
+                          return 'End date must be after start date';
+                        }
+                        return null;
+                      },
+                      builder: (state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await _pickDate(true);
+                                      state.didChange(_startDate);
+                                    },
+                                    child: Text(
+                                      _startDate == null
+                                          ? 'Start date'
+                                          : _startDate!
+                                                .toLocal()
+                                                .toString()
+                                                .split(' ')[0],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await _pickDate(false);
+                                      state.didChange(_endDate);
+                                    },
+                                    child: Text(
+                                      _endDate == null
+                                          ? 'End date'
+                                          : _endDate!
+                                                .toLocal()
+                                                .toString()
+                                                .split(' ')[0],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _pickDate(false),
-                            child: Text(
-                              _endDate == null
-                                  ? 'End date'
-                                  : _endDate!.toLocal().toString().split(
-                                      ' ',
-                                    )[0],
-                            ),
-                          ),
-                        ),
-                      ],
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8, left: 4),
+                                child: Text(
+                                  state.errorText!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
+
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -306,14 +372,19 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
     TextEditingController controller,
     String label, {
     TextInputType keyboardType = TextInputType.text,
+    bool required = true,
+    String? Function(String?)? validator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        validator: (v) =>
-            v == null || v.trim().isEmpty ? 'Required field' : null,
+        validator:
+            validator ??
+            (required
+                ? (v) => v == null || v.trim().isEmpty ? 'Required field' : null
+                : null),
         decoration: InputDecoration(
           labelText: label,
           filled: true,

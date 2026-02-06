@@ -153,6 +153,9 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (p.description != null &&
+                                  p.description!.trim().isNotEmpty)
+                                Text('Description: ${p.description}'),
                               Text(
                                 'Discount: ${p.discountPercent.toStringAsFixed(0)}%',
                               ),

@@ -236,7 +236,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       'Price',
                       keyboardType: TextInputType.number,
                     ),
-                    _buildField(_descriptionController, 'Description'),
+                    _buildField(
+                      _descriptionController,
+                      'Description',
+                      required: false,
+                    ),
 
                     const SizedBox(height: 8),
 
@@ -448,19 +452,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     TextEditingController controller,
     String label, {
     TextInputType keyboardType = TextInputType.text,
+    bool required = true,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        validator: (v) => v == null || v.isEmpty ? 'Required field' : null,
+        validator: required
+            ? (v) => v == null || v.trim().isEmpty ? 'Required field' : null
+            : null,
         decoration: InputDecoration(
           labelText: label,
           filled: true,
-          fillColor: Color(0xFFEDE3DB),
+          fillColor: const Color(0xFFEDE3DB),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF8B5A3C)),
+            borderSide: const BorderSide(color: Color(0xFF8B5A3C)),
             borderRadius: BorderRadius.circular(14),
           ),
         ),

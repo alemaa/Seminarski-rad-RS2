@@ -191,58 +191,71 @@ class _OrdersScreenState extends State<OrdersScreen> {
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedStatus,
-                    items: _statusOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(s),
-                            ))
-                        .toList(),
-                    onChanged: (val) async {
-                      if (val == null) return;
-                      setState(() => _selectedStatus = val);
-                      await _fetchOrders();
-                    },
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 520;
+
+                final statusField = DropdownButtonFormField<String>(
+                  value: _selectedStatus,
+                  items: _statusOptions
+                      .map((s) => DropdownMenuItem(
+                          value: s,
+                          child: Text(s, overflow: TextOverflow.ellipsis)))
+                      .toList(),
+                  onChanged: (val) async {
+                    if (val == null) return;
+                    setState(() => _selectedStatus = val);
+                    await _fetchOrders();
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Status",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    isDense: true,
+                  ),
+                );
+
+                final dateField = InkWell(
+                  onTap: _pickDate,
+                  child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: "Status",
+                      labelText: "Date",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                          borderRadius: BorderRadius.circular(12)),
                       isDense: true,
+                      suffixIcon: _selectedDate == null
+                          ? const Icon(Icons.calendar_month)
+                          : IconButton(
+                              tooltip: "Clear date",
+                              icon: const Icon(Icons.clear),
+                              onPressed: () async {
+                                setState(() => _selectedDate = null);
+                                await _fetchOrders();
+                              },
+                            ),
                     ),
+                    child: Text(dateLabel, overflow: TextOverflow.ellipsis),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: InkWell(
-                    onTap: _pickDate,
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: "Date",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        isDense: true,
-                        suffixIcon: _selectedDate == null
-                            ? const Icon(Icons.calendar_month)
-                            : IconButton(
-                                tooltip: "Clear date",
-                                icon: const Icon(Icons.clear),
-                                onPressed: () async {
-                                  setState(() => _selectedDate = null);
-                                  await _fetchOrders();
-                                },
-                              ),
-                      ),
-                      child: Text(dateLabel),
-                    ),
-                  ),
-                ),
-              ],
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    children: [
+                      statusField,
+                      const SizedBox(height: 10),
+                      dateField,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: statusField),
+                    const SizedBox(width: 10),
+                    Expanded(child: dateField),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 10),
             Align(

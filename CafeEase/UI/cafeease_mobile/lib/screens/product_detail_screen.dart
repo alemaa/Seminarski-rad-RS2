@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/product.dart';
 import '../models/review.dart';
 import '../providers/cart_provider.dart';
 import '../providers/review_provider.dart';
 import '../screens/add_review_screen.dart';
+import '../providers/inventory_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -18,11 +18,14 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<List<Review>>? _reviewsFuture;
+  int _stock = 0;
+  bool _loadingStock = true;
 
   @override
   void initState() {
     super.initState();
     _loadReviews();
+    _loadStock();
   }
 
   void _loadReviews() {
@@ -35,6 +38,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _reviewsFuture = context
         .read<ReviewProvider>()
         .get(filter: {"productId": pid}).then((res) => res.result);
+  }
+
+  Future<void> _loadStock() async {
+    final id = widget.product.id;
+    if (id == null) {
+      setState(() {
+        _stock = 0;
+        _loadingStock = false;
+      });
+      return;
+    }
+
+    try {
+      final inv = context.read<InventoryProvider>();
+      final s = await inv.getStockForProduct(id);
+
+      if (!mounted) return;
+      setState(() {
+        _stock = s;
+        _loadingStock = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _stock = 0;
+        _loadingStock = false;
+      });
+    }
   }
 
   Widget _buildImage(String? base64Img) {
@@ -310,13 +341,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () async {
-                    await cart.add(product);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Added to cart')),
-                    );
-                  },
+                  onPressed: _loadingStock
+                      ? null
+                      : () async {
+                          if (_stock <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Out of stock.')),
+                            );
+                            return;
+                          }
+
+                          final currentQty = cart.getQuantity(product);
+
+                          if (currentQty >= _stock) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Only $_stock ${product.name ?? "items"} available.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          await cart.add(product);
+
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Added to cart')),
+                          );
+                        },
                   icon:
                       const Icon(Icons.add_shopping_cart, color: Colors.white),
                   label: const Text(
