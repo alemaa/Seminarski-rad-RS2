@@ -6,6 +6,8 @@ using CafeEase.WebAPI.Authentication;
 using CafeEase.WebAPI.Filters;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +81,25 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CafeEaseDbContext>();
+
+    db.Database.Migrate();
+
+    if (db.Orders.Any() && !db.Recommendations.Any())
+    {
+        var rec = scope.ServiceProvider.GetRequiredService<IRecommendationService>();
+        try
+        {
+            await rec.TrainModel();
+        }
+        catch (Exception)
+        {
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
