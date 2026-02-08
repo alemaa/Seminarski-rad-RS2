@@ -3,7 +3,7 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 using CafeEase.Model.Messages;
-
+using System.Threading;
 Console.WriteLine("CafeEase Subscriber started...");
 
 var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
@@ -27,7 +27,29 @@ var factory = new ConnectionFactory {
     VirtualHost = rabbitVHost,
 };
 
-var connection = await factory.CreateConnectionAsync();
+IConnection? connection = null;
+
+for (int i = 1; i <= 30; i++)
+{
+    try
+    {
+        connection = await factory.CreateConnectionAsync();
+        Console.WriteLine("✅ Connected to RabbitMQ.");
+        break;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⏳ RabbitMQ not ready ({i}/30): {ex.Message}");
+        await Task.Delay(3000);
+    }
+}
+
+if (connection == null)
+{
+    Console.WriteLine("❌ Could not connect to RabbitMQ after retries.");
+    Environment.Exit(1);
+}
+
 var channel = await connection.CreateChannelAsync();
 
 await channel.QueueDeclareAsync(
@@ -60,4 +82,4 @@ await channel.BasicConsumeAsync(
     consumer: consumer);
 
 Console.WriteLine("Listening for messages...");
-Console.ReadLine();
+await Task.Delay(Timeout.Infinite);
