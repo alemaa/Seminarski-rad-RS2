@@ -1,0 +1,70 @@
+version: "3"
+
+services:
+  cafeease-sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=QWUadc176!
+      - MSSQL_PID=Developer
+    ports:
+      - "1401:1433"
+    expose:
+      - 1433
+    networks:
+      - cafeease-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - cafeease-net
+
+  cafeease-api:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: CafeEase.WebAPI/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5003
+      - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=CafeEase_190046;User=sa;Password=QWUadc176!;TrustServerCertificate=True;ConnectRetryCount=0
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_VIRTUALHOST=/
+      - RABBITMQ_QUEUE=payment_completed
+    ports:
+      - "5003:5003"
+    networks:
+      - cafeease-net
+    depends_on:
+      - cafeease-sql
+      - rabbitmq
+
+  cafeease-subscriber:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: CafeEase.Subscriber/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_VIRTUALHOST=/
+      - RABBITMQ_QUEUE=payment_completed
+    networks:
+      - cafeease-net
+    depends_on:
+      - rabbitmq
+
+networks:
+  cafeease-net:
+    driver: bridge
