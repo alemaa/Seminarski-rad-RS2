@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CafeEase.Model", "CafeEase.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CafeEase.Services", "CafeEase.Services\CafeEase.Services.csproj", "{B7B83D0D-1D46-4929-90E5-02708F1B8169}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CafeEase.Subscriber", "CafeEase.Subscriber\CafeEase.Subscriber.csproj", "{785874AA-E196-4A63-AFF5-1353622842E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CafeEase.Subscriber", "CafeEase.Subscriber\CafeEase.Subscriber.csproj", "{785874AA-E196-4A63-AFF5-1353622842E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F327B4A5-0316-49C5-8406-97B34984FB49}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
