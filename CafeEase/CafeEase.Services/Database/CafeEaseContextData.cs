@@ -269,7 +269,7 @@ namespace CafeEase.Services.Database
                     UserId = 2,
                     TableId = 2,
                     ReservationDateTime = new DateTime(2026, 2, 6, 20, 30, 0),
-                    NumberOfGuests = 4,
+                    NumberOfGuests = 2,
                     Status = "Pending"
                 },
                 new Reservation
