@@ -13,5 +13,6 @@ namespace CafeEase.Services.Database
         public string Status { get; set; } = null!;
         public int OrderId { get; set; }
         public virtual Order Order { get; set; } = null!;
+        public string? ProviderIntentId { get; set; }
     }
 }
