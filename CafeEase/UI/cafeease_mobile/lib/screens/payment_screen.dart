@@ -4,7 +4,6 @@ import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/payment_provider.dart';
 import '../models/order_request.dart';
-import '../models/payment_insert_request.dart';
 import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
 import '../providers/loyalty_points_provider.dart';
@@ -12,6 +11,7 @@ import '../utils/util.dart';
 import '../models/promotion.dart';
 import '../utils/segment_utils.dart';
 import '../providers/promotion_provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 
 enum PayType { cash, inApp }
 
@@ -23,7 +23,6 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  final _formKey = GlobalKey<FormState>();
   PayType _payType = PayType.cash;
 
   int? _loyaltyPoints;
@@ -127,39 +126,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  String? _validateCard(String? v) {
-    final s = (v ?? "").replaceAll(" ", "");
-    if (s.isEmpty) return "Card number is required";
-    if (s.length < 12 || s.length > 19) {
-      return "Enter a valid card number (12–19 digits)";
-    }
-    if (!RegExp(r'^\d+$').hasMatch(s)) return "Card number must be digits only";
-    return null;
-  }
-
-  String? _validateExpiry(String? v) {
-    final s = (v ?? "").trim();
-    if (s.isEmpty) return "Expiry is required (MM/YY)";
-    if (!RegExp(r'^\d{2}\/\d{2}$').hasMatch(s)) return "Use format MM/YY";
-    final mm = int.tryParse(s.substring(0, 2)) ?? 0;
-    if (mm < 1 || mm > 12) return "Month must be 01–12";
-    return null;
-  }
-
-  String? _validateCvv(String? v) {
-    final s = (v ?? "").trim();
-    if (s.isEmpty) return "CVV is required";
-    if (!RegExp(r'^\d{3,4}$').hasMatch(s)) return "CVV must be 3 or 4 digits";
-    return null;
-  }
-
-  String? _validateName(String? v) {
-    final s = (v ?? "").trim();
-    if (s.isEmpty) return "Card holder name is required";
-    if (s.length < 3) return "Enter a valid name";
-    return null;
-  }
-
   Future<void> _submit() async {
     final cartProvider = context.read<CartProvider>();
     final orderProvider = context.read<OrderProvider>();
@@ -171,14 +137,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
       return;
     }
+
     if (AppSession.tableId == null) {
       await showSelectTableDialog(context);
       if (AppSession.tableId == null) return;
-    }
-
-    if (_payType == PayType.inApp) {
-      final ok = _formKey.currentState?.validate() ?? false;
-      if (!ok) return;
     }
 
     final confirmed = await _confirmSend();
@@ -188,12 +150,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     try {
       final items = cartProvider.items
-          .map(
-            (e) => OrderItemRequest(
-              productId: e.product.id!,
-              quantity: e.count,
-            ),
-          )
+          .map((e) =>
+              OrderItemRequest(productId: e.product.id!, quantity: e.count))
           .toList();
 
       final orderReq = OrderRequest(
@@ -204,35 +162,85 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final createdOrder = await orderProvider.createOrder(orderReq);
 
       if (_payType == PayType.inApp) {
-        final payReq = PaymentInsertRequest(
-          orderId: createdOrder.id!,
-          method: "Card",
+        debugPrint("PAY FLOW START (Stripe)");
+
+        final res = await paymentProvider.createStripeIntent(createdOrder.id!);
+        debugPrint("Stripe create-intent RES = $res");
+
+        final clientSecret = res["clientSecret"];
+        final paymentId = res["paymentId"];
+        final publishableKey = res["publishableKey"];
+
+        debugPrint("clientSecret = $clientSecret");
+        debugPrint("paymentId = $paymentId");
+        debugPrint("publishableKey = $publishableKey");
+
+        if (clientSecret == null ||
+            clientSecret is! String ||
+            clientSecret.isEmpty) {
+          throw Exception("Missing/invalid clientSecret from backend.");
+        }
+        if (paymentId == null) {
+          throw Exception("Missing paymentId from backend.");
+        }
+
+        if (publishableKey != null &&
+            publishableKey is String &&
+            publishableKey.isNotEmpty) {
+          stripe.Stripe.publishableKey = publishableKey;
+          await stripe.Stripe.instance.applySettings();
+        }
+
+        debugPrint("initPaymentSheet...");
+        await stripe.Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: stripe.SetupPaymentSheetParameters(
+            paymentIntentClientSecret: clientSecret,
+            merchantDisplayName: "CafeEase",
+          ),
         );
 
-        await paymentProvider.createPayment(payReq);
+        debugPrint("presentPaymentSheet...");
+        await stripe.Stripe.instance.presentPaymentSheet();
 
-        await orderProvider.updateOrder(createdOrder.id!, {
-          "status": "Paid",
-        });
+        debugPrint("calling confirm on backend...");
+        await paymentProvider.confirmStripe(paymentId as int);
+
+        debugPrint("Stripe payment confirmed ✅");
       }
 
       await _loadLoyalty();
-
       await cartProvider.clear();
-
       AppSession.clearTable();
 
       if (!mounted) return;
+
       final msg = _payType == PayType.cash
           ? "Order placed. Please pay at the cafe."
           : "Payment successful. Order is paid.";
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       Navigator.pop(context, true);
-    } catch (e) {
+    } on stripe.StripeException catch (e) {
+      debugPrint("STRIPE ERROR: ${e.error.localizedMessage}");
+      debugPrint("STRIPE FULL: $e");
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(
+          content: Text(e.error.localizedMessage ?? "Payment cancelled"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e, st) {
+      debugPrint("ERROR: $e");
+      debugPrint("STACKTRACE: $st");
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Something went wrong. Please try again."),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -294,7 +302,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          if (_payType == PayType.inApp) _cardForm(),
+          if (_payType == PayType.inApp)
           const SizedBox(height: 18),
           SizedBox(
             height: 48,
@@ -398,74 +406,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _cardForm() {
-    return Card(
-      color: Colors.brown.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Payment details",
-                  style: TextStyle(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Card holder name",
-                  border: OutlineInputBorder(),
-                ),
-                validator: _validateName,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _cardCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Card number",
-                  border: OutlineInputBorder(),
-                ),
-                validator: _validateCard,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _expiryCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Expiry (MM/YY)",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: _validateExpiry,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cvvCtrl,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "CVV",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: _validateCvv,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _orderItemsCard(CartProvider cartProvider) {
     return Card(

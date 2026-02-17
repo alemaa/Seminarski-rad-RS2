@@ -8,6 +8,7 @@ import '../utils/util.dart';
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
   late String _endpoint;
+  static String get baseUrl => _baseUrl ?? 'http://10.0.2.2:5003/';
 
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
