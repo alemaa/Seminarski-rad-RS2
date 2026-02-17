@@ -32,7 +32,8 @@ builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IRecommendationService, RecommendationService>();
 builder.Services.AddTransient<ITableService, TableService>();
 builder.Services.AddTransient<IInventoryService, InventoryService>();   
-builder.Services.AddTransient<ICityService, CityService>(); 
+builder.Services.AddTransient<ICityService, CityService>();
+builder.Services.AddTransient<IStripePaymentService, StripePaymentService>();
 
 builder.Services.AddControllers(options =>
 {
