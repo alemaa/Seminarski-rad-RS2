@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -26,9 +27,19 @@ namespace CafeEase.Services
 
         public override async Task BeforeInsert(Database.Payment entity,PaymentInsertRequest insert)
         {
-            entity.Status = "Completed";
+            entity.Status = "Pending";
+        }
 
-            var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == insert.OrderId);
+        public async Task FinalizePaidOrderAsync(int orderId)
+        {
+            var order = await _context.Orders.Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null) throw new UserException("Order not found");
+            if (order.Status == "Paid") return;
+
+            order.Status = "Paid";
+       
             if (order == null)
             {
                 throw new UserException("Order not found");
@@ -118,7 +129,7 @@ namespace CafeEase.Services
                 var body = Encoding.UTF8.GetBytes(
                     JsonSerializer.Serialize(new PaymentCompleted
                     {
-                        OrderId = insert.OrderId,
+                        OrderId = orderId,
                         UserId = order.UserId,
                         Amount = order.TotalAmount
                     })
@@ -135,6 +146,8 @@ namespace CafeEase.Services
             {
                 _logger.LogError(ex, "Rabbit publish failed, continuing without message.");
             }
+
+            await _context.SaveChangesAsync();
         }
 
         public override async Task<Model.Payment> Insert(PaymentInsertRequest insert)
