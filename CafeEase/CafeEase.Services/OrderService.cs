@@ -46,7 +46,11 @@ namespace CafeEase.Services
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        Price = product.Price
+                        Price = product.Price,
+                        Size = item.Size,
+                        MilkType = item.MilkType,
+                        SugarLevel = item.SugarLevel,
+                        Note = item.Note,
                     };
                 }).ToList();
             }

@@ -10,5 +10,9 @@ namespace CafeEase.Model.Requests
     {
         public int ProductId { get; set; }
         public int Quantity { get; set; }
+        public string? Size { get; set; }
+        public string? MilkType { get; set; }
+        public int? SugarLevel { get; set; }
+        public string? Note { get; set; }
     }
 }
