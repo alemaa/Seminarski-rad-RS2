@@ -328,7 +328,10 @@ namespace CafeEase.Services.Database
             var fullPath = Path.Combine(basePath, fileName);
 
             if (!File.Exists(fullPath))
-                throw new FileNotFoundException($"File {fileName} not found in {fullPath}");
+            {
+                Console.WriteLine($"File {fileName} not found in {fullPath}");
+                return Array.Empty<byte>();
+            }
 
             return File.ReadAllBytes(fullPath);
         }
