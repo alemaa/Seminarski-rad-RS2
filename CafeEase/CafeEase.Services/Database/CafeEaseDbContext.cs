@@ -31,6 +31,7 @@ namespace CafeEase.Services.Database
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<PromotionCategory> PromotionCategories { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
