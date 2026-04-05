@@ -49,6 +49,7 @@ namespace CafeEase.Services.Mapping
             CreateMap<InventoryUpdateRequest, Database.Inventory>();
             CreateMap<Database.City, Model.City>();
             CreateMap<CityUpsertRequest, Database.City>();
+            CreateMap<Database.Notification, Model.Notification>();
         }
     }
 }
