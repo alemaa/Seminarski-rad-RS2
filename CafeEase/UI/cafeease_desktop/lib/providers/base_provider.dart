@@ -90,6 +90,31 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return fromJson(data);
   }
 
+  Future<String> postCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.post(uri, headers: createHeaders());
+    isValidResponse(response);
+    return response.body;
+  }
+
+  Future<dynamic> getCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.get(uri, headers: createHeaders());
+    isValidResponse(response);
+
+    final body = utf8.decode(response.bodyBytes);
+    if (body.trim().isEmpty) return null;
+
+    return jsonDecode(body);
+  }
+
+  Future<String> deleteCustom(String route) async {
+    final uri = Uri.parse("$_baseUrl$route");
+    final response = await http.delete(uri, headers: createHeaders());
+    isValidResponse(response);
+    return response.body;
+  }
+
   Future<void> delete(int id) async {
     var uri = Uri.parse('$_baseUrl$_endpoint/$id');
     var headers = createHeaders();
