@@ -15,10 +15,12 @@
 
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" Version="7.2.0" />
+	<PackageReference Include="MailKit" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CafeEase.Model\CafeEase.Model.csproj" />
+	<ProjectReference Include="..\CafeEase.Services\CafeEase.Services.csproj" />
   </ItemGroup>
 
 </Project>
