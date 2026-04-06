@@ -13,6 +13,7 @@ import 'cart_screen.dart';
 import 'order_screen.dart';
 import 'review_screen.dart';
 import 'profile_screen.dart';
+import 'notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -242,6 +243,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (_) => const ProfileScreen(),
                         ),
+                      );
+                    },
+                  ),
+                  _buildCard(
+                    icon: Icons.notifications,
+                    title: 'Notifications',
+                    subtitle: 'Read / Unread',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationsScreen()),
                       );
                     },
                   ),
