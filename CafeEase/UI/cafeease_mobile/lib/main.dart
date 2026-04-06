@@ -16,6 +16,7 @@ import 'providers/payment_provider.dart';
 import 'providers/loyalty_points_provider.dart';
 import 'providers/inventory_provider.dart';
 import 'providers/promotion_provider.dart';
+import 'providers/notification_provider.dart';
 
 void main() {
   runApp(
@@ -36,6 +37,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => LoyaltyPointsProvider()),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => PromotionProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const CafeEaseApp(),
     ),
