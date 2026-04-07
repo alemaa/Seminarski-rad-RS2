@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification.dart';
+import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -88,7 +89,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: loading
                 ? const Center(child: CircularProgressIndicator())
@@ -106,8 +106,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                               itemBuilder: (_, i) {
                                 final n = items[i];
-                                final unread =
-                                    (n.isRead ?? false) == false;
+                                final unread = (n.isRead ?? false) == false;
 
                                 return _tile(n, unread);
                               },
@@ -123,8 +122,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: active ? primaryBrown : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
@@ -149,9 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         await _load();
       },
       child: Container(
-        color: unread
-            ? primaryBrown.withOpacity(0.06)
-            : Colors.transparent,
+        color: unread ? primaryBrown.withOpacity(0.06) : Colors.transparent,
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,9 +165,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: primaryBrown,
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,14 +176,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         child: Text(
                           n.title ?? "",
                           style: TextStyle(
-                            fontWeight: unread
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                unread ? FontWeight.w700 : FontWeight.w500,
                             fontSize: 15,
                           ),
                         ),
                       ),
-
                       if (unread)
                         Container(
                           width: 8,
@@ -201,9 +193,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                     ],
                   ),
-
                   const SizedBox(height: 4),
-
                   Text(
                     n.body ?? "",
                     style: const TextStyle(
@@ -211,11 +201,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: Colors.black54,
                     ),
                   ),
-
                   const SizedBox(height: 6),
-
                   Text(
-                    "Just now",
+                    n.createdAt != null
+                        ? DateFormat('dd.MM.yyyy HH:mm').format(n.createdAt!)
+                        : "",
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.brown.shade300,

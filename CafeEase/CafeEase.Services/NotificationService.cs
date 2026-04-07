@@ -36,8 +36,6 @@ namespace CafeEase.Services
 
         public override IQueryable<Database.Notification> AddFilter(IQueryable<Database.Notification> query, NotificationSearchObject? search = null)
         {
-            query = query.Where(n => n.UserId == GetCurrentUserId().Result);
-
             if (search?.IsRead.HasValue == true)
                 query = query.Where(n => n.IsRead == search.IsRead.Value);
 
@@ -50,8 +48,8 @@ namespace CafeEase.Services
         {
             var userId = await GetCurrentUserId();
 
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
-            if (notif == null) throw new Exception("Notification not found");
+            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id);
+            if (notif == null) return;
 
             notif.IsRead = true;
             await _context.SaveChangesAsync();
@@ -62,7 +60,7 @@ namespace CafeEase.Services
             var userId = await GetCurrentUserId();
 
             var unread = await _context.Notifications
-                .Where(n => n.UserId == userId && !n.IsRead)
+                .Where(n => !n.IsRead)
                 .ToListAsync();
 
             foreach (var n in unread) n.IsRead = true;
