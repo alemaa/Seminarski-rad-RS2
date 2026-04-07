@@ -123,7 +123,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
         if (pid == null) continue;
 
         final product = await productProvider.getById(pid);
-        await cartProvider.addToCartWithQty(product, qty);
+        await cartProvider.addToCartCustomized(
+          product,
+          qty,
+          size: it.size ?? "M",
+          milkType: it.milkType ?? "Regular",
+          sugarLevel: it.sugarLevel ?? 1,
+          note: it.note ?? "",
+        );
       }
 
       if (mounted) {
