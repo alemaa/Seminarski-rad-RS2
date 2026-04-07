@@ -33,6 +33,56 @@ class CartProvider with ChangeNotifier {
     return cart.items.firstWhereOrNull((item) => item.product.id == product.id);
   }
 
+  CartItem? findInCartWithCustomization(
+    Product product, {
+    String? size,
+    String? milkType,
+    int? sugarLevel,
+    String? note,
+  }) {
+    return cart.items.firstWhereOrNull(
+      (item) =>
+          item.product.id == product.id &&
+          item.sameCustomization(size, milkType, sugarLevel, note),
+    );
+  }
+
+  Future<void> addToCartCustomized(
+    Product product,
+    int qty, {
+    String? size,
+    String? milkType,
+    int? sugarLevel,
+    String? note,
+  }) async {
+    if (qty <= 0) return;
+
+    final item = findInCartWithCustomization(
+      product,
+      size: size,
+      milkType: milkType,
+      sugarLevel: sugarLevel,
+      note: note,
+    );
+
+    if (item != null) {
+      item.count += qty;
+    } else {
+      cart.items.add(CartItem(
+        product,
+        qty,
+        size: size,
+        milkType: milkType,
+        sugarLevel: sugarLevel,
+        note: note,
+      ));
+    }
+
+    _calculateTotal();
+    notifyListeners();
+    await _saveToStorage();
+  }
+
   Future<void> addToCart(Product product) async {
     final item = findInCart(product);
 
