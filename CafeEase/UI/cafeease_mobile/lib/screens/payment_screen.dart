@@ -91,7 +91,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Confirm order"),
-        content: const Text("Do you want to send this order?"),
+        content: const Text("Proceed to payment?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -149,10 +149,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     setState(() => _submitting = true);
 
     try {
-      final items = cartProvider.items
-          .map((e) =>
-              OrderItemRequest(productId: e.product.id!, quantity: e.count))
-          .toList();
+      final items = cartProvider.items.map((e) {
+        return OrderItemRequest(
+            productId: e.product.id!,
+            quantity: e.count,
+            size: e.size,
+            milkType: e.milkType,
+            sugarLevel: e.sugarLevel,
+            note: e.note);
+      }).toList();
 
       final orderReq = OrderRequest(
         tableId: AppSession.tableId!,
@@ -302,8 +307,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          if (_payType == PayType.inApp)
-          const SizedBox(height: 18),
+          if (_payType == PayType.inApp) const SizedBox(height: 18),
           SizedBox(
             height: 48,
             child: ElevatedButton.icon(
@@ -405,8 +409,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
     );
   }
-
-
 
   Widget _orderItemsCard(CartProvider cartProvider) {
     return Card(

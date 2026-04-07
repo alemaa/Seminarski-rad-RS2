@@ -16,6 +16,7 @@ import '../models/promotion.dart';
 import '../providers/loyalty_points_provider.dart';
 import '../providers/promotion_provider.dart';
 import '../utils/segment_utils.dart';
+import '../widgets/customize_dialog.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -435,7 +436,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       icon: const Icon(Icons.add_shopping_cart),
                                       onPressed: outOfStock
                                           ? null
-                                          : () {
+                                          : () async {
                                               final cart =
                                                   context.read<CartProvider>();
                                               final currentQty =
@@ -446,20 +447,85 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                     .showSnackBar(
                                                   SnackBar(
                                                     content: Text(
-                                                      'Only $stock ${product.name} available.',
-                                                    ),
+                                                        'Only $stock ${product.name} available.'),
                                                   ),
                                                 );
                                                 return;
                                               }
 
-                                              cart.addToCart(product);
+                                              if (product.categoryId == 1) {
+                                                final res =
+                                                    await showCustomizeDialog(
+                                                        context);
+                                                if (res == null) return;
+
+                                                await cart.addToCartCustomized(
+                                                  product,
+                                                  1,
+                                                  size: res.size,
+                                                  milkType: res.milkType,
+                                                  sugarLevel: res.sugarLevel,
+                                                  note: res.note,
+                                                );
+                                              } else if (product.categoryId ==
+                                                  3) {
+                                                final noteController =
+                                                    TextEditingController();
+
+                                                final note =
+                                                    await showDialog<String>(
+                                                  context: context,
+                                                  builder: (_) => AlertDialog(
+                                                    title:
+                                                        const Text("Add note"),
+                                                    content: TextField(
+                                                      controller:
+                                                          noteController,
+                                                      decoration:
+                                                          const InputDecoration(
+                                                        hintText:
+                                                            "e.g. less sweet",
+                                                      ),
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context),
+                                                        child: const Text(
+                                                            "Cancel"),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context,
+                                                                noteController
+                                                                    .text),
+                                                        child:
+                                                            const Text("Add"),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+
+                                                if (note == null) return;
+
+                                                await cart.addToCartCustomized(
+                                                  product,
+                                                  1,
+                                                  note: note,
+                                                );
+                                              } else {
+                                                await cart.addToCartCustomized(
+                                                    product, 1);
+                                              }
 
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 SnackBar(
-                                                    content: Text(
-                                                        '${product.name} added to cart')),
+                                                  content: Text(
+                                                      '${product.name} added to cart'),
+                                                ),
                                               );
                                             },
                                     ),
