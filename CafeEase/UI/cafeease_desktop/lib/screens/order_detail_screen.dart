@@ -45,7 +45,40 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  Future<bool> _confirmStatusChange() async {
+    if (_status == (widget.order.status ?? 'Pending')) {
+      return true;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm status change'),
+          content: Text(
+            'Are you sure you want to change order #${widget.order.id} status to "$_status"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
+  }
+
   Future<void> _saveStatus() async {
+    final shouldContinue = await _confirmStatusChange();
+    if (!shouldContinue) return;
+
     final provider = context.read<OrderProvider>();
 
     setState(() => _savingStatus = true);
@@ -57,24 +90,205 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Status updated')));
+      ).showSnackBar(const SnackBar(content: Text('Status saved')));
 
       Navigator.pop(context, 'refresh');
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
-      setState(() => _savingStatus = false);
+      if (mounted) {
+        setState(() => _savingStatus = false);
+      }
     }
+  }
+
+  Widget _infoBlock(String label, String value, {bool bold = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.brown.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: bold ? 15 : 14,
+            fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
+            color: const Color(0xFF3E2723),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildStatusChip(String? status) {
+    final s = (status ?? "").toLowerCase();
+
+    late Color bgColor;
+    late Color textColor;
+    late IconData icon;
+    late String label;
+
+    switch (s) {
+      case "paid":
+        bgColor = Colors.green.shade100;
+        textColor = Colors.green.shade800;
+        icon = Icons.check_circle;
+        label = "PAID";
+        break;
+
+      case "pending":
+        bgColor = Colors.orange.shade100;
+        textColor = Colors.orange.shade800;
+        icon = Icons.hourglass_top;
+        label = "PENDING";
+        break;
+
+      case "cancelled":
+        bgColor = Colors.red.shade100;
+        textColor = Colors.red.shade800;
+        icon = Icons.cancel;
+        label = "CANCELLED";
+        break;
+
+      case "confirmed":
+        bgColor = Colors.blue.shade100;
+        textColor = Colors.blue.shade800;
+        icon = Icons.thumb_up;
+        label = "CONFIRMED";
+        break;
+
+      default:
+        bgColor = Colors.grey.shade200;
+        textColor = Colors.grey.shade800;
+        icon = Icons.help_outline;
+        label = status?.toUpperCase() ?? "UNKNOWN";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildInfoRow(String label, String value, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF5D4037),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                color: const Color(0xFF3E2723),
+                fontSize: bold ? 16 : 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildOrderItemCard(OrderItem item) {
+    final quantity = item.quantity ?? 0;
+    final price = item.price ?? 0;
+    final subtotal = quantity * price;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    item.productName ?? '-',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Color(0xFF3E2723),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${subtotal.toStringAsFixed(2)} KM',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Color(0xFF3E2723),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Qty: $quantity × ${price.toStringAsFixed(2)} KM',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final order = widget.order;
+
     return Scaffold(
       backgroundColor: const Color(0xFFEFE1D1),
       appBar: AppBar(
-        title: Text('Order #${widget.order.id}'),
+        title: Text('Order #${order.id}'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
       body: _loading
@@ -87,100 +301,262 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   children: [
                     Card(
                       color: const Color(0xFFD2B48C),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Date: ${DateFormat('dd.MM.yyyy HH:mm').format(widget.order.orderDate!)}',
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Total: ${widget.order.totalAmount?.toStringAsFixed(2)} KM',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                            const Text(
+                              'Order overview',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF3E2723),
                               ),
                             ),
                             const SizedBox(height: 12),
+                            Divider(
+                              color: Colors.brown.withOpacity(0.22),
+                              thickness: 1,
+                            ),
+                            const SizedBox(height: 14),
 
-                            DropdownButtonFormField<String>(
-                              value: _status,
-                              decoration: const InputDecoration(
-                                labelText: 'Status',
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'Pending',
-                                  child: Text('Pending'),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _infoBlock(
+                                        'User',
+                                        (order.userFullName != null &&
+                                                order.userFullName!
+                                                    .trim()
+                                                    .isNotEmpty)
+                                            ? order.userFullName!
+                                            : '-',
+                                        bold: true,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _infoBlock(
+                                        'Table',
+                                        order.tableId?.toString() ?? '-',
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _infoBlock(
+                                        'Date',
+                                        order.orderDate != null
+                                            ? DateFormat(
+                                                'dd.MM.yyyy HH:mm',
+                                              ).format(order.orderDate!)
+                                            : '-',
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                DropdownMenuItem(
-                                  value: 'Confirmed',
-                                  child: Text('Confirmed'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'Paid',
-                                  child: Text('Paid'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'Cancelled',
-                                  child: Text('Cancelled'),
+
+                                const SizedBox(width: 32),
+
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _infoBlock(
+                                        'Total',
+                                        '${order.totalAmount?.toStringAsFixed(2) ?? '0.00'} KM',
+                                        bold: true,
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      Text(
+                                        'Status',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.brown.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      buildStatusChip(order.status),
+
+                                      const SizedBox(height: 16),
+
+                                      Text(
+                                        'Change status',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.brown.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: DropdownButtonFormField<String>(
+                                              value: _status,
+                                              dropdownColor: const Color(
+                                                0xFFF4E6D4,
+                                              ),
+                                              icon: const Icon(
+                                                Icons
+                                                    .keyboard_arrow_down_rounded,
+                                                color: Color(0xFF6D4C41),
+                                              ),
+                                              style: const TextStyle(
+                                                color: Color(0xFF3E2723),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              decoration: InputDecoration(
+                                                isDense: true,
+                                                filled: true,
+                                                fillColor: const Color(
+                                                  0xFFF4E6D4,
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 12,
+                                                    ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Color(
+                                                              0xFFB08968,
+                                                            ),
+                                                            width: 1,
+                                                          ),
+                                                    ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Color(
+                                                              0xFF8B5A3C,
+                                                            ),
+                                                            width: 1.4,
+                                                          ),
+                                                    ),
+                                              ),
+                                              items: const [
+                                                DropdownMenuItem(
+                                                  value: 'Pending',
+                                                  child: Text('Pending'),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: 'Confirmed',
+                                                  child: Text('Confirmed'),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: 'Paid',
+                                                  child: Text('Paid'),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: 'Cancelled',
+                                                  child: Text('Cancelled'),
+                                                ),
+                                              ],
+                                              onChanged: (value) {
+                                                if (value != null) {
+                                                  setState(
+                                                    () => _status = value,
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          SizedBox(
+                                            height: 46,
+                                            child: ElevatedButton(
+                                              onPressed: _savingStatus
+                                                  ? null
+                                                  : _saveStatus,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(
+                                                  0xFF8B5A3C,
+                                                ),
+                                                foregroundColor: Colors.white,
+                                                elevation: 0,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 18,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              child: _savingStatus
+                                                  ? const SizedBox(
+                                                      height: 18,
+                                                      width: 18,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            color: Colors.white,
+                                                          ),
+                                                    )
+                                                  : const Text(
+                                                      'Save',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _status = value);
-                                }
-                              },
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _savingStatus ? null : _saveStatus,
-                                child: _savingStatus
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                      )
-                                    : const Text('Save status'),
-                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
                     const Text(
                       'Order items',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 18,
+                        color: Color(0xFF3E2723),
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    ..._items.map((item) {
-                      final subtotal = (item.quantity! * item.price!)
-                          .toDouble();
-
-                      return Card(
-                        child: ListTile(
-                          title: Text(item.productName ?? ''),
-                          subtitle: Text(
-                            'Qty: ${item.quantity} × ${item.price?.toStringAsFixed(2)} KM',
-                          ),
-                          trailing: Text(
-                            '${subtotal.toStringAsFixed(2)} KM',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                    if (_items.isEmpty)
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'No order items found',
+                            style: TextStyle(color: Colors.grey.shade700),
                           ),
                         ),
-                      );
-                    }),
+                      )
+                    else
+                      ..._items.map(buildOrderItemCard),
                   ],
                 ),
               ),
