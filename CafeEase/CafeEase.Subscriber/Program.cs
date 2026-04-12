@@ -114,8 +114,8 @@ consumer.ReceivedAsync += async (_, ea) =>
             {
                 UserId = user.Id,
                 OrderId = message.OrderId,
-                Title = "Uplata uspješna",
-                Body = $"Vaša uplata za narudžbu #{message.OrderId} je evidentirana. Iznos: {message.Amount:0.00}.",
+                Title = "Payment successful",
+                Body = $"Your payment for order #{message.OrderId} has been recorded. Amount: {message.Amount:0.00}.",
                 IsRead = false,
                 CreatedAt = DateTime.Now
             };
@@ -127,8 +127,8 @@ consumer.ReceivedAsync += async (_, ea) =>
             {
                 await SendEmailAsync(
                     toEmail: user.Email,
-                    subject: "CafeEase - potvrda uplate",
-                    bodyText: $"Pozdrav {user.FirstName},\n\nUplata za narudžbu #{message.OrderId} je uspješno evidentirana.\nIznos: {message.Amount:0.00}\n\nHvala!\nCafeEase",
+                    subject: "CafeEase - Payment confirmation",
+                    bodyText: $"Hello {user.FirstName},\n\nPayment for order #{message.OrderId} has been successfully recorded.\nAmount: {message.Amount:0.00}\n\nThank you!\nCafeEase",
                     smtpHost: smtpHost!,
                     smtpPort: smtpPort,
                     smtpUser: smtpUser,
