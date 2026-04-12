@@ -49,15 +49,29 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
 
   Future<void> _deletePromotion(int id) async {
     final provider = context.read<PromotionProvider>();
-    await provider.delete(id);
-    _loadPromotions();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Promotion successfully deleted'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    try {
+      await provider.delete(id);
+      await _loadPromotions();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Promotion successfully deleted'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete promotion: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _confirmDelete(Promotion p) async {
@@ -65,7 +79,9 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete promotion'),
-        content: Text('Are you sure you want to delete promotion "${p.name}"?'),
+        content: Text(
+          'Delete promotion "${p.name}"?\n\nThis action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -87,7 +103,12 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
 
   String _formatDate(DateTime? d) {
     if (d == null) return '-';
-    return '${d.day}.${d.month}.${d.year}';
+
+    final day = d.day.toString().padLeft(2, '0');
+    final month = d.month.toString().padLeft(2, '0');
+    final year = d.year.toString();
+
+    return '$day.$month.$year';
   }
 
   bool _isActive(Promotion p) {
@@ -124,7 +145,6 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
               _loadPromotions();
             },
           ),
-
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -160,13 +180,11 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                                 'Discount: ${p.discountPercent.toStringAsFixed(0)}%',
                               ),
                               Text('Segment: ${p.targetSegment ?? "ALL"}'),
-
                               Text(
                                 p.categories.isEmpty
                                     ? 'Categories: -'
                                     : 'Categories: ${p.categories.map((c) => c.name).join(', ')}',
                               ),
-
                               Text(
                                 '${_formatDate(p.startDate)} → ${_formatDate(p.endDate)}',
                                 style: const TextStyle(fontSize: 12),
@@ -182,6 +200,7 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
+                            tooltip: 'Delete promotion',
                             onPressed: () => _confirmDelete(p),
                           ),
                           onTap: () async {
