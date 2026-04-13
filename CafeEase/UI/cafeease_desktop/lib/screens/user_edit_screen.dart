@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/user.dart';
-import '../providers/user_provider.dart';
 import '../models/city.dart';
+import '../models/user.dart';
 import '../providers/city_provider.dart';
+import '../providers/user_provider.dart';
 
 class UserEditScreen extends StatefulWidget {
   final User? user;
@@ -31,6 +31,8 @@ class _UserEditScreenState extends State<UserEditScreen> {
   List<City> _cities = [];
   bool _citiesLoading = false;
 
+  bool get isEdit => widget.user != null;
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +43,6 @@ class _UserEditScreenState extends State<UserEditScreen> {
     _lastNameController = TextEditingController(
       text: widget.user?.lastName ?? '',
     );
-
     _userNameController = TextEditingController(
       text: widget.user?.username ?? '',
     );
@@ -51,7 +52,6 @@ class _UserEditScreenState extends State<UserEditScreen> {
     _confirmPasswordController = TextEditingController();
 
     _selectedRoleId = widget.user?.roleId;
-
     _selectedCityId = widget.user?.cityId;
 
     _loadCities();
@@ -68,45 +68,6 @@ class _UserEditScreenState extends State<UserEditScreen> {
     super.dispose();
   }
 
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isSaving = true);
-
-    final provider = context.read<UserProvider>();
-
-    final request = {
-      'firstName': _firstNameController.text,
-      'lastName': _lastNameController.text,
-      'userName': _userNameController.text,
-      'email': _emailController.text,
-      'roleId': _selectedRoleId,
-      'cityId': _selectedCityId,
-    };
-
-    if (widget.user == null) {
-      request['password'] = _passwordController.text;
-      request['passwordConfirmation'] = _confirmPasswordController.text;
-    }
-
-    try {
-      if (widget.user == null) {
-        await provider.insert(request);
-      } else {
-        await provider.update(widget.user!.id, request);
-      }
-
-      if (!mounted) return;
-      Navigator.pop(context, 'refresh');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-      );
-    } finally {
-      setState(() => _isSaving = false);
-    }
-  }
-
   Future<void> _loadCities() async {
     setState(() => _citiesLoading = true);
 
@@ -116,6 +77,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
 
       final list = res.result;
       final unique = <int, City>{};
+
       for (final c in list) {
         final id = c.id;
         if (id == null) continue;
@@ -123,6 +85,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
       }
 
       if (!mounted) return;
+
       setState(() {
         _cities = unique.values.toList();
         _citiesLoading = false;
@@ -134,189 +97,76 @@ class _UserEditScreenState extends State<UserEditScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+
       setState(() => _citiesLoading = false);
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Failed to load cities: $e")));
+      ).showSnackBar(SnackBar(content: Text('Failed to load cities: $e')));
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFEFE1D1),
-      appBar: AppBar(
-        title: Text(widget.user == null ? 'Add user' : 'Edit user'),
-        backgroundColor: const Color(0xFF8B5A3C),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Card(
-            color: const Color(0xFFD2B48C),
-            elevation: 6,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.person,
-                        size: 48,
-                        color: Color(0xFF6F4E37),
-                      ),
-                      const SizedBox(height: 16),
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
 
-                      _buildField(_firstNameController, 'First name'),
-                      _buildField(_lastNameController, 'Last name'),
-                      _buildField(_userNameController, 'Username'),
-                      _buildField(
-                        _emailController,
-                        'Email',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Required field';
-                          }
+    setState(() => _isSaving = true);
 
-                          final emailRegex = RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          );
+    final provider = context.read<UserProvider>();
 
-                          if (!emailRegex.hasMatch(v.trim())) {
-                            return 'Invalid email format';
-                          }
+    final request = <String, dynamic>{
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'userName': _userNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'roleId': _selectedRoleId,
+      'cityId': _selectedCityId,
+    };
 
-                          return null;
-                        },
-                      ),
+    if (!isEdit) {
+      request['password'] = _passwordController.text.trim();
+      request['passwordConfirmation'] = _confirmPasswordController.text.trim();
+    }
 
-                      if (widget.user == null) ...[
-                        _buildField(
-                          _passwordController,
-                          'Password',
-                          isPassword: true,
-                          validator: (v) {
-                            final value = (v ?? '').trim();
-                            if (value.isEmpty) {
-                              return 'Required field';
-                            }
-                            if (value.length < 4) {
-                              return 'Password must be at least 4 characters';
-                            }
-                            return null;
-                          },
-                        ),
+    try {
+      if (isEdit) {
+        await provider.update(widget.user!.id, request);
+      } else {
+        await provider.insert(request);
+      }
 
-                        _buildField(
-                          _confirmPasswordController,
-                          'Confirm password',
-                          isPassword: true,
-                          validator: (v) {
-                            final value = (v ?? '').trim();
-                            if (value.isEmpty) {
-                              return 'Required field';
-                            }
-                            if (value != _passwordController.text.trim()) {
-                              return 'Passwords do not match';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
+      if (!mounted) return;
+      Navigator.pop(context, 'refresh');
+    } catch (e) {
+      if (!mounted) return;
 
-                      const SizedBox(height: 12),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
 
-                      _citiesLoading
-                          ? const LinearProgressIndicator()
-                          : DropdownButtonFormField<int?>(
-                              value: _selectedCityId,
-                              decoration: InputDecoration(
-                                labelText: 'City',
-                                filled: true,
-                                fillColor: Colors.brown.shade50,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              items: _cities
-                                  .map(
-                                    (c) => DropdownMenuItem<int?>(
-                                      value: c.id,
-                                      child: Text(c.name ?? ''),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (v) =>
-                                  setState(() => _selectedCityId = v),
-                              validator: (v) =>
-                                  v == null ? 'Please select a city' : null,
-                            ),
+  Widget _twoColumn({
+    required Widget left,
+    required Widget right,
+    required double maxWidth,
+  }) {
+    final isWide = maxWidth >= 850;
 
-                      const SizedBox(height: 12),
+    if (!isWide) {
+      return Column(children: [left, const SizedBox(height: 16), right]);
+    }
 
-                      DropdownButtonFormField<int>(
-                        value: _selectedRoleId,
-                        decoration: InputDecoration(
-                          labelText: 'Role',
-                          filled: true,
-                          fillColor: Colors.brown.shade50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 1, child: Text('Admin')),
-                          DropdownMenuItem(value: 2, child: Text('User')),
-                        ],
-                        onChanged: (value) {
-                          setState(() => _selectedRoleId = value);
-                        },
-                        validator: (value) =>
-                            value == null ? 'Please select role' : null,
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 45,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              196,
-                              145,
-                              108,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: _isSaving ? null : _save,
-                          child: _isSaving
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const Text('Save'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: left),
+        const SizedBox(width: 16),
+        Expanded(child: right),
+      ],
     );
   }
 
@@ -327,26 +177,265 @@ class _UserEditScreenState extends State<UserEditScreen> {
     bool isPassword = false,
     String? Function(String?)? validator,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: isPassword,
-        validator:
-            validator ??
-            (String? v) {
-              if (v == null || v.trim().isEmpty) {
-                return 'Required field';
-              }
-              return null;
-            },
-        decoration: InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: Colors.brown.shade50,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: isPassword,
+      validator:
+          validator ??
+          (String? v) {
+            if (v == null || v.trim().isEmpty) {
+              return 'Required field';
+            }
+            return null;
+          },
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.brown.shade50,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEFE1D1),
+      appBar: AppBar(
+        title: Text(isEdit ? 'Edit user' : 'Add user'),
+        backgroundColor: const Color(0xFF8B5A3C),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxContentWidth = constraints.maxWidth > 1200
+              ? 900.0
+              : constraints.maxWidth > 900
+              ? 820.0
+              : constraints.maxWidth;
+
+          return Align(
+            alignment: Alignment.topCenter,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: Card(
+                  color: const Color(0xFFD2B48C),
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Form(
+                      key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.person,
+                                size: 30,
+                                color: Color(0xFF6F4E37),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                isEdit ? 'User details' : 'New user',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          _twoColumn(
+                            maxWidth: maxContentWidth,
+                            left: _buildField(
+                              _firstNameController,
+                              'First name',
+                            ),
+                            right: _buildField(
+                              _lastNameController,
+                              'Last name',
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          _twoColumn(
+                            maxWidth: maxContentWidth,
+                            left: _buildField(_userNameController, 'Username'),
+                            right: _buildField(
+                              _emailController,
+                              'Email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Required field';
+                                }
+
+                                final emailRegex = RegExp(
+                                  r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                );
+
+                                if (!emailRegex.hasMatch(v.trim())) {
+                                  return 'Invalid email format';
+                                }
+
+                                return null;
+                              },
+                            ),
+                          ),
+
+                          if (!isEdit) ...[
+                            const SizedBox(height: 16),
+                            _twoColumn(
+                              maxWidth: maxContentWidth,
+                              left: _buildField(
+                                _passwordController,
+                                'Password',
+                                isPassword: true,
+                                validator: (v) {
+                                  final value = (v ?? '').trim();
+
+                                  if (value.isEmpty) {
+                                    return 'Required field';
+                                  }
+
+                                  if (value.length < 4) {
+                                    return 'Password must be at least 4 characters';
+                                  }
+
+                                  return null;
+                                },
+                              ),
+                              right: _buildField(
+                                _confirmPasswordController,
+                                'Confirm password',
+                                isPassword: true,
+                                validator: (v) {
+                                  final value = (v ?? '').trim();
+
+                                  if (value.isEmpty) {
+                                    return 'Required field';
+                                  }
+
+                                  if (value !=
+                                      _passwordController.text.trim()) {
+                                    return 'Passwords do not match';
+                                  }
+
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 16),
+
+                          _twoColumn(
+                            maxWidth: maxContentWidth,
+                            left: _citiesLoading
+                                ? Container(
+                                    height: 56,
+                                    alignment: Alignment.centerLeft,
+                                    child: const LinearProgressIndicator(),
+                                  )
+                                : DropdownButtonFormField<int?>(
+                                    value: _selectedCityId,
+                                    decoration: InputDecoration(
+                                      labelText: 'City',
+                                      filled: true,
+                                      fillColor: Colors.brown.shade50,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    items: _cities
+                                        .map(
+                                          (c) => DropdownMenuItem<int?>(
+                                            value: c.id,
+                                            child: Text(c.name ?? ''),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (v) =>
+                                        setState(() => _selectedCityId = v),
+                                    validator: (v) => v == null
+                                        ? 'Please select a city'
+                                        : null,
+                                  ),
+                            right: DropdownButtonFormField<int>(
+                              value: _selectedRoleId,
+                              decoration: InputDecoration(
+                                labelText: 'Role',
+                                filled: true,
+                                fillColor: Colors.brown.shade50,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 1,
+                                  child: Text('Admin'),
+                                ),
+                                DropdownMenuItem(value: 2, child: Text('User')),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _selectedRoleId = value);
+                              },
+                              validator: (value) =>
+                                  value == null ? 'Please select role' : null,
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                width: 150,
+                                height: 48,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFC4916C),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                  ),
+                                  onPressed: _isSaving ? null : _save,
+                                  child: _isSaving
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Save'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
