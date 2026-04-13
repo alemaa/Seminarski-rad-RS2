@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
 import '../../models/review.dart';
 import '../../providers/review_provider.dart';
 
@@ -49,6 +48,33 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
     final provider = context.read<ReviewProvider>();
     await provider.delete(id);
     _loadReviews();
+  }
+
+  Future<void> _confirmDelete(Review review) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete review'),
+        content: Text(
+          'Are you sure you want to delete the review for "${review.productName ?? 'Unknown product'}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _deleteReview(review.id);
+    }
   }
 
   String _formatDate(DateTime dt) => DateFormat('dd.MM.yyyy HH:mm').format(dt);
@@ -129,7 +155,7 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteReview(r.id),
+                            onPressed: () => _confirmDelete(r),
                           ),
                         ),
                       );
