@@ -130,11 +130,26 @@ class _UserEditScreenState extends State<UserEditScreen> {
     try {
       if (isEdit) {
         await provider.update(widget.user!.id, request);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
       } else {
         await provider.insert(request);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User added successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
 
-      if (!mounted) return;
       Navigator.pop(context, 'refresh');
     } catch (e) {
       if (!mounted) return;

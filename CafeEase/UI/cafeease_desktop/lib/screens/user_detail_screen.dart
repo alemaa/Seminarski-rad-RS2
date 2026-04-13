@@ -79,6 +79,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
       if (!mounted) return;
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User deleted successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
       Navigator.pop(context, 'refresh');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
