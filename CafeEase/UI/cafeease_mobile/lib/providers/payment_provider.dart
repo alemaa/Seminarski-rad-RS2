@@ -22,10 +22,6 @@ class PaymentProvider extends BaseProvider<Payment> {
     final response = await http.post(uri,
         headers: headers, body: jsonEncode({"orderId": orderId}));
 
-        print("Stripe create-intent STATUS: ${response.statusCode}");
-print("Stripe create-intent BODY: '${response.body}'");
-print("CALLING URL: $uri");
-
     isValidResponse(response);
     return jsonDecode(utf8.decode(response.bodyBytes));
   }
