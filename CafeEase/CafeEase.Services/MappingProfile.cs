@@ -50,6 +50,9 @@ namespace CafeEase.Services.Mapping
             CreateMap<Database.City, Model.City>();
             CreateMap<CityUpsertRequest, Database.City>();
             CreateMap<Database.Notification, Model.Notification>();
+            CreateMap<Database.Cafe, Model.Cafe>()
+            .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name));
+            CreateMap<CafeEase.Model.Requests.CafeUpsertRequest, Database.Cafe>();
         }
     }
 }
