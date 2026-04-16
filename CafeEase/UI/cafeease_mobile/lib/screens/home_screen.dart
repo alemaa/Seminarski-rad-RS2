@@ -14,6 +14,7 @@ import 'order_screen.dart';
 import 'review_screen.dart';
 import 'profile_screen.dart';
 import 'notification_screen.dart';
+import 'nearby_cafes_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -254,6 +255,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const NotificationsScreen()),
+                      );
+                    },
+                  ),
+                  _buildCard(
+                    icon: Icons.location_on,
+                    title: 'Nearby Cafes',
+                    subtitle: 'Find cafes near you',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const NearbyCafesScreen(),
+                        ),
                       );
                     },
                   ),
