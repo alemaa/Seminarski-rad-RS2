@@ -32,6 +32,7 @@ namespace CafeEase.Services.Database
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<PromotionCategory> PromotionCategories { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Cafe> Cafes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -47,6 +48,12 @@ namespace CafeEase.Services.Database
                 .HasOne(pc => pc.Category)
                 .WithMany(c => c.PromotionCategories)
                 .HasForeignKey(pc => pc.CategoryId);
+
+            modelBuilder.Entity<Cafe>()
+                .HasOne(c => c.City)
+                .WithMany()
+                .HasForeignKey(c => c.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
 

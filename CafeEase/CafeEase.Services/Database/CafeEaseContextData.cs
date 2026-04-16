@@ -24,6 +24,70 @@ namespace CafeEase.Services.Database
             new City { Id = 3, Name = "Tuzla" }
             );
 
+
+            modelBuilder.Entity<Cafe>().HasData(
+            new Cafe
+            {
+                Id = 1,
+                Name = "CafeEase Centar",
+                Address = "Titova 12",
+                CityId = 1,
+                Latitude = 43.8563,
+                Longitude = 18.4131,
+                PhoneNumber = "+38761111222",
+                WorkingHours = "08:00 - 23:00",
+                IsActive = true
+            },
+            new Cafe
+            {
+                Id = 2,
+                Name = "CafeEase Bascarsija",
+                Address = "Bravadziluk 8",
+                CityId = 1,
+                Latitude = 43.8595,
+                Longitude = 18.4335,
+                PhoneNumber = "+38761111333",
+                WorkingHours = "08:00 - 22:00",
+                IsActive = true
+            },
+            new Cafe
+            {
+                Id = 3,
+                Name = "CafeEase SCC",
+                Address = "Vrbanja 1",
+                CityId = 1,
+                Latitude = 43.8549,
+                Longitude = 18.4033,
+                PhoneNumber = "+38761111444",
+                WorkingHours = "09:00 - 23:00",
+                IsActive = true
+            },
+            new Cafe
+            {
+                Id = 4,
+                Name = "CafeEase Mostar",
+                Address = "Mostarskog bataljona 21",
+                CityId = 2,
+                Latitude = 43.3438,
+                Longitude = 17.8078,
+                PhoneNumber = "+38761111555",
+                WorkingHours = "08:00 - 23:00",
+                IsActive = true
+            },
+            new Cafe
+            {
+                Id = 5,
+                Name = "CafeEase Tuzla",
+                Address = "Marsala Tita 20",
+                CityId = 3,
+                Latitude = 44.5384,
+                Longitude = 18.6671,
+                PhoneNumber = "+38761111666",
+                WorkingHours = "07:30 - 22:30",
+                IsActive = true
+            }
+        );
+
             modelBuilder.Entity<User>().HasData(
              new User
              {
