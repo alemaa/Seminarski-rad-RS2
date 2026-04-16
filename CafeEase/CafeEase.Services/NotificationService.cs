@@ -14,30 +14,60 @@ namespace CafeEase.Services
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NotificationService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
+        public NotificationService(
+            CafeEaseDbContext context,
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor
+        ) : base(context, mapper)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
-        private async Task<int> GetCurrentUserId()
+        private string GetCurrentUsername()
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity?.IsAuthenticated == true)
+
+            if (user == null || user.Identity?.IsAuthenticated != true)
                 throw new Exception("User not authenticated");
 
             var username = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                            ?? user.FindFirst(ClaimTypes.Name)?.Value;
 
-            var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-            if (dbUser == null) throw new Exception("User not found");
+            if (string.IsNullOrWhiteSpace(username))
+                throw new Exception("Username not found in claims");
 
-            return dbUser.Id;
+            return username;
         }
 
-        public override IQueryable<Database.Notification> AddFilter(IQueryable<Database.Notification> query, NotificationSearchObject? search = null)
+        private Database.User GetCurrentDbUser()
         {
+            var username = GetCurrentUsername();
+
+            var dbUser = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Username == username);
+
+            if (dbUser == null)
+                throw new Exception("User not found");
+
+            return dbUser;
+        }
+
+        public override IQueryable<Database.Notification> AddFilter(
+            IQueryable<Database.Notification> query,
+            NotificationSearchObject? search = null)
+        {
+            var currentUser = GetCurrentDbUser();
+
+            if (currentUser.RoleId == 2)
+            {
+                query = query.Where(n => n.UserId == currentUser.Id);
+            }
+
             if (search?.IsRead.HasValue == true)
+            {
                 query = query.Where(n => n.IsRead == search.IsRead.Value);
+            }
 
             query = query.OrderByDescending(n => n.CreatedAt);
 
@@ -46,9 +76,16 @@ namespace CafeEase.Services
 
         public async Task MarkAsRead(int id)
         {
-            var userId = await GetCurrentUserId();
+            var currentUser = GetCurrentDbUser();
 
-            var notif = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == id);
+            IQueryable<Database.Notification> query = _context.Notifications;
+
+            if (currentUser.RoleId == 2)
+            {
+                query = query.Where(n => n.UserId == currentUser.Id);
+            }
+
+            var notif = await query.FirstOrDefaultAsync(n => n.Id == id);
             if (notif == null) return;
 
             notif.IsRead = true;
@@ -57,13 +94,20 @@ namespace CafeEase.Services
 
         public async Task MarkAllAsRead()
         {
-            var userId = await GetCurrentUserId();
+            var currentUser = GetCurrentDbUser();
 
-            var unread = await _context.Notifications
-                .Where(n => !n.IsRead)
-                .ToListAsync();
+            IQueryable<Database.Notification> query = _context.Notifications
+                .Where(n => !n.IsRead);
 
-            foreach (var n in unread) n.IsRead = true;
+            if (currentUser.RoleId == 2)
+            {
+                query = query.Where(n => n.UserId == currentUser.Id);
+            }
+
+            var unread = await query.ToListAsync();
+
+            foreach (var n in unread)
+                n.IsRead = true;
 
             await _context.SaveChangesAsync();
         }
