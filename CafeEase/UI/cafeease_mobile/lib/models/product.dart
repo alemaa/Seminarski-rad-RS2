@@ -8,7 +8,7 @@ class Product {
   String? name;
   double? price;
   String? description;
-  String? image;
+  String? imagePath;
   int? categoryId;
 
   Product({
@@ -16,7 +16,7 @@ class Product {
     this.name,
     this.price,
     this.description,
-    this.image,
+    this.imagePath,
     this.categoryId,
   });
 
