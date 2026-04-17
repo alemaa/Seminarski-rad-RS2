@@ -134,6 +134,44 @@ class CartProvider with ChangeNotifier {
     await _saveToStorage();
   }
 
+  Future<void> increaseCartItem(CartItem item) async {
+    final existing = findInCartWithCustomization(
+      item.product,
+      size: item.size,
+      milkType: item.milkType,
+      sugarLevel: item.sugarLevel,
+      note: item.note,
+    );
+
+    if (existing != null) {
+      existing.count++;
+      _calculateTotal();
+      notifyListeners();
+      await _saveToStorage();
+    }
+  }
+
+  Future<void> decreaseCartItem(CartItem item) async {
+    final existing = findInCartWithCustomization(
+      item.product,
+      size: item.size,
+      milkType: item.milkType,
+      sugarLevel: item.sugarLevel,
+      note: item.note,
+    );
+
+    if (existing == null) return;
+
+    existing.count--;
+    if (existing.count <= 0) {
+      cart.items.remove(existing);
+    }
+
+    _calculateTotal();
+    notifyListeners();
+    await _saveToStorage();
+  }
+
   Future<void> clear() async {
     cart.items.clear();
     _calculateTotal();
