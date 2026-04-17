@@ -34,6 +34,8 @@ builder.Services.AddTransient<ITableService, TableService>();
 builder.Services.AddTransient<IInventoryService, InventoryService>();   
 builder.Services.AddTransient<ICityService, CityService>();
 builder.Services.AddTransient<IStripePaymentService, StripePaymentService>();
+builder.Services.AddTransient<INotificationService, NotificationService>();
+builder.Services.AddTransient<ICafeService, CafeService>();
 
 builder.Services.AddControllers(options =>
 {
@@ -85,22 +87,27 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CafeEaseDbContext>();
+    var dataContext = scope.ServiceProvider.GetRequiredService<CafeEaseDbContext>();
 
-    db.Database.Migrate();
+    var databaseExist = dataContext.Database.GetService<IRelationalDatabaseCreator>().Exists();
 
-    if (db.Orders.Any() && !db.Recommendations.Any())
+    if (!databaseExist)
     {
-        var rec = scope.ServiceProvider.GetRequiredService<IRecommendationService>();
+        dataContext.Database.Migrate();
+
+        var recommendResutService = scope.ServiceProvider.GetRequiredService<IRecommendationService>();
         try
         {
-            await rec.TrainModel();
+            await Task.Delay(5000);
+           await recommendResutService.TrainModel();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"Training failed: {ex.Message}");
         }
     }
 }
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -108,6 +115,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
