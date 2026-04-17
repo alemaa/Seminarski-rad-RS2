@@ -213,23 +213,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              Text("x$qty"),
+              const SizedBox(width: 12),
+              Text(
+                "${unitPrice.toStringAsFixed(2)} KM",
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          if (it.size != null && it.size!.isNotEmpty)
+            Text(
+              "Size: ${it.size}",
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
             ),
-          ),
-          Text(
-            "x$qty",
-            style: const TextStyle(color: Colors.black87),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            "${unitPrice.toStringAsFixed(2)} KM",
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+          if (it.milkType != null && it.milkType!.isNotEmpty)
+            Text(
+              "Milk: ${it.milkType}",
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
+          if (it.sugarLevel != null)
+            Text(
+              "Sugar: ${it.sugarLevel}",
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+              ),
+            ),
+          if (it.note != null && it.note!.isNotEmpty)
+            Text(
+              "Note: ${it.note}",
+              style: const TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: Colors.black54,
+              ),
+            ),
         ],
       ),
     );
