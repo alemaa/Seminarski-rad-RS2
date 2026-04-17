@@ -141,7 +141,7 @@ namespace CafeEase.Services.Database
                     Name = "Espresso",
                     Price = 2.5m,
                     CategoryId = 1,
-                    Image = ConvertImageToByteArray("espresso.jpg"),
+                    ImagePath = "espresso.jpg",
                 },
                 new Product
                 {
@@ -149,7 +149,7 @@ namespace CafeEase.Services.Database
                     Name = "Cappuccino",
                     Price = 3.0m,
                     CategoryId = 1,
-                    Image = ConvertImageToByteArray("cappuccino.jpg"),
+                    ImagePath ="cappuccino.jpg",
                 },
                 new Product
                 {
@@ -157,7 +157,7 @@ namespace CafeEase.Services.Database
                     Name = "Latte",
                     Price = 3.20m,
                     CategoryId = 1,
-                    Image = ConvertImageToByteArray("latte.jpg"),
+                    ImagePath = "latte.jpg",
                 },
                 new Product
                 {
@@ -165,7 +165,7 @@ namespace CafeEase.Services.Database
                     Name = "Ice Coffee",
                     Price = 3.50m,
                     CategoryId = 2,
-                    Image = ConvertImageToByteArray("icedcoffee.jpg"),
+                    ImagePath = "icedcoffee.jpg",
                 },
                 new Product
                 {
@@ -173,7 +173,7 @@ namespace CafeEase.Services.Database
                     Name = "Cheesecake",
                     Price = 4.00m,
                     CategoryId = 3,
-                    Image = ConvertImageToByteArray("cheesecake.jpg"),
+                    ImagePath = "cheesecake.jpg",
                 },
                 new Product
                 {
@@ -181,7 +181,7 @@ namespace CafeEase.Services.Database
                     Name = "Fanta",
                     Price = 3.00m,
                     CategoryId = 2,
-                    Image = ConvertImageToByteArray("fanta.jpg"),
+                    ImagePath = "fanta.jpg",
                 },
                 new Product
                 {
@@ -189,7 +189,7 @@ namespace CafeEase.Services.Database
                     Name = "Red bull",
                     Price = 6.00m,
                     CategoryId = 4,
-                    Image = ConvertImageToByteArray("red_bull.jpg"),
+                    ImagePath = "red_bull.jpg",
                 }
              );
 
@@ -285,11 +285,11 @@ namespace CafeEase.Services.Database
 
             modelBuilder.Entity<OrderItem>().HasData(
                 new OrderItem { Id = 1, OrderId = 1, ProductId = 1, Quantity = 4, Price = 2.50m },
-                new OrderItem { Id = 2, OrderId = 1, ProductId = 5, Quantity = 1, Price = 4.00m },
+                new OrderItem { Id = 2, OrderId = 1, ProductId = 5, Quantity = 1, Price = 4.00m, Note = "Less sweet" },
                 new OrderItem { Id = 3, OrderId = 2, ProductId = 4, Quantity = 2, Price = 3.50m },
                 new OrderItem { Id = 4, OrderId = 3, ProductId = 3, Quantity = 1, Price = 3.20m },
                 new OrderItem { Id = 5, OrderId = 3, ProductId = 6, Quantity = 1, Price = 3.00m },
-                new OrderItem { Id = 6, OrderId = 3, ProductId = 2, Quantity = 1, Price = 3.00m },
+                new OrderItem { Id = 6, OrderId = 3, ProductId = 2, Quantity = 1, Price = 3.00m , Size = "L", MilkType = "Oat", SugarLevel = 2, Note = "Extra hot"},
                 new OrderItem { Id = 7, OrderId = 4, ProductId = 7, Quantity = 2, Price = 6.00m }
             );
 
@@ -385,19 +385,6 @@ namespace CafeEase.Services.Database
                     DateCreated = new DateTime(2026, 1, 20)
                 }
             );
-        }
-        private byte[] ConvertImageToByteArray(string fileName)
-        {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-            var fullPath = Path.Combine(basePath, fileName);
-
-            if (!File.Exists(fullPath))
-            {
-                Console.WriteLine($"File {fileName} not found in {fullPath}");
-                return Array.Empty<byte>();
-            }
-
-            return File.ReadAllBytes(fullPath);
         }
     }
 }
