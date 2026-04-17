@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:cafeease_mobile/screens/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +6,7 @@ import '../screens/payment_screen.dart';
 import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/base_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -156,7 +156,7 @@ class _CartScreenState extends State<CartScreen> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            _buildProductImage(product.image),
+            _buildProductImage(product.imagePath),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -180,6 +180,50 @@ class _CartScreenState extends State<CartScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  if (item.size != null &&
+                      item.size.toString().trim().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      "Size: ${item.size}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
+                  ],
+                  if (item.milkType != null &&
+                      item.milkType.toString().trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      "Milk: ${item.milkType}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
+                  ],
+                  if (item.sugarLevel != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      "Sugar: ${item.sugarLevel}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
+                  ],
+                  if (item.note != null &&
+                      item.note.toString().trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      "Note: ${item.note}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: Color(0xFF5D4037),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -196,7 +240,7 @@ class _CartScreenState extends State<CartScreen> {
                   IconButton(
                     icon: const Icon(Icons.remove),
                     color: const Color(0xFF6F4E37),
-                    onPressed: () => _cartProvider.decreaseQuantity(product),
+                    onPressed: () => _cartProvider.decreaseCartItem(item),
                   ),
                   Text(
                     "$count",
@@ -226,7 +270,7 @@ class _CartScreenState extends State<CartScreen> {
                         return;
                       }
 
-                      await _cartProvider.addToCart(product);
+                      await _cartProvider.increaseCartItem(item);
                     },
                   ),
                 ],
@@ -238,7 +282,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildProductImage(String? imageBase64) {
+  Widget _buildProductImage(String? imagePath) {
     final placeholder = Container(
       width: 64,
       height: 64,
@@ -255,22 +299,20 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
 
-    if (imageBase64 == null || imageBase64.isEmpty) return placeholder;
+    if (imagePath == null || imagePath.isEmpty) return placeholder;
 
-    try {
-      final bytes = base64Decode(imageBase64);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.memory(
-          bytes,
-          width: 64,
-          height: 64,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return placeholder;
-    }
+    final imageUrl = '${BaseProvider.baseUrl}images/$imagePath';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.network(
+        imageUrl,
+        width: 64,
+        height: 64,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => placeholder,
+      ),
+    );
   }
 
   Widget _buildBottomBar(BuildContext context) {
