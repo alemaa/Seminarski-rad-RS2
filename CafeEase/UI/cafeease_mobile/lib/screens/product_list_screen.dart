@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:cafeease_mobile/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +16,7 @@ import '../providers/loyalty_points_provider.dart';
 import '../providers/promotion_provider.dart';
 import '../utils/segment_utils.dart';
 import '../widgets/customize_dialog.dart';
+import '../providers/base_provider.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -215,8 +215,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildProductImage(String? imageBase64) {
-    if (imageBase64 == null || imageBase64.isEmpty) {
+  Widget _buildProductImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
       return Container(
         width: 56,
         height: 56,
@@ -225,34 +225,41 @@ class _ProductListScreenState extends State<ProductListScreen> {
           borderRadius: BorderRadius.circular(10),
         ),
         alignment: Alignment.center,
-        child: const Icon(Icons.image_outlined,
-            size: 28, color: Color(0xFF6B3E2E)),
+        child: const Icon(
+          Icons.image_outlined,
+          size: 28,
+          color: Color(0xFF6B3E2E),
+        ),
       );
     }
 
-    try {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Image.memory(
-          base64Decode(imageBase64),
-          width: 56,
-          height: 56,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return Container(
+    final imageUrl = '${BaseProvider.baseUrl}images/$imagePath';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Image.network(
+        imageUrl,
         width: 56,
         height: 56,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE6D4C3),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(Icons.image_outlined,
-            size: 28, color: Color(0xFF6B3E2E)),
-      );
-    }
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6D4C3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.image_outlined,
+              size: 28,
+              color: Color(0xFF6B3E2E),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -415,7 +422,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               child: ListTile(
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
-                                leading: _buildProductImage(product.image),
+                                leading: _buildProductImage(product.imagePath),
                                 title: Text(
                                   product.name ?? '',
                                   style: const TextStyle(
@@ -467,8 +474,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                   sugarLevel: res.sugarLevel,
                                                   note: res.note,
                                                 );
-                                              } else if (product.categoryId ==
-                                                  3) {
+                                              } else {
                                                 final noteController =
                                                     TextEditingController();
 
@@ -515,9 +521,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                   1,
                                                   note: note,
                                                 );
-                                              } else {
-                                                await cart.addToCartCustomized(
-                                                    product, 1);
                                               }
 
                                               ScaffoldMessenger.of(context)

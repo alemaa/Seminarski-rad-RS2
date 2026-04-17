@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
@@ -7,6 +6,7 @@ import '../providers/cart_provider.dart';
 import '../providers/review_provider.dart';
 import '../screens/add_review_screen.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/base_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -68,8 +68,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  Widget _buildImage(String? base64Img) {
-    if (base64Img == null || base64Img.isEmpty) {
+  Widget _buildImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
       return Container(
         height: 220,
         width: double.infinity,
@@ -78,34 +78,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.center,
-        child: const Icon(Icons.image_outlined,
-            size: 60, color: Color(0xFF6B3E2E)),
+        child: const Icon(
+          Icons.image_outlined,
+          size: 60,
+          color: Color(0xFF6B3E2E),
+        ),
       );
     }
 
-    try {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.memory(
-          base64Decode(base64Img),
-          height: 220,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return Container(
+    final imageUrl = '${BaseProvider.baseUrl}images/$imagePath';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.network(
+        imageUrl,
         height: 220,
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE6D4C3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(Icons.image_outlined,
-            size: 60, color: Color(0xFF6B3E2E)),
-      );
-    }
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          return Container(
+            height: 220,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6D4C3),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.image_outlined,
+              size: 60,
+              color: Color(0xFF6B3E2E),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   double _avgRating(List<Review> reviews) {
@@ -138,7 +145,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildImage(product.image),
+            _buildImage(product.imagePath),
             const SizedBox(height: 14),
             Align(
               alignment: Alignment.centerLeft,
