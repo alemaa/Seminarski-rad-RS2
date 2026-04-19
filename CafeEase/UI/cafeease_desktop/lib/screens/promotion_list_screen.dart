@@ -116,6 +116,16 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
     return p.startDate.isBefore(now) && p.endDate.isAfter(now);
   }
 
+  bool _isUpcoming(Promotion p) {
+    final now = DateTime.now();
+    return p.startDate.isAfter(now);
+  }
+
+  bool _isExpired(Promotion p) {
+    final now = DateTime.now();
+    return p.endDate.isBefore(now);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,9 +168,25 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                       final p = _promotions[index];
                       final active = _isActive(p);
 
+                      String status;
+                      Color color;
+
+                      if (_isActive(p)) {
+                        status = 'ACTIVE';
+                        color = Colors.green;
+                      } else if (_isUpcoming(p)) {
+                        status = 'UPCOMING';
+                        color = Colors.orange;
+                      } else {
+                        status = 'EXPIRED';
+                        color = Colors.red;
+                      }
+
                       return Card(
-                        color: active
+                        color: _isActive(p)
                             ? const Color(0xFFD2B48C)
+                            : _isUpcoming(p)
+                            ? Colors.orange.shade100
                             : Colors.grey.shade300,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -190,9 +216,9 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                                 style: const TextStyle(fontSize: 12),
                               ),
                               Text(
-                                active ? 'ACTIVE' : 'EXPIRED',
+                                status,
                                 style: TextStyle(
-                                  color: active ? Colors.green : Colors.red,
+                                  color: color,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
