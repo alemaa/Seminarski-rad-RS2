@@ -16,7 +16,7 @@ namespace CafeEase.Model.Requests
         [Range(0.1, 10000)]
         public decimal Price { get; set; }
         public string? Description { get; set; }
-        public byte[]? Image { get; set; }
+        public string? ImagePath { get; set; }
 
         [Required]
         public int CategoryId { get; set; }
