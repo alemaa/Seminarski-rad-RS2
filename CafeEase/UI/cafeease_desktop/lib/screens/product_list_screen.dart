@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
 import '../models/product.dart';
 import 'product_detail_screen.dart';
-import 'dart:convert';
 import '../providers/category_provider.dart';
 import 'dart:async';
 import '../providers/inventory_provider.dart';
+import '../providers/base_provider.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -115,47 +115,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
   }
 
-  Widget _buildProductImage(String? imageBase64) {
-    if (imageBase64 == null || imageBase64.isEmpty) {
-      return Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE6D4C3),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.image_outlined,
-          size: 28,
-          color: Color(0xFF6B3E2E),
-        ),
-      );
+  Widget _buildProductImage(String? imagePath) {
+    final placeholder = Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6D4C3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.image_outlined,
+        size: 28,
+        color: Color(0xFF6B3E2E),
+      ),
+    );
+
+    if (imagePath == null || imagePath.isEmpty) {
+      return placeholder;
     }
 
-    try {
-      return Image.memory(
-        base64Decode(imageBase64),
-        width: 50,
-        height: 50,
-        fit: BoxFit.cover,
-      );
-    } catch (e) {
-      return Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE6D4C3),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.image_outlined,
-          size: 28,
-          color: Color(0xFF6B3E2E),
-        ),
-      );
-    }
+    final imageUrl = '${BaseProvider.baseUrl}images/$imagePath';
+
+    return Image.network(
+      imageUrl,
+      width: 50,
+      height: 50,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => placeholder,
+    );
   }
 
   @override
@@ -256,7 +244,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: ListTile(
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: _buildProductImage(product.image),
+                              child: _buildProductImage(product.imagePath),
                             ),
                             title: Text(
                               product.name ?? '',

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,8 @@ import '../models/product.dart';
 import '../providers/category_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/product_provider.dart';
+import '../providers/base_provider.dart';
+import 'package:http/http.dart' as http;
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -30,7 +31,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool get isEdit => widget.product != null;
 
   File? _selectedImage;
-  String? _base64Image;
 
   List<Category> _categories = [];
   Category? _selectedCategory;
@@ -55,6 +55,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     if (widget.product != null) {
       _loadInventory();
+    }
+  }
+
+  Future<String?> _uploadImage(File file) async {
+    try {
+      final uri = Uri.parse('${BaseProvider.baseUrl}api/Uploads/image');
+
+      final request = http.MultipartRequest('POST', uri);
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        return responseBody.replaceAll('"', '');
+      }
+
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -141,11 +161,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (result == null || result.files.single.path == null) return;
 
     final file = File(result.files.single.path!);
-    final bytes = await file.readAsBytes();
 
     setState(() {
       _selectedImage = file;
-      _base64Image = base64Encode(bytes);
     });
   }
 
@@ -167,19 +185,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       final inventoryProvider = context.read<InventoryProvider>();
 
       final normalizedPrice = _priceController.text.trim().replaceAll(',', '.');
+      String? imagePath;
+      if (_selectedImage != null) {
+        imagePath = await _uploadImage(_selectedImage!);
+
+        if (imagePath == null || imagePath.isEmpty) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Image upload failed.')));
+          setState(() => _isSaving = false);
+          return;
+        }
+      } else if (isEdit && (widget.product?.imagePath?.isNotEmpty ?? false)) {
+        imagePath = widget.product!.imagePath!;
+      }
 
       final request = <String, dynamic>{
         'name': _nameController.text.trim(),
         'price': double.parse(normalizedPrice),
         'description': _descriptionController.text.trim(),
         'categoryId': _selectedCategory!.id,
+        'imagePath': imagePath,
       };
-
-      if (_base64Image != null) {
-        request['image'] = _base64Image!;
-      } else if (isEdit && widget.product?.image != null) {
-        request['image'] = widget.product!.image!;
-      }
 
       int? productId;
 
@@ -370,11 +398,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           fit: BoxFit.contain,
         ),
       );
-    } else if (isEdit && (widget.product?.image?.isNotEmpty ?? false)) {
+    } else if (isEdit && (widget.product?.imagePath?.isNotEmpty ?? false)) {
       preview = ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.memory(
-          base64Decode(widget.product!.image!),
+        child: Image.network(
+          '${BaseProvider.baseUrl}images/${widget.product!.imagePath}',
           height: 220,
           width: double.infinity,
           fit: BoxFit.contain,
