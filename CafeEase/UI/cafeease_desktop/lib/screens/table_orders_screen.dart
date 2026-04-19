@@ -121,17 +121,19 @@ class _TableOrdersScreenState extends State<TableOrdersScreen> {
               const SizedBox(height: 6),
               const Text("Table is currently free."),
               const SizedBox(height: 14),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5A3C),
-                ),
-                onPressed: () {
-                  DefaultTabController.of(context).animateTo(1);
-                },
-                icon: const Icon(Icons.history, color: Colors.white),
-                label: const Text(
-                  "View history",
-                  style: TextStyle(color: Colors.white),
+              Builder(
+                builder: (context) => ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5A3C),
+                  ),
+                  onPressed: () {
+                    DefaultTabController.of(context).animateTo(1);
+                  },
+                  icon: const Icon(Icons.history, color: Colors.white),
+                  label: const Text(
+                    "View history",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
