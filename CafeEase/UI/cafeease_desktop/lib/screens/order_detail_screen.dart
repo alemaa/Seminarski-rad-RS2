@@ -459,19 +459,59 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                               items: const [
                                                 DropdownMenuItem(
                                                   value: 'Pending',
-                                                  child: Text('Pending'),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.hourglass_top,
+                                                        color: Colors.orange,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text('Pending'),
+                                                    ],
+                                                  ),
                                                 ),
                                                 DropdownMenuItem(
                                                   value: 'Confirmed',
-                                                  child: Text('Confirmed'),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.thumb_up,
+                                                        color: Colors.blue,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text('Confirmed'),
+                                                    ],
+                                                  ),
                                                 ),
                                                 DropdownMenuItem(
                                                   value: 'Paid',
-                                                  child: Text('Paid'),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.check_circle,
+                                                        color: Colors.green,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text('Paid'),
+                                                    ],
+                                                  ),
                                                 ),
                                                 DropdownMenuItem(
                                                   value: 'Cancelled',
-                                                  child: Text('Cancelled'),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.cancel,
+                                                        color: Colors.red,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text('Cancelled'),
+                                                    ],
+                                                  ),
                                                 ),
                                               ],
                                               onChanged: (value) {
