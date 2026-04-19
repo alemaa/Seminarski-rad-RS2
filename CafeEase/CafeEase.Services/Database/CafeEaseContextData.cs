@@ -223,8 +223,8 @@ namespace CafeEase.Services.Database
                     Name = "Morning Coffee Deal",
                     Description = "10% off coffee products in the morning.",
                     DiscountPercent = 10,
-                    StartDate = new DateTime(2026, 2, 1),
-                    EndDate = new DateTime(2026, 2, 4),
+                    StartDate = new DateTime(2026, 4, 20),
+                    EndDate = new DateTime(2026, 4, 30),
                     TargetSegment = "ALL"
                 },
                 new Promotion
@@ -233,8 +233,8 @@ namespace CafeEase.Services.Database
                     Name = "Dessert Weekend",
                     Description = "15% off desserts on weekends.",
                     DiscountPercent = 15,
-                    StartDate = new DateTime(2026, 2, 3),
-                    EndDate = new DateTime(2026, 2, 10),
+                    StartDate = new DateTime(2026, 4, 22),
+                    EndDate = new DateTime(2026, 5, 5),
                     TargetSegment = "VIP"
                 }
            );
@@ -250,7 +250,7 @@ namespace CafeEase.Services.Database
                     Id = 1,
                     UserId = 2,
                     TableId = 2,
-                    OrderDate = new DateTime(2026, 2, 1, 10, 15, 0),
+                    OrderDate = new DateTime(2026, 4, 15, 10, 15, 0),
                     Status = "Paid",
                     TotalAmount = 14.00m
                 },
@@ -259,7 +259,7 @@ namespace CafeEase.Services.Database
                     Id = 2,
                     UserId = 3,
                     TableId = 1,
-                    OrderDate = new DateTime(2026, 2, 2, 18, 45, 0),
+                    OrderDate = new DateTime(2026, 4, 18, 18, 45, 0),
                     Status = "Pending",
                     TotalAmount = 7.00m
                 },
@@ -268,7 +268,7 @@ namespace CafeEase.Services.Database
                     Id = 3,
                     UserId = 2,
                     TableId = 4,
-                    OrderDate = new DateTime(2026, 1, 28, 12, 5, 0),
+                    OrderDate = new DateTime(2026, 4, 19, 12, 5, 0),
                     Status = "Paid",
                     TotalAmount = 9.20m
                 },
@@ -277,7 +277,7 @@ namespace CafeEase.Services.Database
                     Id = 4,
                     UserId = 2,
                     TableId = 5,
-                    OrderDate = new DateTime(2026, 1, 28, 12, 5, 0),
+                    OrderDate = new DateTime(2026, 4, 19, 12, 5, 0),
                     Status = "Paid",
                     TotalAmount = 12.00m
                 }
@@ -364,7 +364,7 @@ namespace CafeEase.Services.Database
                     ProductId = 1,
                     Rating = 5,
                     Comment = "Excellent espresso!",
-                    DateCreated = new DateTime(2026, 2, 1)
+                    DateCreated = new DateTime(2026, 4, 15)
                 },
                 new Review
                 {
@@ -373,7 +373,7 @@ namespace CafeEase.Services.Database
                     ProductId = 4,
                     Rating = 4,
                     Comment = "Good, but I’d like a bit more ice.",
-                    DateCreated = new DateTime(2026, 2, 2)
+                    DateCreated = new DateTime(2026, 4, 18)
                 },
                 new Review
                 {
@@ -382,7 +382,7 @@ namespace CafeEase.Services.Database
                     ProductId = 5,
                     Rating = 5,
                     Comment = "Cheesecake is great.",
-                    DateCreated = new DateTime(2026, 1, 20)
+                    DateCreated = new DateTime(2026, 4, 19)
                 }
             );
         }

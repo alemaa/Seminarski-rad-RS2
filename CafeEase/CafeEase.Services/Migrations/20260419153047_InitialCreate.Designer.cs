@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    [Migration("20260419145239_UpdateReservationSeedDates")]
-    partial class UpdateReservationSeedDates
+    [Migration("20260419153047_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -379,7 +379,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 1,
-                            OrderDate = new DateTime(2026, 2, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
+                            OrderDate = new DateTime(2026, 4, 15, 10, 15, 0, 0, DateTimeKind.Unspecified),
                             Status = "Paid",
                             TableId = 2,
                             TotalAmount = 14.00m,
@@ -388,7 +388,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 2,
-                            OrderDate = new DateTime(2026, 2, 2, 18, 45, 0, 0, DateTimeKind.Unspecified),
+                            OrderDate = new DateTime(2026, 4, 18, 18, 45, 0, 0, DateTimeKind.Unspecified),
                             Status = "Pending",
                             TableId = 1,
                             TotalAmount = 7.00m,
@@ -397,7 +397,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 3,
-                            OrderDate = new DateTime(2026, 1, 28, 12, 5, 0, 0, DateTimeKind.Unspecified),
+                            OrderDate = new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified),
                             Status = "Paid",
                             TableId = 4,
                             TotalAmount = 9.20m,
@@ -406,7 +406,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 4,
-                            OrderDate = new DateTime(2026, 1, 28, 12, 5, 0, 0, DateTimeKind.Unspecified),
+                            OrderDate = new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified),
                             Status = "Paid",
                             TableId = 5,
                             TotalAmount = 12.00m,
@@ -696,9 +696,9 @@ namespace CafeEase.Services.Migrations
                             Id = 1,
                             Description = "10% off coffee products in the morning.",
                             DiscountPercent = 10.0,
-                            EndDate = new DateTime(2026, 2, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EndDate = new DateTime(2026, 4, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Morning Coffee Deal",
-                            StartDate = new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StartDate = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TargetSegment = "ALL"
                         },
                         new
@@ -706,9 +706,9 @@ namespace CafeEase.Services.Migrations
                             Id = 2,
                             Description = "15% off desserts on weekends.",
                             DiscountPercent = 15.0,
-                            EndDate = new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EndDate = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Dessert Weekend",
-                            StartDate = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StartDate = new DateTime(2026, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TargetSegment = "VIP"
                         });
                 });
@@ -869,7 +869,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 1,
                             Comment = "Excellent espresso!",
-                            DateCreated = new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateCreated = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = 1,
                             Rating = 5,
                             UserId = 2
@@ -878,7 +878,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 2,
                             Comment = "Good, but I’d like a bit more ice.",
-                            DateCreated = new DateTime(2026, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateCreated = new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = 4,
                             Rating = 4,
                             UserId = 3
@@ -887,7 +887,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 3,
                             Comment = "Cheesecake is great.",
-                            DateCreated = new DateTime(2026, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateCreated = new DateTime(2026, 4, 19, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ProductId = 5,
                             Rating = 5,
                             UserId = 2

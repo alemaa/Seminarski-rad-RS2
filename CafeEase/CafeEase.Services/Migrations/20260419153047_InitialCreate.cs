@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CafeEase.Services.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreateClean : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -437,8 +437,8 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "Description", "DiscountPercent", "EndDate", "Name", "StartDate", "TargetSegment" },
                 values: new object[,]
                 {
-                    { 1, "10% off coffee products in the morning.", 10.0, new DateTime(2026, 2, 4, 0, 0, 0, 0, DateTimeKind.Unspecified), "Morning Coffee Deal", new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ALL" },
-                    { 2, "15% off desserts on weekends.", 15.0, new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dessert Weekend", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), "VIP" }
+                    { 1, "10% off coffee products in the morning.", 10.0, new DateTime(2026, 4, 30, 0, 0, 0, 0, DateTimeKind.Unspecified), "Morning Coffee Deal", new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), "ALL" },
+                    { 2, "15% off desserts on weekends.", 15.0, new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dessert Weekend", new DateTime(2026, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), "VIP" }
                 });
 
             migrationBuilder.InsertData(
@@ -535,10 +535,10 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "OrderDate", "Status", "TableId", "TotalAmount", "UserId" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), "Paid", 2, 14.00m, 2 },
-                    { 2, new DateTime(2026, 2, 2, 18, 45, 0, 0, DateTimeKind.Unspecified), "Pending", 1, 7.00m, 3 },
-                    { 3, new DateTime(2026, 1, 28, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 4, 9.20m, 2 },
-                    { 4, new DateTime(2026, 1, 28, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 5, 12.00m, 2 }
+                    { 1, new DateTime(2026, 4, 15, 10, 15, 0, 0, DateTimeKind.Unspecified), "Paid", 2, 14.00m, 2 },
+                    { 2, new DateTime(2026, 4, 18, 18, 45, 0, 0, DateTimeKind.Unspecified), "Pending", 1, 7.00m, 3 },
+                    { 3, new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 4, 9.20m, 2 },
+                    { 4, new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 5, 12.00m, 2 }
                 });
 
             migrationBuilder.InsertData(
@@ -546,10 +546,10 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "NumberOfGuests", "ReservationDateTime", "Status", "TableId", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 2, new DateTime(2026, 2, 5, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
-                    { 2, 2, new DateTime(2026, 2, 6, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
-                    { 3, 4, new DateTime(2026, 2, 6, 20, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
-                    { 4, 4, new DateTime(2026, 2, 7, 20, 30, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
+                    { 1, 2, new DateTime(2026, 4, 21, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
+                    { 2, 2, new DateTime(2026, 4, 22, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
+                    { 3, 4, new DateTime(2026, 4, 24, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
+                    { 4, 4, new DateTime(2026, 4, 26, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
                 });
 
             migrationBuilder.InsertData(
@@ -557,9 +557,9 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "Comment", "DateCreated", "ProductId", "Rating", "UserId" },
                 values: new object[,]
                 {
-                    { 1, "Excellent espresso!", new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 5, 2 },
-                    { 2, "Good, but I’d like a bit more ice.", new DateTime(2026, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 4, 3 },
-                    { 3, "Cheesecake is great.", new DateTime(2026, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), 5, 5, 2 }
+                    { 1, "Excellent espresso!", new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 5, 2 },
+                    { 2, "Good, but I’d like a bit more ice.", new DateTime(2026, 4, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 4, 3 },
+                    { 3, "Cheesecake is great.", new DateTime(2026, 4, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), 5, 5, 2 }
                 });
 
             migrationBuilder.InsertData(
