@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart'
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
   late String _endpoint;
+  static String get baseUrl => _baseUrl ?? 'http://localhost:5003/';
 
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
