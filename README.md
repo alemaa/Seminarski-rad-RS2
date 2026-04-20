@@ -74,8 +74,8 @@ Plaćanje se vrši putem Stripe PaymentSheet interfejsa.
 
   Plaćanje se inicijalno kreira sa statusom `Pending`, a nakon uspješne Stripe potvrde prelazi u `Completed`, dok narudžba dobija status `Paid`.
 
-[!NOTE]
-Napomena: Ne vrši se stvarna naplata, transakcije su simulirane unutar Stripe testnog okruženja.
+> [!NOTE]  
+> Ne vrši se stvarna naplata, transakcije su simulirane unutar Stripe testnog okruženja.
 
 ## Recommender sistem
 Recommender sistem u aplikaciji CafeEase generiše preporuke proizvoda na osnovu historije narudžbi korisnika. Sistem analizira koje se stavke često naručuju zajedno i na osnovu toga kreira preporuke koje se pohranjuju u bazu podataka i prikazuju korisnicima u aplikaciji. Preporučeni proizvodi se prikazuju korisnicima u Flutter aplikaciji. Recommender sistem se trenira na osnovu postojećih narudžbi i ne koristi eksterni ML framework.
