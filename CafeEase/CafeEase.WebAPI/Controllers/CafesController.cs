@@ -9,7 +9,6 @@ namespace CafeEase.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
     public class CafesController : BaseCRUDController<Cafe, CafeSearchObject, CafeUpsertRequest, CafeUpsertRequest>
     {
         private readonly ICafeService _cafeService;
