@@ -113,17 +113,12 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
 
   bool _isActive(Promotion p) {
     final now = DateTime.now();
-    return p.startDate.isBefore(now) && p.endDate.isAfter(now);
+    return !p.startDate.isAfter(now) && !p.endDate.isBefore(now);
   }
 
   bool _isUpcoming(Promotion p) {
     final now = DateTime.now();
     return p.startDate.isAfter(now);
-  }
-
-  bool _isExpired(Promotion p) {
-    final now = DateTime.now();
-    return p.endDate.isBefore(now);
   }
 
   @override
@@ -166,7 +161,6 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (_, index) {
                       final p = _promotions[index];
-                      final active = _isActive(p);
 
                       String status;
                       Color color;
