@@ -95,12 +95,6 @@ class HomeScreen extends StatelessWidget {
                   value: 'Active',
                   icon: Icons.verified_user,
                 ),
-                SizedBox(width: 16),
-                _StatCard(
-                  title: 'System',
-                  value: 'Ready',
-                  icon: Icons.check_circle_outline,
-                ),
               ],
             ),
             const SizedBox(height: 28),
@@ -198,25 +192,25 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        height: 96,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.55),
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.brown.shade100),
         ),
         child: Row(
           children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5A3C).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF8B5A3C).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: const Color(0xFF6B432D)),
+              child: Icon(icon, size: 16, color: const Color(0xFF6B432D)),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -225,16 +219,16 @@ class _StatCard extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.brown.shade700,
+                      fontSize: 11,
+                      color: Colors.brown.shade600,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 2),
                   Text(
                     value,
                     style: const TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF3E2723),
                     ),
                   ),
