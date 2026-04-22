@@ -240,31 +240,38 @@ class _TableDetailScreenState extends State<TableDetailScreen> {
                           ),
 
                           const SizedBox(height: 20),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               if (isEdit) ...[
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red.shade700,
-                                    side: BorderSide(
-                                      color: Colors.red.shade700,
-                                      width: 1.4,
+                                SizedBox(
+                                  width: 140,
+                                  height: 44,
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red.shade700,
+                                      side: BorderSide(
+                                        color: Colors.red.shade700,
+                                        width: 1.5,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 14,
+                                    onPressed: () => _delete(provider),
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-                                  onPressed: () => _delete(provider),
-                                  child: const Text('Delete'),
                                 ),
                                 const SizedBox(width: 12),
                               ],
                               SizedBox(
                                 width: 140,
-                                height: 38,
+                                height: 44,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF8B5A3C),
@@ -278,14 +285,19 @@ class _TableDetailScreenState extends State<TableDetailScreen> {
                                       : () => _save(provider),
                                   child: _isSaving
                                       ? const SizedBox(
-                                          width: 22,
-                                          height: 22,
+                                          width: 20,
+                                          height: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2.5,
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text('Save'),
+                                      : const Text(
+                                          'Save',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ],
