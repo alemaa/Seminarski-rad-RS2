@@ -129,9 +129,14 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
         title: const Text('Promotions'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF8B5A3C),
-        child: const Icon(Icons.add),
+        elevation: 6,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -186,6 +191,10 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           title: Text(
                             p.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -209,19 +218,38 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
                                 '${_formatDate(p.startDate)} → ${_formatDate(p.endDate)}',
                                 style: const TextStyle(fontSize: 12),
                               ),
-                              Text(
-                                status,
-                                style: TextStyle(
-                                  color: color,
-                                  fontWeight: FontWeight.bold,
+                              Container(
+                                margin: const EdgeInsets.only(top: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: color.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  status,
+                                  style: TextStyle(
+                                    color: color,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            tooltip: 'Delete promotion',
-                            onPressed: () => _confirmDelete(p),
+                          trailing: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red,
+                              tooltip: 'Delete promotion',
+                              onPressed: () => _confirmDelete(p),
+                            ),
                           ),
                           onTap: () async {
                             final result = await Navigator.push(

@@ -153,9 +153,17 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
                               ),
                             ],
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _confirmDelete(r),
+                          trailing: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red,
+                              tooltip: 'Delete review',
+                              onPressed: () => _confirmDelete(r),
+                            ),
                           ),
                         ),
                       );
