@@ -1,20 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
+using CafeEase.Model.Responses;
 using CafeEase.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
+using System.Net.Http;
 
 namespace CafeEase.Services
 {
     public class CafeService : BaseCRUDService<Model.Cafe, Database.Cafe, CafeSearchObject, CafeUpsertRequest, CafeUpsertRequest>, ICafeService
     {
-        public CafeService(CafeEaseDbContext context, IMapper mapper) : base(context, mapper)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public CafeService(
+            CafeEaseDbContext context,
+            IMapper mapper,
+            IHttpClientFactory httpClientFactory
+        ) : base(context, mapper)
         {
+            _httpClientFactory = httpClientFactory;
         }
 
         public override IQueryable<Database.Cafe> AddInclude(IQueryable<Database.Cafe> query, CafeSearchObject? search = null)
@@ -73,6 +84,48 @@ namespace CafeEase.Services
             return result;
         }
 
+        public async Task<GeocodeResponse?> GeocodeAddress(string address, string city)
+        {
+            var fullAddress = $"{address}, {city}, Bosnia and Herzegovina";
+            var encodedAddress = Uri.EscapeDataString(fullAddress);
+
+            var url = $"https://nominatim.openstreetmap.org/search?q={encodedAddress}&format=json&limit=1";
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.UserAgent.Clear();
+            client.DefaultRequestHeaders.UserAgent.Add(
+                new ProductInfoHeaderValue("CafeEaseApp", "1.0")
+            );
+
+            var response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var results = JsonSerializer.Deserialize<List<NominatimResult>>(json, options);
+
+            var first = results?.FirstOrDefault();
+            if (first == null)
+                return null;
+
+            if (!double.TryParse(first.lat, NumberStyles.Any, CultureInfo.InvariantCulture, out var latitude))
+                return null;
+
+            if (!double.TryParse(first.lon, NumberStyles.Any, CultureInfo.InvariantCulture, out var longitude))
+                return null;
+
+            return new GeocodeResponse
+            {
+                Latitude = latitude,
+                Longitude = longitude
+            };
+        }
+
         private static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
             const double earthRadiusKm = 6371;
@@ -94,6 +147,12 @@ namespace CafeEase.Services
         private static double DegreesToRadians(double degrees)
         {
             return degrees * Math.PI / 180;
+        }
+
+        private class NominatimResult
+        {
+            public string? lat { get; set; }
+            public string? lon { get; set; }
         }
     }
 }
