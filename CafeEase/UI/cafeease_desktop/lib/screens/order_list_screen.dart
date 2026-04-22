@@ -357,7 +357,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
-                                                'Table: ${order.tableId}',
+                                                'Table: ${order.tableNumber}',
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   color: Color(0xFF3E2723),

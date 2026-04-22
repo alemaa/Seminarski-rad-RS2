@@ -11,6 +11,7 @@ class Order {
   int? userId;
   int? tableId;
   String? userFullName;
+  int? tableNumber;
 
   Order({
     this.id,
