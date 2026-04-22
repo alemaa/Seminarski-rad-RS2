@@ -20,8 +20,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   List<OrderItem> _items = [];
   bool _loading = true;
   bool _savingStatus = false;
-
   late String _status;
+  Set<int> _expandedItems = {};
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -35,7 +36,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     try {
       final result = await provider.get(filter: {'orderId': widget.order.id});
-
+      for (var item in result.result) {
+        print('PRODUCT: ${item.productName}');
+        print('SIZE: ${item.size}');
+        print('MILK: ${item.milkType}');
+        print('SUGAR: ${item.sugarLevel}');
+        print('NOTE: ${item.note}');
+      }
       setState(() {
         _items = result.result;
         _loading = false;
@@ -234,48 +241,141 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final price = item.price ?? 0;
     final subtotal = quantity * price;
 
+    final hasExtras =
+        (item.size != null && item.size!.trim().isNotEmpty) ||
+        (item.milkType != null && item.milkType!.trim().isNotEmpty) ||
+        item.sugarLevel != null ||
+        (item.note != null && item.note!.trim().isNotEmpty);
+
+    final isExpanded = item.id != null && _expandedItems.contains(item.id);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    item.productName ?? '-',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: hasExtras && item.id != null
+            ? () {
+                setState(() {
+                  if (_expandedItems.contains(item.id)) {
+                    _expandedItems.remove(item.id);
+                  } else {
+                    _expandedItems.add(item.id!);
+                  }
+                });
+
+                Future.delayed(const Duration(milliseconds: 200), () {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                });
+              }
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.productName ?? '-',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: Color(0xFF3E2723),
+                            ),
+                          ),
+                        ),
+                        if (hasExtras) ...[
+                          const SizedBox(width: 6),
+                          Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            size: 20,
+                            color: const Color(0xFF6D4C41),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${subtotal.toStringAsFixed(2)} KM',
                     style: const TextStyle(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: Color(0xFF3E2723),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${subtotal.toStringAsFixed(2)} KM',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Color(0xFF3E2723),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Qty: $quantity × ${price.toStringAsFixed(2)} KM',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+              ),
+
+              if (hasExtras && isExpanded) ...[
+                const SizedBox(height: 10),
+
+                if (item.size != null && item.size!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'Size: ${item.size}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Qty: $quantity × ${price.toStringAsFixed(2)} KM',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+
+                if (item.milkType != null && item.milkType!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'Milk: ${item.milkType}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
                   ),
-                ),
+
+                if (item.sugarLevel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'Sugar: ${item.sugarLevel}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+
+                if (item.note != null && item.note!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'Note: ${item.note}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
               ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -296,6 +396,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           : Padding(
               padding: const EdgeInsets.all(16),
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -346,7 +447,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                       const SizedBox(height: 12),
                                       _infoBlock(
                                         'Table',
-                                        order.tableId?.toString() ?? '-',
+                                        order.tableNumber?.toString() ?? '-',
                                       ),
                                       const SizedBox(height: 12),
                                       _infoBlock(

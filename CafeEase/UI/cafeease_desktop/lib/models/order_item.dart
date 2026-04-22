@@ -10,6 +10,11 @@ class OrderItem {
   int? quantity;
   double? price;
   String? productName;
+  String? size;
+  String? milkType;
+  int? sugarLevel;
+  String? note;
+
 
   OrderItem({
     this.id,
@@ -18,6 +23,10 @@ class OrderItem {
     this.quantity,
     this.price,
     this.productName,
+    this.size,
+    this.milkType,
+    this.sugarLevel,
+    this.note
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) =>
