@@ -87,6 +87,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
+  Widget _stockLegendDot(Color color, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+        ),
+      ],
+    );
+  }
+
   Future<void> _loadInventoryForProducts() async {
     final inventoryProvider = context.read<InventoryProvider>();
 
@@ -229,7 +246,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
 
                   const SizedBox(height: 16),
-
+                  Row(
+                    children: [
+                      _stockLegendDot(Colors.green.shade700, 'In stock'),
+                      const SizedBox(width: 12),
+                      _stockLegendDot(const Color(0xFFB45309), 'Low'),
+                      const SizedBox(width: 12),
+                      _stockLegendDot(Colors.red, 'Out'),
+                    ],
+                  ),
                   Expanded(
                     child: ListView.separated(
                       padding: const EdgeInsets.only(bottom: 90),
@@ -237,6 +262,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final product = _products[index];
+
+                        int stock = _stockByProduct[product.id] ?? 0;
+
+                        Color stockColor;
+
+                        if (stock == 0) {
+                          stockColor = Colors.red;
+                        } else if (stock <= 5) {
+                          stockColor = const Color(0xFFB45309);
+                        } else {
+                          stockColor = Colors.green.shade700;
+                        }
 
                         return Card(
                           color: const Color(0xFFD2B48C),
@@ -257,8 +294,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            subtitle: Text(
-                              '${product.price?.toStringAsFixed(2)} KM • Stock: ${_stockByProduct[product.id] ?? 0}',
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  '${product.price?.toStringAsFixed(2)} KM • ',
+                                ),
+
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: stockColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+
+                                Text(
+                                  'Stock: $stock',
+                                  style: TextStyle(
+                                    color: stockColor,
+                                    fontWeight: stock <= 5
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
                             ),
 
                             trailing: const Icon(Icons.chevron_right),
