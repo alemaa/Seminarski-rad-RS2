@@ -233,8 +233,18 @@ namespace CafeEase.Services.Database
                     Name = "Dessert Weekend",
                     Description = "15% off desserts on weekends.",
                     DiscountPercent = 15,
-                    StartDate = new DateTime(2026, 4, 22),
+                    StartDate = new DateTime(2026, 4, 24),
                     EndDate = new DateTime(2026, 5, 5),
+                    TargetSegment = "NEW"
+                },
+                new Promotion
+                {
+                    Id = 3,
+                    Name = "Winter Coffee Special",
+                    Description = "5% off hot drinks during winter season.",
+                    DiscountPercent = 5,
+                    StartDate = new DateTime(2026, 01, 07),
+                    EndDate = new DateTime(2026, 02, 5),
                     TargetSegment = "VIP"
                 }
            );
@@ -277,7 +287,7 @@ namespace CafeEase.Services.Database
                     Id = 4,
                     UserId = 2,
                     TableId = 5,
-                    OrderDate = new DateTime(2026, 4, 19, 12, 5, 0),
+                    OrderDate = new DateTime(2026, 4, 21, 12, 5, 0),
                     Status = "Paid",
                     TotalAmount = 12.00m
                 }
@@ -323,7 +333,7 @@ namespace CafeEase.Services.Database
                     Id = 1,
                     UserId = 2,
                     TableId = 1,
-                    ReservationDateTime = new DateTime(2026, 4, 21, 19, 0, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 23, 19, 0, 0),
                     NumberOfGuests = 2,
                     Status = "Confirmed"
                 },
@@ -332,7 +342,7 @@ namespace CafeEase.Services.Database
                     Id = 2,
                     UserId = 2,
                     TableId = 2,
-                    ReservationDateTime = new DateTime(2026, 4, 22, 20, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 24, 20, 30, 0),
                     NumberOfGuests = 2,
                     Status = "Pending"
                 },
@@ -341,7 +351,7 @@ namespace CafeEase.Services.Database
                     Id = 3,
                     UserId = 2,
                     TableId = 3,
-                    ReservationDateTime = new DateTime(2026, 4, 24, 18, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 25, 18, 30, 0),
                     NumberOfGuests = 4,
                     Status = "Cancelled"
                 },

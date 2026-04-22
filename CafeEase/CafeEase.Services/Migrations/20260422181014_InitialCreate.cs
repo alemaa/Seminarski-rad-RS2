@@ -438,7 +438,8 @@ namespace CafeEase.Services.Migrations
                 values: new object[,]
                 {
                     { 1, "10% off coffee products in the morning.", 10.0, new DateTime(2026, 4, 30, 0, 0, 0, 0, DateTimeKind.Unspecified), "Morning Coffee Deal", new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), "ALL" },
-                    { 2, "15% off desserts on weekends.", 15.0, new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dessert Weekend", new DateTime(2026, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), "VIP" }
+                    { 2, "15% off desserts on weekends.", 15.0, new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "Dessert Weekend", new DateTime(2026, 4, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), "NEW" },
+                    { 3, "5% off hot drinks during winter season.", 5.0, new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "Winter Coffee Special", new DateTime(2026, 1, 7, 0, 0, 0, 0, DateTimeKind.Unspecified), "VIP" }
                 });
 
             migrationBuilder.InsertData(
@@ -538,7 +539,7 @@ namespace CafeEase.Services.Migrations
                     { 1, new DateTime(2026, 4, 15, 10, 15, 0, 0, DateTimeKind.Unspecified), "Paid", 2, 14.00m, 2 },
                     { 2, new DateTime(2026, 4, 18, 18, 45, 0, 0, DateTimeKind.Unspecified), "Pending", 1, 7.00m, 3 },
                     { 3, new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 4, 9.20m, 2 },
-                    { 4, new DateTime(2026, 4, 19, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 5, 12.00m, 2 }
+                    { 4, new DateTime(2026, 4, 21, 12, 5, 0, 0, DateTimeKind.Unspecified), "Paid", 5, 12.00m, 2 }
                 });
 
             migrationBuilder.InsertData(
@@ -546,9 +547,9 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "NumberOfGuests", "ReservationDateTime", "Status", "TableId", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 2, new DateTime(2026, 4, 21, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
-                    { 2, 2, new DateTime(2026, 4, 22, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
-                    { 3, 4, new DateTime(2026, 4, 24, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
+                    { 1, 2, new DateTime(2026, 4, 23, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
+                    { 2, 2, new DateTime(2026, 4, 24, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
+                    { 3, 4, new DateTime(2026, 4, 25, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
                     { 4, 4, new DateTime(2026, 4, 26, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
                 });
 
