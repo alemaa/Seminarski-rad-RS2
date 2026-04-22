@@ -177,6 +177,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                     child: _reservations.isEmpty
                         ? const Center(child: Text('No reservations found.'))
                         : ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 90),
                             itemCount: _reservations.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 10),
@@ -295,10 +296,14 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF8B5A3C),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        elevation: 8,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         onPressed: () async {
           final result = await Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const ReservationDetailScreen()),

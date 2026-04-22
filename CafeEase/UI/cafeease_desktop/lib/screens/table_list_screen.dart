@@ -62,10 +62,14 @@ class _TableListScreenState extends State<TableListScreen> {
         title: const Text('Tables'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF8B5A3C),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        elevation: 8,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -156,6 +160,7 @@ class _TableListScreenState extends State<TableListScreen> {
 
                   Expanded(
                     child: ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 90),
                       itemCount: _tables.length,
                       itemBuilder: (context, index) {
                         final table = _tables[index];

@@ -46,7 +46,6 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
         _categories = result.result;
         _loading = false;
       });
-
     } catch (e) {
       _loading = false;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,21 +61,6 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
       appBar: AppBar(
         title: const Text('Categories'),
         backgroundColor: Color(0xFF8B5A3C),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.black),
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CategoryDetailScreen()),
-              );
-
-              if (result == 'refresh') {
-                _loadCategories();
-              }
-            },
-          ),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -113,6 +97,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
 
                   Expanded(
                     child: ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 90),
                       itemCount: _categories.length,
                       itemBuilder: (_, index) {
                         final category = _categories[index];
@@ -143,6 +128,25 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 ],
               ),
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFF8B5A3C),
+        elevation: 8,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CategoryDetailScreen()),
+          );
+
+          if (result == 'refresh') {
+            _loadCategories();
+          }
+        },
+      ),
     );
   }
 }

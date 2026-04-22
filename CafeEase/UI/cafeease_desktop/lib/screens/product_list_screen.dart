@@ -154,11 +154,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
         title: const Text('Products'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF8B5A3C),
-        foregroundColor: Colors.white,
-        elevation: 3,
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFF8B5A3C),
+        elevation: 8,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         onPressed: () async {
           final result = await Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const ProductDetailScreen()),
@@ -229,6 +232,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                   Expanded(
                     child: ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 90),
                       itemCount: _products.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
