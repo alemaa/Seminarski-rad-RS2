@@ -36,13 +36,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     try {
       final result = await provider.get(filter: {'orderId': widget.order.id});
-      for (var item in result.result) {
-        print('PRODUCT: ${item.productName}');
-        print('SIZE: ${item.size}');
-        print('MILK: ${item.milkType}');
-        print('SUGAR: ${item.sugarLevel}');
-        print('NOTE: ${item.note}');
-      }
       setState(() {
         _items = result.result;
         _loading = false;
