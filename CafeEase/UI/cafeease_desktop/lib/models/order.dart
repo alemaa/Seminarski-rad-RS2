@@ -21,6 +21,7 @@ class Order {
     this.userId,
     this.tableId,
     this.userFullName,
+    this.tableNumber
   });
 
   factory Order.fromJson(Map<String, dynamic> json) =>
