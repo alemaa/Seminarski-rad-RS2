@@ -28,6 +28,39 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: const Color(0xFF6F4E37)),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.brown.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF8B5A3C), width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final productProvider = context.read<ProductProvider>();
@@ -46,16 +79,19 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           Center(
             child: Card(
-              elevation: 10,
+              elevation: 12,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Container(
-                width: 360,
-                padding: const EdgeInsets.all(24),
+                width: 420,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 30,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.brown.shade50,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Form(
                   key: _formKey,
@@ -67,30 +103,44 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const Icon(
                         Icons.coffee,
-                        size: 48,
+                        size: 46,
                         color: Color(0xFF6F4E37),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       const Text(
                         'CafeEase',
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF6F4E37),
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Admin Panel',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Sign in to continue',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
 
                       TextFormField(
                         controller: _usernameController,
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          prefixIcon: const Icon(Icons.person),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        decoration: _buildInputDecoration(
+                          label: 'Username',
+                          icon: Icons.person,
                         ),
                         validator: (value) {
                           if ((value ?? '').trim().isEmpty) {
@@ -106,14 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        decoration: _buildInputDecoration(
+                          label: 'Password',
+                          icon: Icons.lock,
                         ),
                         validator: (value) {
                           if ((value ?? '').trim().isEmpty) {
@@ -128,15 +173,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       SizedBox(
                         width: double.infinity,
-                        height: 45,
+                        height: 48,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              196,
-                              145,
-                              108,
-                            ),
+                            backgroundColor: const Color(0xFF8B5A3C),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -208,14 +250,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                   }
                                 },
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.2,
+                                  ),
                                 )
                               : const Text(
-                                  'Login',
-                                  style: TextStyle(fontSize: 16),
+                                  'LOGIN',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
                                 ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      Text(
+                        'Authorized staff only',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
                         ),
                       ),
                     ],
