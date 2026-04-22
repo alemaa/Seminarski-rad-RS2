@@ -33,11 +33,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     try {
       final result = await provider.get(filter: {'userId': widget.user.id});
 
+      if (!mounted) return;
+
       setState(() {
         _orders = result.result;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -58,7 +61,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete'),
           ),
@@ -88,10 +95,17 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
       Navigator.pop(context, 'refresh');
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
       );
     }
+  }
+
+  String _fullName(User user) {
+    final fullName = '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
+    return fullName.isEmpty ? (user.username ?? 'User') : fullName;
   }
 
   @override
@@ -103,28 +117,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       appBar: AppBar(
         title: const Text('User details'),
         backgroundColor: const Color(0xFF8B5A3C),
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.black),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => UserEditScreen(user: widget.user),
-                ),
-              );
-              if (result == 'refresh') {
-                navigator.pop('refresh');
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.black),
-            onPressed: _confirmDelete,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -132,30 +124,86 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
+              elevation: 3,
               color: const Color(0xFFD2B48C),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${user.firstName ?? ''} ${user.lastName ?? ''}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 240),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _fullName(user),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (user.username != null)
-                      Text('Username: ${user.username}'),
-                    if (user.email != null) Text('Email: ${user.email}'),
-                    Text('Role ID: ${user.roleId}'),
-                  ],
+                      const SizedBox(height: 8),
+                      if (user.username != null)
+                        Text('Username: ${user.username}'),
+                      if (user.email != null) Text('Email: ${user.email}'),
+                      Text('Role ID: ${user.roleId}'),
+                    ],
+                  ),
                 ),
               ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF3E2723),
+                    side: const BorderSide(color: Color(0xFF8B5A3C)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UserEditScreen(user: widget.user),
+                      ),
+                    );
+                    if (result == 'refresh') {
+                      navigator.pop('refresh');
+                    }
+                  },
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Edit user'),
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _confirmDelete,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete user'),
+                ),
+              ],
             ),
 
             const SizedBox(height: 24),
@@ -172,15 +220,29 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   : _orders.isEmpty
                   ? const Center(child: Text('This user has no orders'))
                   : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 24),
                       itemCount: _orders.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (_, index) {
                         final order = _orders[index];
 
                         return Card(
+                          elevation: 2,
                           color: const Color(0xFFCDB08F),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: ListTile(
-                            title: Text('Order #${order.id}'),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            title: Text(
+                              'Order #${order.id}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

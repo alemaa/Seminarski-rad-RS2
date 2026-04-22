@@ -71,10 +71,14 @@ class _UserListScreenState extends State<UserListScreen> {
         title: const Text('Users'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF8B5A3C),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        elevation: 8,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -123,6 +127,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   : _users.isEmpty
                   ? const Center(child: Text('No users found'))
                   : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 80),
                       itemCount: _users.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (_, index) {
