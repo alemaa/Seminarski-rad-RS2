@@ -91,7 +91,7 @@ namespace CafeEase.Services
 
             entity.Status = update.Status;
 
-            if (oldStatus != "Paid" && update.Status == "Paid")
+            if (oldStatus == "Pending" && (update.Status == "Confirmed" || update.Status == "Paid"))
             {
                 foreach (var item in entity.OrderItems)
                 {
