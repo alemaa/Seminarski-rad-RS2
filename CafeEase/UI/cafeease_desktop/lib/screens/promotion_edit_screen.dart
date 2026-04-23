@@ -2,7 +2,6 @@ import 'package:cafeease_desktop/models/category.dart';
 import 'package:cafeease_desktop/providers/category_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/promotion.dart';
 import '../providers/promotion_provider.dart';
 
@@ -166,13 +165,30 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
     setState(() => _isSaving = true);
 
     final provider = context.read<PromotionProvider>();
+    final startDate = DateTime(
+      _startDate!.year,
+      _startDate!.month,
+      _startDate!.day,
+      0,
+      0,
+      0,
+    );
+
+    final endDate = DateTime(
+      _endDate!.year,
+      _endDate!.month,
+      _endDate!.day,
+      23,
+      59,
+      59,
+    );
 
     final request = {
       'name': _nameController.text.trim(),
       'description': _descController.text.trim(),
       'discountPercent': discount,
-      'startDate': _startDate!.toIso8601String(),
-      'endDate': _endDate!.toIso8601String(),
+      'startDate': startDate.toIso8601String(),
+      'endDate': endDate.toIso8601String(),
       'categoryIds': selectedCategoryIds,
       'targetSegment': _selectedSegment,
     };
