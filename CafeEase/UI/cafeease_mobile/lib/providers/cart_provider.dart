@@ -184,6 +184,12 @@ class CartProvider with ChangeNotifier {
     return item?.count ?? 0;
   }
 
+int getTotalQuantityForProduct(Product product) {
+  return items
+      .where((e) => e.product.id == product.id)
+      .fold(0, (sum, e) => sum + e.count);
+}
+
   void _calculateTotal() {
     total = 0;
     for (final item in cart.items) {

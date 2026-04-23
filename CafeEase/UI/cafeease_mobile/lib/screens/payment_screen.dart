@@ -163,9 +163,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
         tableId: AppSession.tableId!,
         items: items,
       );
-
       final createdOrder = await orderProvider.createOrder(orderReq);
-
+      if (_payType == PayType.cash) {
+        await orderProvider.update(
+          createdOrder.id!,
+          {
+            "status": "Confirmed",
+          },
+        );
+      }
       if (_payType == PayType.inApp) {
         debugPrint("PAY FLOW START (Stripe)");
 

@@ -409,7 +409,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         itemBuilder: (context, index) {
                           final product = _products[index];
                           final stock = _stockByProduct[product.id ?? -1] ?? 0;
-                          final outOfStock = stock <= 0;
+                          final cart = context.watch<CartProvider>();
+                          final quantityInCart =
+                              cart.getTotalQuantityForProduct(product);
+                          final realStock = stock - quantityInCart;
+                          final outOfStock = realStock <= 0;
 
                           return Opacity(
                             opacity: outOfStock ? 0.45 : 1.0,
@@ -446,10 +450,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           : () async {
                                               final cart =
                                                   context.read<CartProvider>();
-                                              final currentQty =
-                                                  cart.getQuantity(product);
 
-                                              if (currentQty >= stock) {
+                                              if (realStock <= 0) {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
                                                   SnackBar(

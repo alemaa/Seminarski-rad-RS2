@@ -259,7 +259,10 @@ class _CartScreenState extends State<CartScreen> {
 
                       final stock = await inventoryProvider
                           .getStockForProduct(product.id!);
-                      if (count >= stock) {
+                      final totalQty =
+                          _cartProvider.getTotalQuantityForProduct(product);
+
+                      if (totalQty >= stock) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
