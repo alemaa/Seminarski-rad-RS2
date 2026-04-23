@@ -48,16 +48,15 @@ Mobilna aplikacija se pokreće pomoću .apk fajla
 Aplikacija koristi Stripe za kartično plaćanje u testnom režimu.
 
 ### 🛠  Konfiguracija 
-Stripe API ključevi nisu uključeni u repozitorij iz sigurnosnih razloga. 
-Projekt koristi environment varijable za upravljanje osjetljivim podacima.
-`.env` datoteke nisu uključene u repozitorij (nalaze se u `.gitignore`).
+Zbog sigurnosnih ograničenja GitHub-a, konfiguracijski fajl .env nije direktno uključen u repozitorij.
+
+Umjesto toga, dostupan je fajl: .env.zip koji se nalazi u istom folderu.
  
 #### Koraci za postavljanje:
- 1. Preimenovati .env.example u .env
- 2. Otvoriti .env datoteku
- 3. Unijeti vlastite Stripe test ključeve koje možete dobiti na:
-https://dashboard.stripe.com/test/apikeys
- 
+1. Raspakovati .env.zip
+2. Dobijeni .env fajl ostaviti u istom folderu
+3. Pokrenuti aplikaciju pomoću Docker-a
+
 Struktura `.env` datoteke:
 ```
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
