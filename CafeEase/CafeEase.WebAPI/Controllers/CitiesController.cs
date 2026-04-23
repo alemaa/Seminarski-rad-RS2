@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CafeEase.WebAPI.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class CitiesController : BaseCRUDController<Model.City, BaseSearchObject, CityUpsertRequest, CityUpsertRequest>
