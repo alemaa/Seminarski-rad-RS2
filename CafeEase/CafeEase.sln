@@ -13,7 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CafeEase.Subscriber", "Cafe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F327B4A5-0316-49C5-8406-97B34984FB49}"
 	ProjectSection(SolutionItems) = preProject
-		.env-example = .env-example
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
