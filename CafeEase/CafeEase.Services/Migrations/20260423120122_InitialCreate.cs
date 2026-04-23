@@ -468,7 +468,7 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "Address", "CityId", "IsActive", "Latitude", "Longitude", "Name", "PhoneNumber", "WorkingHours" },
                 values: new object[,]
                 {
-                    { 1, "Titova 12", 1, true, 43.856299999999997, 18.4131, "CafeEase Centar", "+38761111222", "08:00 - 23:00" },
+                    { 1, "Bulevar Mese Selimovica 27", 1, true, 43.856299999999997, 18.4131, "CafeEase CVila", "+38761111222", "08:00 - 23:00" },
                     { 2, "Bravadziluk 8", 1, true, 43.859499999999997, 18.433499999999999, "CafeEase Bascarsija", "+38761111333", "08:00 - 22:00" },
                     { 3, "Vrbanja 1", 1, true, 43.854900000000001, 18.403300000000002, "CafeEase SCC", "+38761111444", "09:00 - 23:00" },
                     { 4, "Mostarskog bataljona 21", 2, true, 43.343800000000002, 17.8078, "CafeEase Mostar", "+38761111555", "08:00 - 23:00" },
@@ -547,10 +547,10 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "NumberOfGuests", "ReservationDateTime", "Status", "TableId", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 2, new DateTime(2026, 4, 23, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
-                    { 2, 2, new DateTime(2026, 4, 24, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
-                    { 3, 4, new DateTime(2026, 4, 25, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
-                    { 4, 4, new DateTime(2026, 4, 26, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
+                    { 1, 2, new DateTime(2026, 4, 24, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
+                    { 2, 2, new DateTime(2026, 4, 25, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
+                    { 3, 4, new DateTime(2026, 4, 26, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
+                    { 4, 4, new DateTime(2026, 4, 27, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
                 });
 
             migrationBuilder.InsertData(

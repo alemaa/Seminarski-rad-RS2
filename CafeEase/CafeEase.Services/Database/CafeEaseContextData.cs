@@ -29,8 +29,8 @@ namespace CafeEase.Services.Database
             new Cafe
             {
                 Id = 1,
-                Name = "CafeEase Centar",
-                Address = "Titova 12",
+                Name = "CafeEase CVila",
+                Address = "Bulevar Mese Selimovica 27",
                 CityId = 1,
                 Latitude = 43.8563,
                 Longitude = 18.4131,
@@ -333,7 +333,7 @@ namespace CafeEase.Services.Database
                     Id = 1,
                     UserId = 2,
                     TableId = 1,
-                    ReservationDateTime = new DateTime(2026, 4, 23, 19, 0, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 24, 19, 0, 0),
                     NumberOfGuests = 2,
                     Status = "Confirmed"
                 },
@@ -342,7 +342,7 @@ namespace CafeEase.Services.Database
                     Id = 2,
                     UserId = 2,
                     TableId = 2,
-                    ReservationDateTime = new DateTime(2026, 4, 24, 20, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 25, 20, 30, 0),
                     NumberOfGuests = 2,
                     Status = "Pending"
                 },
@@ -351,7 +351,7 @@ namespace CafeEase.Services.Database
                     Id = 3,
                     UserId = 2,
                     TableId = 3,
-                    ReservationDateTime = new DateTime(2026, 4, 25, 18, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 26, 18, 30, 0),
                     NumberOfGuests = 4,
                     Status = "Cancelled"
                 },
@@ -360,7 +360,7 @@ namespace CafeEase.Services.Database
                     Id = 4,
                     UserId = 3,
                     TableId = 3,
-                    ReservationDateTime = new DateTime(2026, 4, 26, 21, 0, 0),
+                    ReservationDateTime = new DateTime(2026, 4, 27, 21, 0, 0),
                     NumberOfGuests = 4,
                     Status = "Confirmed"
                 }

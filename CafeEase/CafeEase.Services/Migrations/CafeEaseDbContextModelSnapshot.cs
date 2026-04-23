@@ -66,12 +66,12 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 1,
-                            Address = "Titova 12",
+                            Address = "Bulevar Mese Selimovica 27",
                             CityId = 1,
                             IsActive = true,
                             Latitude = 43.856299999999997,
                             Longitude = 18.4131,
-                            Name = "CafeEase Centar",
+                            Name = "CafeEase CVila",
                             PhoneNumber = "+38761111222",
                             WorkingHours = "08:00 - 23:00"
                         },
@@ -806,7 +806,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 1,
                             NumberOfGuests = 2,
-                            ReservationDateTime = new DateTime(2026, 4, 23, 19, 0, 0, 0, DateTimeKind.Unspecified),
+                            ReservationDateTime = new DateTime(2026, 4, 24, 19, 0, 0, 0, DateTimeKind.Unspecified),
                             Status = "Confirmed",
                             TableId = 1,
                             UserId = 2
@@ -815,7 +815,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 2,
                             NumberOfGuests = 2,
-                            ReservationDateTime = new DateTime(2026, 4, 24, 20, 30, 0, 0, DateTimeKind.Unspecified),
+                            ReservationDateTime = new DateTime(2026, 4, 25, 20, 30, 0, 0, DateTimeKind.Unspecified),
                             Status = "Pending",
                             TableId = 2,
                             UserId = 2
@@ -824,7 +824,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 3,
                             NumberOfGuests = 4,
-                            ReservationDateTime = new DateTime(2026, 4, 25, 18, 30, 0, 0, DateTimeKind.Unspecified),
+                            ReservationDateTime = new DateTime(2026, 4, 26, 18, 30, 0, 0, DateTimeKind.Unspecified),
                             Status = "Cancelled",
                             TableId = 3,
                             UserId = 2
@@ -833,7 +833,7 @@ namespace CafeEase.Services.Migrations
                         {
                             Id = 4,
                             NumberOfGuests = 4,
-                            ReservationDateTime = new DateTime(2026, 4, 26, 21, 0, 0, 0, DateTimeKind.Unspecified),
+                            ReservationDateTime = new DateTime(2026, 4, 27, 21, 0, 0, 0, DateTimeKind.Unspecified),
                             Status = "Confirmed",
                             TableId = 3,
                             UserId = 3
