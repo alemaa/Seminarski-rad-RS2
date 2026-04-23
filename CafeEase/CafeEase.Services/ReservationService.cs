@@ -68,8 +68,8 @@ namespace CafeEase.Services
             {
                 throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
-            
-            entity.Status = "Pending";
+
+            entity.Status = string.IsNullOrWhiteSpace(insert.Status) ? "Pending" : insert.Status;
         }
 
         public override IQueryable<Database.Reservation> AddFilter(IQueryable<Database.Reservation> query, ReservationSearchObject? search = null)

@@ -11,5 +11,6 @@ namespace CafeEase.Model.Requests
         public int TableId { get; set; }
         public DateTime ReservationDateTime { get; set; }
         public int NumberOfGuests { get; set; }
+        public string? Status { get; set; }
     }
 }
