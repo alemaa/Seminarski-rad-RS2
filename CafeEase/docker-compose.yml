@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=QWUadc176!
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=Developer
     ports:
       - "1401:1433"
@@ -35,7 +35,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5003
-      - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=190046;User=sa;Password=QWUadc176!;TrustServerCertificate=True;ConnectRetryCount=0
+      - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=${DB_NAME};User=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;ConnectRetryCount=0
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USERNAME=guest
       - RABBITMQ_PASSWORD=guest
@@ -62,7 +62,7 @@ services:
       - RABBITMQ_PASSWORD=guest
       - RABBITMQ_VIRTUALHOST=/
       - RABBITMQ_QUEUE=payment_completed
-      - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=190046;User=sa;Password=QWUadc176!;TrustServerCertificate=True;ConnectRetryCount=0
+      - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=${DB_NAME};User=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;ConnectRetryCount=0
 
       - SMTP_ENABLED=false
       - SMTP_HOST=smtp.example.com
