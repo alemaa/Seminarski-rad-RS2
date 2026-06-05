@@ -3,6 +3,8 @@ import 'base_provider.dart';
 import '../utils/util.dart';
 import '../models/user_insert_request.dart';
 import '../models/user_update_request.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class UserProvider extends BaseProvider<User> {
   UserProvider() : super("api/Users");
@@ -22,8 +24,18 @@ class UserProvider extends BaseProvider<User> {
   }
 
   Future<User> createUser(UserInsertRequest request) async {
-    final response = await insert(request.toJson());
-    return response;
+    final uri = Uri.parse('${BaseProvider.baseUrl}api/Users/register');
+
+    final response = await http.post(
+      uri,
+      headers: createHeaders(),
+      body: jsonEncode(request.toJson()),
+    );
+
+    isValidResponse(response);
+
+    final data = jsonDecode(utf8.decode(response.bodyBytes));
+    return fromJson(data);
   }
 
   Future<void> deleteUser(int id) async {

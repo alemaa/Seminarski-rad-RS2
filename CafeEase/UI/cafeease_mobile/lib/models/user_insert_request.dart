@@ -10,7 +10,6 @@ class UserInsertRequest {
   String? username;
   String? password;
   String? passwordConfirmation;
-  int? roleId;
   int? cityId;
 
   UserInsertRequest({
@@ -20,7 +19,6 @@ class UserInsertRequest {
     this.username,
     this.password,
     this.passwordConfirmation,
-    this.roleId,
     this.cityId
   });
 

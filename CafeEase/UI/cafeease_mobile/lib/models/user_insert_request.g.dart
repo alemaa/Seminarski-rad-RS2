@@ -14,7 +14,6 @@ UserInsertRequest _$UserInsertRequestFromJson(Map<String, dynamic> json) =>
       username: json['username'] as String?,
       password: json['password'] as String?,
       passwordConfirmation: json['passwordConfirmation'] as String?,
-      roleId: (json['roleId'] as num?)?.toInt(),
       cityId: (json['cityId'] as num?)?.toInt(),
     );
 
@@ -26,6 +25,5 @@ Map<String, dynamic> _$UserInsertRequestToJson(UserInsertRequest instance) =>
       'username': instance.username,
       'password': instance.password,
       'passwordConfirmation': instance.passwordConfirmation,
-      'roleId': instance.roleId,
       'cityId': instance.cityId,
     };

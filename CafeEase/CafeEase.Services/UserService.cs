@@ -131,5 +131,37 @@ namespace CafeEase.Services
 
             return _mapper.Map<Model.User>(entity);
         }
+
+        public async Task<Model.User> Register(RegisterRequest request)
+        {
+            var entity = _mapper.Map<Database.User>(request);
+
+            entity.RoleId = 2;
+
+            await BeforeRegister(entity, request);
+
+            _context.Users.Add(entity);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.User>(entity);
+        }
+
+        private async Task BeforeRegister(Database.User entity, RegisterRequest request)
+        {
+            var cityExists = await _context.Cities.AnyAsync(c => c.Id == request.CityId);
+            if (!cityExists)
+                throw new UserException("Selected city does not exist");
+
+            var usernameTaken = await _context.Users.AnyAsync(u => u.Username == request.Username);
+            if (usernameTaken)
+                throw new UserException("Username is already taken");
+
+            var emailTaken = await _context.Users.AnyAsync(u => u.Email == request.Email);
+            if (emailTaken)
+                throw new UserException("Email is already taken");
+
+            entity.PasswordSalt = GenerateSalt();
+            entity.PasswordHash = GenerateHash(entity.PasswordSalt, request.Password);
+        }
     }
 }

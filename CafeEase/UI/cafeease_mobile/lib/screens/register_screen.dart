@@ -118,7 +118,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         cityId: _selectedCityId!,
         password: _password.text,
         passwordConfirmation: _password2.text,
-        roleId: 2,
       );
 
       final User created = await userProvider.createUser(req);

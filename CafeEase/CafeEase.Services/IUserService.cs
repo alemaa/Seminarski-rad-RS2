@@ -9,5 +9,6 @@ namespace CafeEase.Services
         : ICRUDService<Model.User, Model.SearchObjects.UserSearchObject, Model.Requests.UserInsertRequest, Model.Requests.UserUpdateRequest>
     {
         public Task<Model.User> Login(string username, string password);
+        Task<Model.User> Register(Model.Requests.RegisterRequest request);
     }
 }

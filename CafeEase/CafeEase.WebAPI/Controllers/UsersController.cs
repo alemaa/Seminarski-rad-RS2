@@ -7,15 +7,17 @@ namespace CafeEase.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : BaseCRUDController<Model.User, Model.SearchObjects.UserSearchObject, Model.Requests.UserInsertRequest, Model.Requests.UserUpdateRequest>
     {
         public UsersController(ILogger<BaseController<Model.User, Model.SearchObjects.UserSearchObject>> logger, IUserService service) : base(logger, service)
         {
         }
         [AllowAnonymous]
-        public override Task<Model.User> Insert([FromBody] UserInsertRequest insert)
+        [HttpPost("register")]
+        public Task<Model.User> Register([FromBody] RegisterRequest request)
         {
-            return base.Insert(insert);
+            return ((IUserService)_service).Register(request);
         }
     }
 }
