@@ -8,9 +8,6 @@ import '../utils/app_session.dart';
 import '../widgets/select_table_dialog.dart';
 import '../providers/loyalty_points_provider.dart';
 import '../utils/util.dart';
-import '../models/promotion.dart';
-import '../utils/segment_utils.dart';
-import '../providers/promotion_provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 
 enum PayType { cash, inApp }
@@ -34,16 +31,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _cvvCtrl = TextEditingController();
 
   bool _submitting = false;
-  bool _loadingPromos = true;
-  List<Promotion> _promos = [];
-  int _points = 0;
-  String _segment = "ALL";
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadLoyalty());
-    _loadPromotionsForUser();
   }
 
   @override
@@ -55,43 +47,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
     super.dispose();
   }
 
-  Future<void> _loadPromotionsForUser() async {
-    final promoProvider = context.read<PromotionProvider>();
-    final loyaltyProvider = context.read<LoyaltyPointsProvider>();
+  Future<bool> _confirmSend(Map<String, dynamic> preview) async {
+    final subtotal = (preview["subtotal"] as num?)?.toDouble() ?? 0;
+    final discountAmount = (preview["discountAmount"] as num?)?.toDouble() ?? 0;
+    final totalAmount =
+        (preview["totalAmount"] as num?)?.toDouble() ?? subtotal;
 
-    setState(() => _loadingPromos = true);
-
-    try {
-      final loyaltyRes = await loyaltyProvider.get(
-        filter: {"UserId": Authorization.userId},
-      );
-      _points =
-          loyaltyRes.result.isNotEmpty ? loyaltyRes.result.first.points : 0;
-
-      _segment = getUserSegment(_points);
-
-      final promoRes = await promoProvider.get(filter: {
-        "activeOnly": true,
-        "segment": _segment,
-      });
-
-      if (!mounted) return;
-      setState(() {
-        _promos = promoRes.result;
-        _loadingPromos = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _loadingPromos = false);
-    }
-  }
-
-  Future<bool> _confirmSend() async {
     final res = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Confirm order"),
-        content: const Text("Proceed to payment?"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Subtotal: ${subtotal.toStringAsFixed(2)} KM"),
+            Text("Discount: -${discountAmount.toStringAsFixed(2)} KM"),
+            const SizedBox(height: 8),
+            Text(
+              "Total: ${totalAmount.toStringAsFixed(2)} KM",
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -143,26 +121,42 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (AppSession.tableId == null) return;
     }
 
-    final confirmed = await _confirmSend();
+    final items = cartProvider.items.map((e) {
+      return OrderItemRequest(
+          productId: e.product.id!,
+          quantity: e.count,
+          size: e.size,
+          milkType: e.milkType,
+          sugarLevel: e.sugarLevel,
+          note: e.note);
+    }).toList();
+
+    final orderReq = OrderRequest(
+      tableId: AppSession.tableId!,
+      items: items,
+    );
+
+    Map<String, dynamic> preview;
+
+    try {
+      setState(() => _submitting = true);
+      preview = await orderProvider.previewTotal(orderReq);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to calculate total: $e")),
+      );
+      return;
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+
+    final confirmed = await _confirmSend(preview);
     if (!confirmed) return;
 
     setState(() => _submitting = true);
 
     try {
-      final items = cartProvider.items.map((e) {
-        return OrderItemRequest(
-            productId: e.product.id!,
-            quantity: e.count,
-            size: e.size,
-            milkType: e.milkType,
-            sugarLevel: e.sugarLevel,
-            note: e.note);
-      }).toList();
-
-      final orderReq = OrderRequest(
-        tableId: AppSession.tableId!,
-        items: items,
-      );
       final createdOrder = await orderProvider.createOrder(orderReq);
       if (_payType == PayType.cash) {
         await orderProvider.update(
@@ -256,16 +250,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
-  }
-
-  double _bestDiscountPercent(List<Promotion> promos) {
-    if (promos.isEmpty) return 0;
-    double best = 0;
-    for (final p in promos) {
-      final d = p.discountPercent ?? 0;
-      if (d > best) best = d;
-    }
-    return best;
   }
 
   @override
@@ -369,10 +353,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _summaryCard(double subtotal) {
-    final best = _bestDiscountPercent(_promos);
-    final discountAmount = subtotal * (best / 100.0);
-    final finalTotal = subtotal - discountAmount;
-
     return Card(
       color: Colors.brown.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -390,26 +370,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Text("Table: ${AppSession.tableId ?? '-'}",
                 style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
-            if (_loadingPromos)
-              const Text("Checking promotions...")
-            else if (best > 0)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("🎉 Discount: ${best.toStringAsFixed(0)}%",
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  Text("-${discountAmount.toStringAsFixed(2)} KM",
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 6),
-                  Text("Total: ${finalTotal.toStringAsFixed(2)} KM",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w900)),
-                ],
-              )
-            else
-              Text("Total: ${subtotal.toStringAsFixed(2)} KM",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w900)),
+            const Text(
+              "Active discounts are applied during checkout.",
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),

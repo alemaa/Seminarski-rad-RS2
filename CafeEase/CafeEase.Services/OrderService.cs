@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using CafeEase.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.Collections.Generic;
+using CafeEase.Model.Responses;
+
 namespace CafeEase.Services
 {
     public class OrderService : BaseCRUDService<Model.Order, Database.Order, OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
@@ -72,7 +75,7 @@ namespace CafeEase.Services
             entity.TableId = insert.TableId;
 
             entity.OrderDate = DateTime.Now;
-            entity.TotalAmount = total;
+            entity.TotalAmount = await ApplyPromotionDiscount(total, entity.OrderItems.ToList(), dbUser.Id);
             entity.Status = "Pending";
         }
         public override async Task<Model.Order> Update(int id, OrderUpdateRequest update)
@@ -155,6 +158,107 @@ namespace CafeEase.Services
             }
 
             return base.AddFilter(query, search);
+        }
+
+        private static string GetUserSegment(int points)
+        {
+            if (points >= 50) return "VIP";
+            if (points >= 20) return "NEW";
+            return "ALL";
+        }
+
+        private async Task<decimal> ApplyPromotionDiscount(decimal subtotal, List<Database.OrderItem> items, int userId)
+        {
+            var points = await _context.LoyaltyPoints
+                .Where(x => x.UserId == userId)
+                .Select(x => (int?)x.Points)
+                .FirstOrDefaultAsync() ?? 0;
+
+            var segment = GetUserSegment(points);
+            var now = DateTime.Now;
+
+            var promotions = await _context.Promotions
+                .Include(p => p.PromotionCategories)
+                .Where(p =>
+                    p.StartDate <= now &&
+                    p.EndDate >= now &&
+                    (p.TargetSegment == "ALL" || p.TargetSegment == segment))
+                .ToListAsync();
+
+            if (!promotions.Any())
+                return subtotal;
+
+            decimal discountedTotal = 0;
+
+            foreach (var item in items)
+            {
+                var product = await _context.Products.AsNoTracking()
+                    .FirstAsync(p => p.Id == item.ProductId);
+
+                var lineTotal = item.Price * item.Quantity;
+
+                var bestDiscount = promotions
+                    .Where(p => p.PromotionCategories.Any(pc => pc.CategoryId == product.CategoryId))
+                    .Select(p => (decimal)p.DiscountPercent)
+                    .DefaultIfEmpty(0)
+                    .Max();
+
+                discountedTotal += lineTotal - (lineTotal * bestDiscount / 100m);
+            }
+
+            return Math.Round(discountedTotal, 2);
+        }
+
+        public async Task<OrderTotalPreviewResponse> PreviewTotal(OrderInsertRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user == null || user.Identity?.IsAuthenticated != true)
+                throw new UserException("User not authenticated");
+
+            var username = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst(ClaimTypes.Name)?.Value;
+
+            var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (dbUser == null)
+                throw new UserException("User not found");
+
+            decimal subtotal = 0;
+            var orderItems = new List<Database.OrderItem>();
+
+            if (request.Items != null)
+            {
+                foreach (var item in request.Items)
+                {
+                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
+
+                    if (product == null)
+                        throw new UserException("Product not found");
+
+                    subtotal += product.Price * item.Quantity;
+
+                    orderItems.Add(new Database.OrderItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        Price = product.Price,
+                        Size = item.Size,
+                        MilkType = item.MilkType,
+                        SugarLevel = item.SugarLevel,
+                        Note = item.Note
+                    });
+                }
+            }
+
+            var total = await ApplyPromotionDiscount(subtotal, orderItems, dbUser.Id);
+
+            return new OrderTotalPreviewResponse
+            {
+                Subtotal = subtotal,
+                DiscountAmount = subtotal - total,
+                TotalAmount = total
+            };
         }
     }
 }
