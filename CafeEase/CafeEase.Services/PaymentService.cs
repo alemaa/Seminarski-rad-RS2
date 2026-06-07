@@ -30,22 +30,39 @@ namespace CafeEase.Services
             entity.Status = "Pending";
         }
 
-        public async Task FinalizePaidOrderAsync(int orderId)
+        public async Task FinalizePaidOrderAsync(int paymentId)
         {
-            var order = await _context.Orders.Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (order == null) throw new UserException("Order not found");
-            if (order.Status == "Paid") return;
+            var payment = await _context.Payments
+                .Include(p => p.Order)
+                    .ThenInclude(o => o.OrderItems)
+                .FirstOrDefaultAsync(p => p.Id == paymentId);
 
-            order.Status = "Paid";
-       
-            if (order == null)
+            if (payment == null)
+                throw new UserException("Payment not found");
+
+            if (payment.Status == "Completed")
             {
+                await transaction.CommitAsync();
+                return;
+            }
+
+            if (payment.Order == null)
                 throw new UserException("Order not found");
+
+            var order = payment.Order;
+
+            if (order.Status == "Paid")
+            {
+                payment.Status = "Completed";
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return;
             }
 
             order.Status = "Paid";
+            payment.Status = "Completed";
 
             var requested = order.OrderItems
                 .GroupBy(x => x.ProductId)
@@ -101,6 +118,14 @@ namespace CafeEase.Services
                 loyalty.LastUpdated = DateTime.Now;
             }
 
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            await PublishPaymentCompletedAsync(order.Id, order.UserId, order.TotalAmount);
+        }
+
+        private async Task PublishPaymentCompletedAsync(int orderId, int userId, decimal amount)
+        {
             try
             {
                 var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
@@ -130,8 +155,8 @@ namespace CafeEase.Services
                     JsonSerializer.Serialize(new PaymentCompleted
                     {
                         OrderId = orderId,
-                        UserId = order.UserId,
-                        Amount = order.TotalAmount
+                        UserId = userId,
+                        Amount = amount
                     })
                 );
 
@@ -141,13 +166,10 @@ namespace CafeEase.Services
                     mandatory: false,
                     body: body);
             }
-
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Rabbit publish failed, continuing without message.");
             }
-
-            await _context.SaveChangesAsync();
         }
 
         public override async Task<Model.Payment> Insert(PaymentInsertRequest insert)

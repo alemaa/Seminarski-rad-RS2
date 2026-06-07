@@ -108,10 +108,7 @@ namespace CafeEase.WebAPI.Controllers
             if (!ok)
                 return BadRequest("Payment not successful");
 
-            await _paymentService.FinalizePaidOrderAsync(payment.OrderId);
-
-            payment.Status = "Completed";
-            await _context.SaveChangesAsync();
+            await _paymentService.FinalizePaidOrderAsync(payment.Id);
 
             return Ok();
         }
