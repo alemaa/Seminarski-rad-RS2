@@ -90,29 +90,7 @@ namespace CafeEase.Services
             if (!allowedStatuses.Contains(update.Status))
                 throw new UserException("Invalid order status");
 
-            var oldStatus = entity.Status;
-
             entity.Status = update.Status;
-
-            if (oldStatus == "Pending" && (update.Status == "Confirmed" || update.Status == "Paid"))
-            {
-                foreach (var item in entity.OrderItems)
-                {
-                    var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
-
-                    if (inventory == null)
-                        throw new UserException(
-                            $"Inventory not found for product {item.ProductId}"
-                        );
-
-                    if (inventory.Quantity < item.Quantity)
-                        throw new UserException(
-                            $"Not enough stock for product {item.ProductId}"
-                        );
-
-                    inventory.Quantity -= item.Quantity;
-                }
-            }
 
             await _context.SaveChangesAsync();
 
