@@ -3,11 +3,13 @@ using CafeEase.Model.SearchObjects;
 using CafeEase.Services;
 using CafeEase.WebAPI.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CafeEase.WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class RecommendationsController : ControllerBase
 {
     private readonly IRecommendationService _service;
@@ -18,6 +20,7 @@ public class RecommendationsController : ControllerBase
         _service = service;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("train")]
     public async Task<IActionResult> Train()
     {
@@ -32,6 +35,7 @@ public class RecommendationsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("clear")]
     public async Task<IActionResult> Clear()
     {
