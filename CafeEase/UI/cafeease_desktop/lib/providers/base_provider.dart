@@ -200,6 +200,16 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return headers;
   }
 
+  static Map<String, String> createAuthHeaders() {
+    String username = Authorization.username ?? '';
+    String password = Authorization.password ?? '';
+
+    String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+
+    return {'Authorization': basicAuth};
+  }
+
   String getQueryString(
     Map params, {
     String prefix = '&',

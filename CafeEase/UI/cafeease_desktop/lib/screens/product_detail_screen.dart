@@ -63,6 +63,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       final uri = Uri.parse('${BaseProvider.baseUrl}api/Uploads/image');
 
       final request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(BaseProvider.createAuthHeaders());
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
       final response = await request.send();
