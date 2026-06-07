@@ -192,5 +192,23 @@ namespace CafeEase.Services
 
             return base.AddFilter(query, search);
         }
+
+        public async Task ConfirmCashPaymentAsync(int paymentId)
+        {
+            var payment = await _context.Payments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == paymentId);
+
+            if (payment == null)
+                throw new UserException("Payment not found");
+
+            if (payment.Method != "Cash")
+                throw new UserException("Only cash payments can be confirmed here.");
+
+            if (payment.Status == "Completed")
+                return;
+
+            await FinalizePaidOrderAsync(payment.Id);
+        }
     }
 }

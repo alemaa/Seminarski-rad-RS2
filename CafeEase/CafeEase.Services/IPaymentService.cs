@@ -11,5 +11,6 @@ namespace CafeEase.Services
     public interface IPaymentService : ICRUDService<Model.Payment, PaymentSearchObject, PaymentInsertRequest, PaymentUpdateRequest>
     {
         Task FinalizePaidOrderAsync(int paymentId);
+        Task ConfirmCashPaymentAsync(int paymentId);
     }
 }

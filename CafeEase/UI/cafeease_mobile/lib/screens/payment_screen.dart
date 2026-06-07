@@ -9,6 +9,7 @@ import '../widgets/select_table_dialog.dart';
 import '../providers/loyalty_points_provider.dart';
 import '../utils/util.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import '../models/payment_insert_request.dart';
 
 enum PayType { cash, inApp }
 
@@ -159,11 +160,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       final createdOrder = await orderProvider.createOrder(orderReq);
       if (_payType == PayType.cash) {
-        await orderProvider.update(
-          createdOrder.id!,
-          {
-            "status": "Confirmed",
-          },
+        await paymentProvider.createPayment(
+          PaymentInsertRequest(
+            orderId: createdOrder.id!,
+            method: "Cash",
+          ),
         );
       }
       if (_payType == PayType.inApp) {
