@@ -12,6 +12,7 @@ import 'order_list_screen.dart';
 import 'product_list_screen.dart';
 import 'reports_menu_screen.dart';
 import 'reservation_list_screen.dart';
+import 'city_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -86,7 +87,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 _StatCard(
                   title: 'Modules',
-                  value: '11',
+                  value: '12',
                   icon: Icons.dashboard_customize,
                 ),
                 SizedBox(width: 16),
@@ -166,6 +167,11 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.location_on,
                     title: 'Cafes',
                     onTap: () => _openScreen(context, const CafeListScreen()),
+                  ),
+                  _HoverCard(
+                    icon: Icons.location_city,
+                    title: 'Cities',
+                    onTap: () => _openScreen(context, const CityListScreen()),
                   ),
                 ],
               ),
