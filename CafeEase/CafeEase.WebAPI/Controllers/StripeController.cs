@@ -36,6 +36,20 @@ namespace CafeEase.WebAPI.Controllers
             if (!CanAccessOrder(currentUser, order))
                 return Forbid();
 
+            var existingPayment = await _context.Payments
+                .AsNoTracking()
+                .Where(p => p.OrderId == order.Id && (p.Status == "Pending" || p.Status == "Completed"))
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            if (existingPayment != null)
+            {
+                if (existingPayment.Status == "Completed")
+                    return BadRequest("This order has already been paid.");
+
+                return BadRequest("Payment is already in progress for this order.");
+            }
+
             var amount = Convert.ToDecimal(order.TotalAmount);
 
             var intent = await _stripe.CreatePaymentIntentAsync(
