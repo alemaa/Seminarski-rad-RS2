@@ -19,5 +19,26 @@ namespace CafeEase.WebAPI.Controllers
         {
             return ((IUserService)_service).Register(request);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public override async Task<Model.User> Insert([FromBody] UserInsertRequest insert)
+        {
+            return await base.Insert(insert);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public override async Task<Model.User> Update(int id, [FromBody] UserUpdateRequest update)
+        {
+            return await base.Update(id, update);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public override async Task<Model.User> Delete(int id)
+        {
+            return await base.Delete(id);
+        }
     }
 }
