@@ -53,7 +53,7 @@ namespace CafeEase.Services
 
             var order = payment.Order;
 
-            if (order.Status == "Paid")
+            if (order.Status == OrderStatuses.Paid)
             {
                 payment.Status = "Completed";
                 await _context.SaveChangesAsync();
@@ -61,7 +61,7 @@ namespace CafeEase.Services
                 return;
             }
 
-            order.Status = "Paid";
+            order.Status = OrderStatuses.Paid;
             payment.Status = "Completed";
 
             var requested = order.OrderItems

@@ -84,7 +84,7 @@ namespace CafeEase.Services
 
             entity.OrderDate = DateTime.Now;
             entity.TotalAmount = await ApplyPromotionDiscount(total, entity.OrderItems.ToList(), dbUser.Id);
-            entity.Status = "Pending";
+            entity.Status = OrderStatuses.Pending;
         }
         public override async Task<Model.Order> Update(int id, OrderUpdateRequest update)
         {
@@ -93,12 +93,21 @@ namespace CafeEase.Services
             if (entity == null)
                 throw new UserException("Order not found");
 
-            var allowedStatuses = new[] { "Pending", "Confirmed", "Cancelled", "Paid" };
+            if (string.IsNullOrWhiteSpace(update.Status))
+                throw new UserException("Order status is required.");
 
-            if (!allowedStatuses.Contains(update.Status))
-                throw new UserException("Invalid order status");
+            var newStatus = update.Status;
 
-            entity.Status = update.Status;
+            if (!OrderStatuses.All.Contains(newStatus))
+                throw new UserException("Invalid order status.");
+
+            if (!OrderStatuses.AllowedTransitions.TryGetValue(entity.Status, out var allowedNextStatuses) ||
+                !allowedNextStatuses.Contains(newStatus))
+            {
+                throw new UserException($"Order status cannot change from {entity.Status} to {newStatus}.");
+            }
+
+            entity.Status = newStatus;
 
             await _context.SaveChangesAsync();
 

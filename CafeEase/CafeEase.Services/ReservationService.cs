@@ -51,7 +51,7 @@ namespace CafeEase.Services
             var alreadyReservedThatDay = await _context.Reservations.AnyAsync(r =>
             r.TableId == insert.TableId &&
             r.ReservationDateTime.Date == date &&
-            r.Status != "Cancelled");
+            r.Status != ReservationStatuses.Cancelled);
 
 
             if (alreadyReservedThatDay)
@@ -69,7 +69,7 @@ namespace CafeEase.Services
                 throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
 
-            entity.Status = string.IsNullOrWhiteSpace(insert.Status) ? "Pending" : insert.Status;
+            entity.Status = ReservationStatuses.Pending;
         }
 
         public override IQueryable<Database.Reservation> AddFilter(IQueryable<Database.Reservation> query, ReservationSearchObject? search = null)
@@ -128,7 +128,7 @@ namespace CafeEase.Services
                     r.Id != id &&
                     r.TableId == targetTableId &&
                     r.ReservationDateTime.Date == targetDate &&
-                    r.Status != "Cancelled");
+                    r.Status != ReservationStatuses.Cancelled);
 
                 if (alreadyReservedThatDay)
                     throw new UserException("Selected table is already reserved for that day.");
@@ -138,12 +138,29 @@ namespace CafeEase.Services
 
             var oldTableId = entity.TableId;
 
+            if (!string.IsNullOrWhiteSpace(update.Status))
+            {
+                var newStatus = update.Status;
+
+                if (!ReservationStatuses.All.Contains(newStatus))
+                    throw new UserException("Invalid reservation status.");
+
+                if (!ReservationStatuses.AllowedTransitions.TryGetValue(oldStatus, out var allowedNextStatuses) ||
+                    !allowedNextStatuses.Contains(newStatus))
+                {
+                    throw new UserException($"Reservation status cannot change from {oldStatus} to {newStatus}.");
+                }
+            }
+
             _mapper.Map(update, entity);
+
+            if (string.IsNullOrWhiteSpace(update.Status))
+                entity.Status = oldStatus;
 
             if (update.TableId == null)
                 entity.TableId = oldTableId;
 
-            if (oldStatus != "Cancelled" && entity.Status == "Cancelled")
+            if (oldStatus != ReservationStatuses.Cancelled && entity.Status == ReservationStatuses.Cancelled)
             {
                 if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
                 {
@@ -151,12 +168,12 @@ namespace CafeEase.Services
                         r.Id != id &&
                         r.TableId == table.Id &&
                         r.ReservationDateTime.Date == DateTime.Today &&
-                        r.Status != "Cancelled");
+                        r.Status != ReservationStatuses.Cancelled);
 
                     table.IsOccupied = anyOtherToday;
                 }
             }
-            else if (oldStatus == "Cancelled" && (entity.Status == "Pending" || entity.Status == "Confirmed"))
+            else if (oldStatus == ReservationStatuses.Cancelled && (entity.Status == ReservationStatuses.Pending || entity.Status == ReservationStatuses.Confirmed))
             {
                 if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
                     table.IsOccupied = true;
