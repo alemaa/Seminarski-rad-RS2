@@ -309,7 +309,11 @@ namespace CafeEase.Services.Migrations
                     TableId = table.Column<int>(type: "int", nullable: false),
                     ReservationDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     NumberOfGuests = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CancelledByUserId = table.Column<int>(type: "int", nullable: true),
+                    CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DurationMinutes = table.Column<int>(type: "int", nullable: false, defaultValue: 120)
                 },
                 constraints: table =>
                 {
@@ -320,6 +324,11 @@ namespace CafeEase.Services.Migrations
                         principalTable: "Tables",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reservations_Users_CancelledByUserId",
+                        column: x => x.CancelledByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Reservations_Users_UserId",
                         column: x => x.UserId,
@@ -503,9 +512,9 @@ namespace CafeEase.Services.Migrations
                 columns: new[] { "Id", "CityId", "Email", "FirstName", "LastName", "PasswordHash", "PasswordSalt", "RoleId", "Username" },
                 values: new object[,]
                 {
-                    { 1, 1, "admin@cafeease.com", "Admin", "Admin", "L0uD9aDjQiZ6US9mT63C+tMvcSk=", "js30TX4cHnStZnZM8pWbcg==", 1, "desktop" },
-                    { 2, 2, "mobileuser@cafeease.com", "Mobile", "User", "w6NEGcaz3XwZej0uJcY1mJIWrAI=", "tNcmHa/vi33ilAmQImsPhg==", 2, "mobile" },
-                    { 3, 3, "test@cafeease.com", "Test", "User", "dlKlLumk23Dx2D3OgAiBbZsFmfo=", "ym5obohaOyqCOlyuhaGxGQ==", 2, "test" }
+                    { 1, 1, "admin@cafeease.com", "Admin", "Admin", "AQAAAAIAAYagAAAAEJT1QtIOmY1aSrSwIeWaINwZzjn35RyS0GQbD9qC0wVUK8FZiEzuclDXQqhHo+CoRA==", "", 1, "desktop" },
+                    { 2, 2, "mobileuser@cafeease.com", "Mobile", "User", "AQAAAAIAAYagAAAAED4pxuRPbplT7PbLPoZ64hDSBPBs4UdgfwxXh3F6hANY//m5HJF6GcGfa49iJS3l8Q==", "", 2, "mobile" },
+                    { 3, 3, "test@cafeease.com", "Test", "User", "AQAAAAIAAYagAAAAEBghbkX6f6PUzBg70Wf3y+LblqevZHipEpDtQ1e4wM9v8fERtivurUjnQVpzGXmi8w==", "", 2, "test" }
                 });
 
             migrationBuilder.InsertData(
@@ -544,13 +553,13 @@ namespace CafeEase.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "Reservations",
-                columns: new[] { "Id", "NumberOfGuests", "ReservationDateTime", "Status", "TableId", "UserId" },
+                columns: new[] { "Id", "CancellationReason", "CancelledAt", "CancelledByUserId", "DurationMinutes", "NumberOfGuests", "ReservationDateTime", "Status", "TableId", "UserId" },
                 values: new object[,]
                 {
-                    { 1, 2, new DateTime(2026, 4, 24, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
-                    { 2, 2, new DateTime(2026, 4, 25, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
-                    { 3, 4, new DateTime(2026, 4, 26, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
-                    { 4, 4, new DateTime(2026, 4, 27, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
+                    { 1, null, null, null, 120, 2, new DateTime(2026, 4, 24, 19, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 1, 2 },
+                    { 2, null, null, null, 120, 2, new DateTime(2026, 4, 25, 20, 30, 0, 0, DateTimeKind.Unspecified), "Pending", 2, 2 },
+                    { 3, null, null, null, 120, 4, new DateTime(2026, 4, 26, 18, 30, 0, 0, DateTimeKind.Unspecified), "Cancelled", 3, 2 },
+                    { 4, null, null, null, 120, 4, new DateTime(2026, 4, 27, 21, 0, 0, 0, DateTimeKind.Unspecified), "Confirmed", 3, 3 }
                 });
 
             migrationBuilder.InsertData(
@@ -643,6 +652,11 @@ namespace CafeEase.Services.Migrations
                 name: "IX_PromotionCategories_CategoryId",
                 table: "PromotionCategories",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservations_CancelledByUserId",
+                table: "Reservations",
+                column: "CancelledByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_TableId",

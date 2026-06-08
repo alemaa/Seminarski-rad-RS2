@@ -15,6 +15,7 @@ class Reservation {
   String? userEmail;
   DateTime? cancelledAt;
   String? cancellationReason;
+  int? durationMinutes;
 
   Reservation({
     this.id,
@@ -27,7 +28,8 @@ class Reservation {
     required this.userFullName,
     required this.userEmail,
     this.cancelledAt,
-    this.cancellationReason
+    this.cancellationReason,
+    this.durationMinutes,
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>

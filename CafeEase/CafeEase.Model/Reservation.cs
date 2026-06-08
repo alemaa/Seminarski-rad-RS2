@@ -20,5 +20,6 @@ namespace CafeEase.Model
         public DateTime? CancelledAt { get; set; }
         public int? CancelledByUserId { get; set; }
         public string? CancellationReason { get; set; }
+        public int DurationMinutes { get; set; }
     }
 }

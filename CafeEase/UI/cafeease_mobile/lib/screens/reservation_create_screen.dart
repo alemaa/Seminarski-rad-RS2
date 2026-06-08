@@ -27,6 +27,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
   List<m.Table> _tables = [];
   Set<int> _occupiedTableIds = {};
 
+  static const int _durationMinutes = 120;
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +57,23 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
     );
+
     if (date == null) return;
 
-    final selected = DateTime(date.year, date.month, date.day);
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (time == null) return;
+
+    final selected = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
 
     setState(() {
       _selectedDate = selected;
@@ -73,17 +89,25 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
   }
 
   Future<void> _loadOccupiedForDate(DateTime date) async {
-    final reservationProvider = context.read<ReservationProvider>();
-    try {
-      final list = await reservationProvider.getForDate(date);
+    final tableProvider = context.read<TableProvider>();
 
-      final occupied = list
-          .where((r) => r.tableId != null && r.status != "Cancelled")
-          .map((r) => r.tableId!)
+    try {
+      final result = await tableProvider.get(filter: {
+        "date": date.toIso8601String(),
+        "durationMinutes": _durationMinutes,
+      });
+
+      final occupied = result.result
+          .where((t) => t.id != null && (t.isOccupied ?? false))
+          .map((t) => t.id!)
           .toSet();
 
       if (!mounted) return;
-      setState(() => _occupiedTableIds = occupied);
+
+      setState(() {
+        _tables = result.result;
+        _occupiedTableIds = occupied;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -150,6 +174,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
       await reservationProvider.insert({
         "tableId": _selectedTable!.id,
         "reservationDateTime": _selectedDate!.toIso8601String(),
+        "durationMinutes": _durationMinutes,
         "numberOfGuests": guests,
       });
 
@@ -208,9 +233,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                   ),
                 ),
               ),
-
             const SizedBox(height: 12),
-
             GestureDetector(
               onTap: () {
                 if (_selectedDate == null) {
@@ -263,9 +286,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextFormField(
               controller: _guestsCtrl,
               keyboardType: TextInputType.number,
@@ -280,9 +301,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                 }
               },
             ),
-
             const SizedBox(height: 12),
-
             if (_error != null)
               Align(
                 alignment: Alignment.centerLeft,
@@ -291,9 +310,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
-
             const Spacer(),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

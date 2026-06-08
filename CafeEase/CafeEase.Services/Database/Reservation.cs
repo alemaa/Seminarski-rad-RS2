@@ -22,7 +22,7 @@ namespace CafeEase.Services.Database
         public DateTime? CancelledAt { get; set; }
         public int? CancelledByUserId { get; set; }
         public string? CancellationReason { get; set; }
-
         public virtual User? CancelledByUser { get; set; }
+        public int DurationMinutes { get; set; } = 120;
     }
 }

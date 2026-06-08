@@ -8,5 +8,6 @@ namespace CafeEase.Model.SearchObjects
         public int? Capacity { get; set; }
         public DateTime? Date { get; set; }
         public int? Number { get; set; }
+        public int? DurationMinutes { get; set; }
     }
 }

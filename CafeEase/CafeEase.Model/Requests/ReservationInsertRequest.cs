@@ -15,5 +15,8 @@ namespace CafeEase.Model.Requests
         [Range(1, int.MaxValue, ErrorMessage = "Number of guests must be at least 1.")]
         public int NumberOfGuests { get; set; }
         public string? Status { get; set; }
+
+        [Range(15, 480, ErrorMessage = "Duration must be between 15 and 480 minutes.")]
+        public int DurationMinutes { get; set; } = 120;
     }
 }

@@ -47,17 +47,20 @@ namespace CafeEase.Services
                 throw new UserException("Selected table does not exist");
             }
 
-            var date = insert.ReservationDateTime.Date;
-            var alreadyReservedThatDay = await _context.Reservations.AnyAsync(r =>
-            r.TableId == insert.TableId &&
-            r.ReservationDateTime.Date == date &&
-            r.Status != ReservationStatuses.Cancelled);
+            var requestedStart = insert.ReservationDateTime;
+            var requestedDuration = insert.DurationMinutes;
 
+            var reservationsForTable = await _context.Reservations
+                .Where(r =>
+                    r.TableId == insert.TableId &&
+                    r.Status != ReservationStatuses.Cancelled)
+                .ToListAsync();
 
-            if (alreadyReservedThatDay)
-            {
-                throw new Exception("Selected table is already reserved for that day.");
-            }
+            var hasOverlap = reservationsForTable.Any(r =>
+                Overlaps(requestedStart, requestedDuration, r.ReservationDateTime, r.DurationMinutes));
+
+            if (hasOverlap)
+                throw new UserException("Selected table is already reserved for that time.");
 
             if(insert.ReservationDateTime.Date == DateTime.Today)
             {
@@ -69,6 +72,7 @@ namespace CafeEase.Services
                 throw new UserException("Table capacity is " + table.Capacity + ". Cannnot reserve for " + insert.NumberOfGuests + " guests.");
             }
 
+            entity.DurationMinutes = insert.DurationMinutes;
             entity.Status = ReservationStatuses.Pending;
         }
 
@@ -89,7 +93,7 @@ namespace CafeEase.Services
                 query = query.Where(x => x.Status == search.Status);
             }
 
-            if (search.Date.HasValue)
+            if (search?.Date.HasValue == true)
             {
                 var date = search.Date.Value.Date;
                 query = query.Where(x => x.ReservationDateTime.Date == date);
@@ -108,7 +112,8 @@ namespace CafeEase.Services
                 throw new UserException("Reservation not found");
 
             var targetTableId = update.TableId ?? entity.TableId;
-            var targetDate = (update.ReservationDateTime ?? entity.ReservationDateTime).Date;
+            var targetStart = update.ReservationDateTime ?? entity.ReservationDateTime;
+            var targetDuration = update.DurationMinutes ?? entity.DurationMinutes;
             var targetGuests = update.NumberOfGuests ?? entity.NumberOfGuests;
 
             var table = entity.Table;
@@ -121,21 +126,24 @@ namespace CafeEase.Services
             if (targetGuests > table.Capacity)
                 throw new UserException($"Table capacity is {table.Capacity}. Cannot reserve for {targetGuests} guests.");
 
-            var changingTableOrDate = targetTableId != entity.TableId || targetDate != entity.ReservationDateTime.Date;
-            if (changingTableOrDate)
-            {
-                var alreadyReservedThatDay = await _context.Reservations.AnyAsync(r =>
+            var reservationsForTable = await _context.Reservations
+                .Where(r =>
                     r.Id != id &&
                     r.TableId == targetTableId &&
-                    r.ReservationDateTime.Date == targetDate &&
-                    r.Status != ReservationStatuses.Cancelled);
+                    r.Status != ReservationStatuses.Cancelled)
+                .ToListAsync();
 
-                if (alreadyReservedThatDay)
-                    throw new UserException("Selected table is already reserved for that day.");
-            }
+            var hasOverlap = reservationsForTable.Any(r =>
+                Overlaps(
+                    targetStart,
+                    targetDuration,
+                    r.ReservationDateTime,
+                    r.DurationMinutes));
+
+            if (hasOverlap)
+                throw new UserException("Selected table is already reserved for that time.");
 
             var oldStatus = entity.Status;
-
             var oldTableId = entity.TableId;
 
             if (!string.IsNullOrWhiteSpace(update.Status))
@@ -163,23 +171,36 @@ namespace CafeEase.Services
             if (update.TableId == null)
                 entity.TableId = oldTableId;
 
+            if (update.DurationMinutes == null)
+                entity.DurationMinutes = targetDuration;
+
             if (oldStatus != ReservationStatuses.Cancelled && entity.Status == ReservationStatuses.Cancelled)
             {
                 if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
                 {
-                    var anyOtherToday = await _context.Reservations.AnyAsync(r =>
-                        r.Id != id &&
-                        r.TableId == table.Id &&
-                        r.ReservationDateTime.Date == DateTime.Today &&
-                        r.Status != ReservationStatuses.Cancelled);
+                    var anyOtherToday = await _context.Reservations
+                        .Where(r =>
+                            r.Id != id &&
+                            r.TableId == table.Id &&
+                            r.Status != ReservationStatuses.Cancelled)
+                        .ToListAsync();
 
-                    table.IsOccupied = anyOtherToday;
+                    table.IsOccupied = anyOtherToday.Any(r =>
+                        Overlaps(
+                            DateTime.Now,
+                            1,
+                            r.ReservationDateTime,
+                            r.DurationMinutes));
                 }
             }
-            else if (oldStatus == ReservationStatuses.Cancelled && (entity.Status == ReservationStatuses.Pending || entity.Status == ReservationStatuses.Confirmed))
+            else if (oldStatus == ReservationStatuses.Cancelled &&
+                     (entity.Status == ReservationStatuses.Pending || entity.Status == ReservationStatuses.Confirmed))
             {
-                if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
+                if (table != null &&
+                    Overlaps(DateTime.Now, 1, entity.ReservationDateTime, entity.DurationMinutes))
+                {
                     table.IsOccupied = true;
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -236,20 +257,24 @@ namespace CafeEase.Services
             entity.CancelledByUserId = currentUser.Id;
             entity.CancellationReason = request.CancellationReason.Trim();
 
-            if (entity.Table != null && entity.ReservationDateTime.Date == DateTime.Today)
+            if (entity.Table != null)
             {
-                var anyOtherToday = await _context.Reservations.AnyAsync(r =>
-                    r.Id != id &&
-                    r.TableId == entity.TableId &&
-                    r.ReservationDateTime.Date == DateTime.Today &&
-                    r.Status != ReservationStatuses.Cancelled);
+                var otherReservations = await _context.Reservations.Where(r => r.Id != id && r.TableId == entity.TableId && r.Status != ReservationStatuses.Cancelled).ToListAsync();
 
-                entity.Table.IsOccupied = anyOtherToday;
+                entity.Table.IsOccupied = otherReservations.Any(r => Overlaps(DateTime.Now, 1, r.ReservationDateTime, r.DurationMinutes));
             }
 
             await _context.SaveChangesAsync();
 
             return _mapper.Map<Model.Reservation>(entity);
+        }
+
+        private static bool Overlaps(DateTime startA, int durationA, DateTime startB, int durationB)
+        {
+            var endA = startA.AddMinutes(durationA);
+            var endB = startB.AddMinutes(durationB);
+
+            return startA < endB && startB < endA;
         }
     }
 }

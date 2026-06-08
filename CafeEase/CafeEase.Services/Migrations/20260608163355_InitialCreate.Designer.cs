@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeEase.Services.Migrations
 {
     [DbContext(typeof(CafeEaseDbContext))]
-    [Migration("20260608141521_AddReservationCancellationAudit")]
-    partial class AddReservationCancellationAudit
+    [Migration("20260608163355_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -789,6 +789,11 @@ namespace CafeEase.Services.Migrations
                     b.Property<int?>("CancelledByUserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("DurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(120);
+
                     b.Property<int>("NumberOfGuests")
                         .HasColumnType("int");
 
@@ -819,6 +824,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 1,
+                            DurationMinutes = 120,
                             NumberOfGuests = 2,
                             ReservationDateTime = new DateTime(2026, 4, 24, 19, 0, 0, 0, DateTimeKind.Unspecified),
                             Status = "Confirmed",
@@ -828,6 +834,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 2,
+                            DurationMinutes = 120,
                             NumberOfGuests = 2,
                             ReservationDateTime = new DateTime(2026, 4, 25, 20, 30, 0, 0, DateTimeKind.Unspecified),
                             Status = "Pending",
@@ -837,6 +844,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 3,
+                            DurationMinutes = 120,
                             NumberOfGuests = 4,
                             ReservationDateTime = new DateTime(2026, 4, 26, 18, 30, 0, 0, DateTimeKind.Unspecified),
                             Status = "Cancelled",
@@ -846,6 +854,7 @@ namespace CafeEase.Services.Migrations
                         new
                         {
                             Id = 4,
+                            DurationMinutes = 120,
                             NumberOfGuests = 4,
                             ReservationDateTime = new DateTime(2026, 4, 27, 21, 0, 0, 0, DateTimeKind.Unspecified),
                             Status = "Confirmed",

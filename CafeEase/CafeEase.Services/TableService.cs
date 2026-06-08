@@ -32,18 +32,23 @@ namespace CafeEase.Services
 
             if (search?.Date.HasValue == true)
             {
-                var day = (search?.Date ?? DateTime.Now).Date;
+                var requestedStart = search.Date.Value;
+                var requestedDuration = search.DurationMinutes ?? 120;
 
-                var occupiedIds = _context.Reservations.Where(r => r.ReservationDateTime.Date == day
-                && r.Status != "Cancelled").Select(r => r.TableId).Distinct();
+                var occupiedIds = _context.Reservations.Where(r => r.Status != ReservationStatuses.Cancelled).AsEnumerable().Where(r => Overlaps(
+                        requestedStart,
+                        requestedDuration,
+                        r.ReservationDateTime,
+                        r.DurationMinutes)).Select(r => r.TableId).Distinct().ToList();
 
                 if (search?.IsOccupied.HasValue == true)
                 {
-                    if (search.IsOccupied.Value) {
+                    if (search.IsOccupied.Value)
+                    {
                         query = query.Where(t => occupiedIds.Contains(t.Id));
                     }
-
-                    else {
+                    else
+                    {
                         query = query.Where(t => !occupiedIds.Contains(t.Id));
                     }
                 }
@@ -56,13 +61,18 @@ namespace CafeEase.Services
         {
             var result = await base.Get(search);
 
-            var day = (search?.Date ?? DateTime.Now).Date;
 
-            var occupiedIds = await _context.Reservations
-                .Where(r => r.ReservationDateTime.Date == day && r.Status != "Cancelled")
-                .Select(r => r.TableId)
-                .Distinct()
+            if (search?.Date.HasValue != true)
+                return result;
+
+            var requestedStart = search!.Date!.Value;
+            var requestedDuration = search?.DurationMinutes ?? 120;
+
+            var reservations = await _context.Reservations
+                .Where(r => r.Status != ReservationStatuses.Cancelled)
                 .ToListAsync();
+
+            var occupiedIds = reservations.Where(r => Overlaps(requestedStart, requestedDuration, r.ReservationDateTime, r.DurationMinutes)).Select(r => r.TableId).Distinct().ToList();
 
             var occ = new HashSet<int>(occupiedIds);
 
@@ -72,6 +82,14 @@ namespace CafeEase.Services
             }
 
             return result;
+        }
+
+        private static bool Overlaps(DateTime startA, int durationA, DateTime startB, int durationB)
+        {
+            var endA = startA.AddMinutes(durationA);
+            var endB = startB.AddMinutes(durationB);
+
+            return startA < endB && startB < endA;
         }
     }
 }

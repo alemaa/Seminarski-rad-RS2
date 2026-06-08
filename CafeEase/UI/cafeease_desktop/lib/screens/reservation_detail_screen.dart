@@ -34,6 +34,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   String _toYmd(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  static const int _durationMinutes = 120;
+
   @override
   void initState() {
     super.initState();
@@ -57,7 +59,12 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
     try {
       final day = _reservationDate ?? DateTime.now();
-      final result = await tableProvider.get(filter: {'date': _toYmd(day)});
+      final result = await tableProvider.get(
+        filter: {
+          'date': day.toIso8601String(),
+          'durationMinutes': _durationMinutes,
+        },
+      );
 
       if (!mounted) return;
 
@@ -137,6 +144,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       'tableId': _selectedTableId,
       'numberOfGuests': int.parse(_guestsController.text.trim()),
       'reservationDateTime': _reservationDate!.toIso8601String(),
+      'durationMinutes': _durationMinutes,
       'status': _status,
     };
 

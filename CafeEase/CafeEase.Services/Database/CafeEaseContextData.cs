@@ -13,6 +13,8 @@ namespace CafeEase.Services.Database
     {
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Reservation>().Property(r => r.DurationMinutes).HasDefaultValue(120);
+
             modelBuilder.Entity<Role>().HasData(
             new Role { Id = 1, Name = "Admin" },
             new Role { Id = 2, Name = "Mobile" }
