@@ -28,35 +28,43 @@ namespace CafeEase.Services
         {
             decimal total = 0;
 
-            if (insert.Items != null)
+            if (insert.Items == null || !insert.Items.Any())
+                throw new UserException("Order must contain at least one item.");
+
+            if (insert.Items.Any(i => i.Quantity < 1))
+                throw new UserException("Order item quantity must be at least 1.");
+
+            var tableExists = await _context.Tables.AnyAsync(t => t.Id == insert.TableId);
+
+            if (!tableExists)
+                throw new UserException("Selected table does not exist.");
+
+            foreach (var item in insert.Items)
             {
-                foreach (var item in insert.Items)
-                {
-                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
+                var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
 
-                    if (product == null)
-                        throw new Exception("Product not found");
+                if (product == null)
+                    throw new UserException("Product not found.");
 
-                    var lineAmount = product.Price * item.Quantity;
-                    total += lineAmount;
-                }
-
-                entity.OrderItems = insert.Items.Select(item =>
-                {
-                    var product = _context.Products.First(x => x.Id == item.ProductId);
-
-                    return new Database.OrderItem
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        Price = product.Price,
-                        Size = item.Size,
-                        MilkType = item.MilkType,
-                        SugarLevel = item.SugarLevel,
-                        Note = item.Note,
-                    };
-                }).ToList();
+                var lineAmount = product.Price * item.Quantity;
+                total += lineAmount;
             }
+
+            entity.OrderItems = insert.Items.Select(item =>
+            {
+                var product = _context.Products.First(x => x.Id == item.ProductId);
+
+                return new Database.OrderItem
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    Price = product.Price,
+                    Size = item.Size,
+                    MilkType = item.MilkType,
+                    SugarLevel = item.SugarLevel,
+                    Note = item.Note,
+                };
+            }).ToList();
 
             var user = _httpContextAccessor.HttpContext?.User;
 
@@ -202,31 +210,39 @@ namespace CafeEase.Services
             if (dbUser == null)
                 throw new UserException("User not found");
 
+            if (request.Items == null || !request.Items.Any())
+                throw new UserException("Order must contain at least one item.");
+
+            if (request.Items.Any(i => i.Quantity < 1))
+                throw new UserException("Order item quantity must be at least 1.");
+
+            var tableExists = await _context.Tables.AnyAsync(t => t.Id == request.TableId);
+
+            if (!tableExists)
+                throw new UserException("Selected table does not exist.");
+
             decimal subtotal = 0;
             var orderItems = new List<Database.OrderItem>();
 
-            if (request.Items != null)
+            foreach (var item in request.Items)
             {
-                foreach (var item in request.Items)
+                var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
+
+                if (product == null)
+                    throw new UserException("Product not found");
+
+                subtotal += product.Price * item.Quantity;
+
+                orderItems.Add(new Database.OrderItem
                 {
-                    var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == item.ProductId);
-
-                    if (product == null)
-                        throw new UserException("Product not found");
-
-                    subtotal += product.Price * item.Quantity;
-
-                    orderItems.Add(new Database.OrderItem
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        Price = product.Price,
-                        Size = item.Size,
-                        MilkType = item.MilkType,
-                        SugarLevel = item.SugarLevel,
-                        Note = item.Note
-                    });
-                }
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    Price = product.Price,
+                    Size = item.Size,
+                    MilkType = item.MilkType,
+                    SugarLevel = item.SugarLevel,
+                    Note = item.Note
+                });
             }
 
             var total = await ApplyPromotionDiscount(subtotal, orderItems, dbUser.Id);
