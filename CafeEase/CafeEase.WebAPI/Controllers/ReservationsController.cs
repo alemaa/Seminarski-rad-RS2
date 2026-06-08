@@ -15,5 +15,11 @@ namespace CafeEase.WebAPI.Controllers
             : base(logger, service)
         {
         }
+
+        [HttpPost("{id}/cancel")]
+        public async Task<Reservation> Cancel(int id, ReservationCancelRequest request)
+        {
+            return await (_service as IReservationService)!.Cancel(id, request);
+        }
     }
 }

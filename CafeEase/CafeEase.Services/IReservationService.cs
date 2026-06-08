@@ -10,5 +10,6 @@ namespace CafeEase.Services
 {
     public interface IReservationService: ICRUDService<Model.Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>
     {
+        Task<Model.Reservation> Cancel(int id, ReservationCancelRequest request);
     }
 }

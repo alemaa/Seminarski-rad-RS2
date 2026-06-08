@@ -100,6 +100,29 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                       textDark: _textDark,
                     ),
                   ),
+                  if (isCancelled && r.cancelledAt != null) ...[
+                    const _DividerLine(),
+                    _DetailRow(
+                      icon: Icons.schedule_outlined,
+                      label: "Cancelled at",
+                      value:
+                          DateFormat('dd.MM.yyyy HH:mm').format(r.cancelledAt!),
+                      accent: _accent,
+                      textDark: _textDark,
+                    ),
+                  ],
+                  if (isCancelled &&
+                      r.cancellationReason != null &&
+                      r.cancellationReason!.trim().isNotEmpty) ...[
+                    const _DividerLine(),
+                    _DetailRow(
+                      icon: Icons.notes_outlined,
+                      label: "Reason",
+                      value: r.cancellationReason!,
+                      accent: _accent,
+                      textDark: _textDark,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 18),
@@ -145,6 +168,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
   }
 
   Future<void> _cancelReservation(BuildContext context, Reservation r) async {
+    TextEditingController reasonController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -152,15 +176,24 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
         surfaceTintColor: _card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text("Cancel reservation?"),
-        content:
-            const Text("Are you sure you want to cancel this reservation?"),
+        content: TextField(
+          controller: reasonController,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            labelText: "Cancellation reason",
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text("No"),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () {
+              if (reasonController.text.trim().length < 3) return;
+              Navigator.pop(ctx, true);
+            },
             style: FilledButton.styleFrom(
               backgroundColor: _accent,
               foregroundColor: Colors.white,
@@ -177,7 +210,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
 
     try {
       final provider = context.read<ReservationProvider>();
-      await provider.cancelReservation(r.id!, r);
+      await provider.cancelReservation(r.id!, reasonController.text.trim());
 
       if (!mounted) return;
 

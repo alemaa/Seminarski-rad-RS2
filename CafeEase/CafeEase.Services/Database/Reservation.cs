@@ -18,7 +18,11 @@ namespace CafeEase.Services.Database
 
         public DateTime ReservationDateTime { get; set; }
         public int NumberOfGuests { get; set; }
+        public string Status { get; set; } = ReservationStatuses.Pending;
+        public DateTime? CancelledAt { get; set; }
+        public int? CancelledByUserId { get; set; }
+        public string? CancellationReason { get; set; }
 
-        public string Status { get; set; } = "Pending";
+        public virtual User? CancelledByUser { get; set; }
     }
 }

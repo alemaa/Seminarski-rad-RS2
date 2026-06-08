@@ -13,6 +13,8 @@ class Reservation {
   String status;
   String? userFullName;
   String? userEmail;
+  DateTime? cancelledAt;
+  String? cancellationReason;
 
   Reservation({
     this.id,
@@ -24,6 +26,8 @@ class Reservation {
     required this.status,
     required this.userFullName,
     required this.userEmail,
+    this.cancelledAt,
+    this.cancellationReason
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>

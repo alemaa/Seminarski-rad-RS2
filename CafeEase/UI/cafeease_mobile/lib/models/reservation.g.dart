@@ -18,6 +18,10 @@ Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
           : DateTime.parse(json['reservationDateTime'] as String),
       numberOfGuests: (json['numberOfGuests'] as num?)?.toInt(),
       status: json['status'] as String?,
+      cancelledAt: json['cancelledAt'] == null
+          ? null
+          : DateTime.parse(json['cancelledAt'] as String),
+      cancellationReason: json['cancellationReason'] as String?,
     );
 
 Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
@@ -31,4 +35,6 @@ Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
       'reservationDateTime': instance.reservationDateTime?.toIso8601String(),
       'numberOfGuests': instance.numberOfGuests,
       'status': instance.status,
+      'cancelledAt': instance.cancelledAt?.toIso8601String(),
+      'cancellationReason': instance.cancellationReason,
     };

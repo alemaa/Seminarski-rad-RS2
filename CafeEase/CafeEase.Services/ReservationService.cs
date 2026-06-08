@@ -142,6 +142,9 @@ namespace CafeEase.Services
             {
                 var newStatus = update.Status;
 
+                if (newStatus == ReservationStatuses.Cancelled)
+                    throw new UserException("Use the cancellation endpoint to cancel a reservation.");
+
                 if (!ReservationStatuses.All.Contains(newStatus))
                     throw new UserException("Invalid reservation status.");
 
@@ -194,11 +197,56 @@ namespace CafeEase.Services
 
         public override async Task<Model.Reservation> Delete(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
-            if (entity == null)
-                return null;
+            return await Cancel(id, new ReservationCancelRequest
+            {
+                CancellationReason = "Cancelled via delete endpoint"
+            });
+        }
 
-            _context.Reservations.Remove(entity);
+        public async Task<Model.Reservation> Cancel(int id, ReservationCancelRequest request)
+        {
+            var entity = await _context.Reservations
+                .Include(r => r.Table)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new UserException("Reservation not found");
+
+            if (entity.Status == ReservationStatuses.Cancelled)
+                return _mapper.Map<Model.Reservation>(entity);
+
+            if (!ReservationStatuses.AllowedTransitions.TryGetValue(entity.Status, out var allowedNextStatuses) ||
+                !allowedNextStatuses.Contains(ReservationStatuses.Cancelled))
+            {
+                throw new UserException($"Reservation status cannot change from {entity.Status} to {ReservationStatuses.Cancelled}.");
+            }
+
+            var username = _httpContextAccessor.HttpContext?.User?
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? _httpContextAccessor.HttpContext?.User?
+                    .FindFirst(ClaimTypes.Name)?.Value;
+
+            var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (currentUser == null)
+                throw new UserException("User not found");
+
+            entity.Status = ReservationStatuses.Cancelled;
+            entity.CancelledAt = DateTime.Now;
+            entity.CancelledByUserId = currentUser.Id;
+            entity.CancellationReason = request.CancellationReason.Trim();
+
+            if (entity.Table != null && entity.ReservationDateTime.Date == DateTime.Today)
+            {
+                var anyOtherToday = await _context.Reservations.AnyAsync(r =>
+                    r.Id != id &&
+                    r.TableId == entity.TableId &&
+                    r.ReservationDateTime.Date == DateTime.Today &&
+                    r.Status != ReservationStatuses.Cancelled);
+
+                entity.Table.IsOccupied = anyOtherToday;
+            }
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<Model.Reservation>(entity);

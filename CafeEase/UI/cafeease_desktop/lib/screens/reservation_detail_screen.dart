@@ -181,12 +181,20 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   }
 
   Future<void> _delete(ReservationProvider provider) async {
+    TextEditingController reasonController = TextEditingController();
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete reservation'),
-        content: const Text(
-          'Are you sure you want to delete this reservation?',
+        title: const Text('Cancel reservation'),
+        content: TextField(
+          controller: reasonController,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            labelText: 'Cancellation reason',
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
@@ -195,21 +203,27 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            onPressed: () {
+              if (reasonController.text.trim().length < 3) return;
+              Navigator.pop(context, true);
+            },
+            child: const Text('Cancel reservation'),
           ),
         ],
       ),
     );
 
     if (confirm == true) {
-      await provider.delete(widget.reservation!.id!);
+      await provider.cancelReservation(
+        widget.reservation!.id!,
+        reasonController.text.trim(),
+      );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Reservation deleted successfully'),
+          content: Text('Reservation cancelled successfully'),
           backgroundColor: Colors.green,
         ),
       );
@@ -420,10 +434,6 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                   value: 'Confirmed',
                                   child: Text('Confirmed'),
                                 ),
-                                DropdownMenuItem(
-                                  value: 'Cancelled',
-                                  child: Text('Cancelled'),
-                                ),
                               ],
                               onChanged: (value) {
                                 if (value != null) {
@@ -455,7 +465,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                       ),
                                     ),
                                     onPressed: () => _delete(provider),
-                                    child: const Text('Delete'),
+                                    child: const Text('Cancel reservation'),
                                   ),
                                 ),
                                 const SizedBox(width: 12),

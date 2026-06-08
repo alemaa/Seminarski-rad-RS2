@@ -251,6 +251,24 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                               : Colors.black87,
                                         ),
                                       ),
+                                      if (isCancelled && r.cancelledAt != null)
+                                        Text(
+                                          'Cancelled at: ${_formatDate(r.cancelledAt)}',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      if (isCancelled &&
+                                          r.cancellationReason != null &&
+                                          r.cancellationReason!
+                                              .trim()
+                                              .isNotEmpty)
+                                        Text(
+                                          'Reason: ${r.cancellationReason}',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
                                     ],
                                   ),
                                   trailing: Container(

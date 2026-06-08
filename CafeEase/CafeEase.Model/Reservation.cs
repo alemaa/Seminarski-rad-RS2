@@ -17,5 +17,8 @@ namespace CafeEase.Model
         public DateTime ReservationDateTime { get; set; }
         public int NumberOfGuests { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime? CancelledAt { get; set; }
+        public int? CancelledByUserId { get; set; }
+        public string? CancellationReason { get; set; }
     }
 }
