@@ -4,20 +4,21 @@ using CafeEase.Model.SearchObjects;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using CafeEase.Services.Database;
 using CafeEase.Services.Exceptions;
+using Microsoft.AspNetCore.Identity;
 
 namespace CafeEase.Services
 {
     public class UserService : BaseCRUDService<Model.User, Database.User, UserSearchObject, UserInsertRequest, UserUpdateRequest>, IUserService
     {
+        private readonly PasswordHasher<Database.User> _passwordHasher = new();
         public UserService(CafeEaseDbContext context, IMapper mapper)
             : base(context, mapper)
         {
         }
+
         public override async Task BeforeInsert(User entity, UserInsertRequest insert)
         {
    
@@ -33,8 +34,8 @@ namespace CafeEase.Services
             if (emailTaken)
                 throw new UserException("Email is already taken");
 
-            entity.PasswordSalt = GenerateSalt();
-            entity.PasswordHash = GenerateHash(entity.PasswordSalt, insert.Password);
+            entity.PasswordSalt = string.Empty;
+            entity.PasswordHash = _passwordHasher.HashPassword(entity, insert.Password);
         }
 
         public override async Task BeforeUpdate(User entity, UserUpdateRequest update)
@@ -43,27 +44,6 @@ namespace CafeEase.Services
             var cityExists = await _context.Cities.AnyAsync(c => c.Id == update.CityId);
             if (!cityExists)
                 throw new Exception("Selected city does not exist.");
-        }
-        public static string GenerateSalt()
-        {
-            using var provider = new RNGCryptoServiceProvider();
-            var bytes = new byte[16];
-            provider.GetBytes(bytes);
-            return Convert.ToBase64String(bytes);
-        }
-
-        public static string GenerateHash(string salt, string password)
-        {
-            byte[] src = Convert.FromBase64String(salt);
-            byte[] bytes = Encoding.Unicode.GetBytes(password);
-            byte[] dst = new byte[src.Length + bytes.Length];
-
-            Buffer.BlockCopy(src, 0, dst, 0, src.Length);
-            Buffer.BlockCopy(bytes, 0, dst, src.Length, bytes.Length);
-
-            using HashAlgorithm algorithm = HashAlgorithm.Create("SHA1");
-            byte[] hash = algorithm.ComputeHash(dst);
-            return Convert.ToBase64String(hash);
         }
 
         public override IQueryable<Database.User> AddFilter(IQueryable<Database.User> query, UserSearchObject? search = null)
@@ -108,9 +88,9 @@ namespace CafeEase.Services
             if (entity == null)
                 return null;
 
-            var hash = GenerateHash(entity.PasswordSalt, password);
+            var result = _passwordHasher.VerifyHashedPassword(entity, entity.PasswordHash, password);
 
-            if (hash != entity.PasswordHash)
+            if (result == PasswordVerificationResult.Failed)
                 return null;
 
             return _mapper.Map<Model.User>(entity);
@@ -160,8 +140,8 @@ namespace CafeEase.Services
             if (emailTaken)
                 throw new UserException("Email is already taken");
 
-            entity.PasswordSalt = GenerateSalt();
-            entity.PasswordHash = GenerateHash(entity.PasswordSalt, request.Password);
+            entity.PasswordSalt = string.Empty;
+            entity.PasswordHash = _passwordHasher.HashPassword(entity, request.Password);
         }
     }
 }
