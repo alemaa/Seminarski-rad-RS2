@@ -3,6 +3,7 @@ using CafeEase.Model;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,12 +32,18 @@ namespace CafeEase.Services
 
             result.Count = await query.CountAsync();
 
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-            {
-                query = query
-                    .Take(search.PageSize.Value)
-                    .Skip(search.Page.Value * search.PageSize.Value);
-            }
+            const int maxPageSize = 100;
+
+            var page = search?.Page ?? 0;
+            var pageSize = search?.PageSize ?? maxPageSize;
+
+            page = Math.Max(page, 0);
+            pageSize = Math.Clamp(pageSize, 1, maxPageSize);
+
+            query = query
+                .OrderBy(x => EF.Property<int>(x, "Id"))
+                .Skip(page * pageSize)
+                .Take(pageSize);
 
             var list = await query.ToListAsync();
             result.Result = _mapper.Map<List<T>>(list);
