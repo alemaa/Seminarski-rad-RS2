@@ -7,6 +7,7 @@ using System.Linq;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.Services
 {
@@ -28,13 +29,13 @@ namespace CafeEase.Services
             var user = _httpContextAccessor.HttpContext?.User;
 
             if (user == null || user.Identity?.IsAuthenticated != true)
-                throw new Exception("User not authenticated");
+                throw new UserException("User not authenticated");
 
             var username = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                            ?? user.FindFirst(ClaimTypes.Name)?.Value;
 
             if (string.IsNullOrWhiteSpace(username))
-                throw new Exception("Username not found in claims");
+                throw new UserException("Username not found in claims");
 
             return username;
         }
@@ -48,7 +49,7 @@ namespace CafeEase.Services
                 .FirstOrDefault(u => u.Username == username);
 
             if (dbUser == null)
-                throw new Exception("User not found");
+                throw new UserException("User not found");
 
             return dbUser;
         }

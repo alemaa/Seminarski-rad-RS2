@@ -7,6 +7,8 @@ using System.Linq;
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using CafeEase.Services.Exceptions;
+
 namespace CafeEase.Services
 {
     public class OrderItemService : BaseCRUDService<Model.OrderItem, Database.OrderItem, OrderItemSearchObject, OrderItemInsertRequest, OrderItemUpdateRequest>, IOrderItemService
@@ -37,7 +39,7 @@ namespace CafeEase.Services
             var product = await _context.Products.FindAsync(insert.ProductId);
 
             if (product == null)
-                throw new Exception("Product not found");
+                throw new UserException("Product not found");
 
             entity.ProductId = insert.ProductId;
             entity.Quantity = insert.Quantity;

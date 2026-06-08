@@ -43,7 +43,7 @@ namespace CafeEase.Services
            
             var cityExists = await _context.Cities.AnyAsync(c => c.Id == update.CityId);
             if (!cityExists)
-                throw new Exception("Selected city does not exist.");
+                throw new UserException("Selected city does not exist.");
         }
 
         public override IQueryable<Database.User> AddFilter(IQueryable<Database.User> query, UserSearchObject? search = null)
