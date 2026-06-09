@@ -19,11 +19,18 @@ namespace CafeEase.WebAPI.Filters
         {
             _logger.LogError(context.Exception, context.Exception.Message);
 
-            if (context.Exception is UserException)
+            if (context.Exception is NotFoundException)
+            {
+                context.ModelState.AddModelError("notFound", context.Exception.Message);
+                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            }
+
+            else if (context.Exception is UserException)
             {
                 context.ModelState.AddModelError("userError", context.Exception.Message);
                 context.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
+
             else
             {
                 context.ModelState.AddModelError(

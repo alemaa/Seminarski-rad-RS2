@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.Services
 {
@@ -64,6 +65,10 @@ namespace CafeEase.Services
         public async Task<T> GetById(int id)
         {
             var entity = await _context.Set<TDb>().FindAsync(id);
+
+            if (entity == null)
+                throw new NotFoundException("Record not found.");
+
             return _mapper.Map<T>(entity);
         }
     }

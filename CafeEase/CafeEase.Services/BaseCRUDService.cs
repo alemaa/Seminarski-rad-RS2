@@ -3,6 +3,7 @@ using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.Services
 {
@@ -40,7 +41,7 @@ namespace CafeEase.Services
             var entity = await set.FindAsync(id);
 
             if (entity == null)
-                return null;
+                throw new NotFoundException("Record not found.");
 
             _mapper.Map(update, entity);
             await BeforeUpdate(entity, update);
@@ -55,7 +56,7 @@ namespace CafeEase.Services
             var entity = await set.FindAsync(id);
 
             if (entity == null)
-                return null;
+                throw new NotFoundException("Record not found.");
 
             set.Remove(entity);
             await _context.SaveChangesAsync();
