@@ -55,6 +55,18 @@ namespace CafeEase.Services.Database
                 .HasForeignKey(c => c.CityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Inventory>()
+                .HasIndex(i => i.ProductId)
+                .IsUnique();
+
             base.OnModelCreating(modelBuilder);
 
             OnModelCreatingPartial(modelBuilder);
