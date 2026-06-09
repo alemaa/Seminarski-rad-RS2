@@ -21,7 +21,7 @@ namespace CafeEase.WebAPI.Filters
 
             if (context.Exception is NotFoundException)
             {
-                context.ModelState.AddModelError("notFound", context.Exception.Message);
+                context.ModelState.AddModelError("userError", context.Exception.Message);
                 context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
             }
 
@@ -34,7 +34,7 @@ namespace CafeEase.WebAPI.Filters
             else
             {
                 context.ModelState.AddModelError(
-                    "error",
+                    "userError",
                     "An unexpected server error occurred. Please try again."
                 );
 

@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<CafeEaseDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -40,6 +40,25 @@ builder.Services.AddTransient<ICafeService, CafeService>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ExceptionFilter>();
+})
+.ConfigureApiBehaviorOptions(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .SelectMany(x => x.Value!.Errors.Select(e => e.ErrorMessage))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToList();
+
+        return new BadRequestObjectResult(new
+        {
+            errors = new Dictionary<string, string[]>
+            {
+                ["userError"] = errors.ToArray()
+            }
+        });
+    };
 });
 
 builder.Services.AddSwaggerGen(c =>
