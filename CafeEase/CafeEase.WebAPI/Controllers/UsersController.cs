@@ -2,6 +2,7 @@
 using CafeEase.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CafeEase.WebAPI.Controllers
 {
@@ -39,6 +40,19 @@ namespace CafeEase.WebAPI.Controllers
         public override async Task<Model.User> Delete(int id)
         {
             return await base.Delete(id);
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrWhiteSpace(username))
+                return Unauthorized();
+
+            await ((IUserService)_service).ChangePassword(username, request);
+            return Ok();
         }
     }
 }

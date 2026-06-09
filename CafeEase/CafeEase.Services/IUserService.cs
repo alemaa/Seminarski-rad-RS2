@@ -10,5 +10,6 @@ namespace CafeEase.Services
     {
         public Task<Model.User> Login(string username, string password);
         Task<Model.User> Register(Model.Requests.RegisterRequest request);
+        Task ChangePassword(string username, ChangePasswordRequest request);
     }
 }

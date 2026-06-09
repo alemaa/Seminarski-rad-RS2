@@ -143,5 +143,26 @@ namespace CafeEase.Services
             entity.PasswordSalt = string.Empty;
             entity.PasswordHash = _passwordHasher.HashPassword(entity, request.Password);
         }
+
+        public async Task ChangePassword(string username, ChangePasswordRequest request)
+        {
+            var entity = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (entity == null)
+                throw new UserException("User not found");
+
+            var result = _passwordHasher.VerifyHashedPassword(
+                entity,
+                entity.PasswordHash,
+                request.CurrentPassword);
+
+            if (result == PasswordVerificationResult.Failed)
+                throw new UserException("Current password is incorrect.");
+
+            entity.PasswordSalt = string.Empty;
+            entity.PasswordHash = _passwordHasher.HashPassword(entity, request.NewPassword);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

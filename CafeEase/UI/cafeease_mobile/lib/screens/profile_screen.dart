@@ -7,6 +7,7 @@ import '../utils/util.dart';
 import 'login_screen.dart';
 import '../models/city.dart';
 import '../providers/city_provider.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -458,6 +459,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Card(
+                      color: _card,
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        leading:
+                            const Icon(Icons.lock_outline, color: _primary),
+                        title: const Text(
+                          "Change password",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: _primaryDark,
+                          ),
+                        ),
+                        subtitle: const Text("Update your account password"),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ChangePasswordScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 14),

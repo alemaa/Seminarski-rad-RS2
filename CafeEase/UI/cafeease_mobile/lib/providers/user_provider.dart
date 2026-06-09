@@ -41,4 +41,16 @@ class UserProvider extends BaseProvider<User> {
   Future<void> deleteUser(int id) async {
     await delete(id);
   }
+
+  Future<void> changePassword(Map<String, dynamic> request) async {
+    final uri = Uri.parse("${BaseProvider.baseUrl}api/Users/change-password");
+
+    final response = await http.post(
+      uri,
+      headers: createHeaders(),
+      body: jsonEncode(request),
+    );
+
+    isValidResponse(response);
+  }
 }
