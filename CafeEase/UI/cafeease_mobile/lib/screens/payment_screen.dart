@@ -168,18 +168,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
       }
       if (_payType == PayType.inApp) {
-        debugPrint("PAY FLOW START (Stripe)");
-
         final res = await paymentProvider.createStripeIntent(createdOrder.id!);
-        debugPrint("Stripe create-intent RES = $res");
 
         final clientSecret = res["clientSecret"];
         final paymentId = res["paymentId"];
         final publishableKey = res["publishableKey"];
-
-        debugPrint("clientSecret = $clientSecret");
-        debugPrint("paymentId = $paymentId");
-        debugPrint("publishableKey = $publishableKey");
 
         if (clientSecret == null ||
             clientSecret is! String ||
@@ -197,7 +190,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           await stripe.Stripe.instance.applySettings();
         }
 
-        debugPrint("initPaymentSheet...");
         await stripe.Stripe.instance.initPaymentSheet(
           paymentSheetParameters: stripe.SetupPaymentSheetParameters(
             paymentIntentClientSecret: clientSecret,
@@ -205,13 +197,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         );
 
-        debugPrint("presentPaymentSheet...");
         await stripe.Stripe.instance.presentPaymentSheet();
 
-        debugPrint("calling confirm on backend...");
         await paymentProvider.confirmStripe(paymentId as int);
-
-        debugPrint("Stripe payment confirmed ✅");
       }
 
       await _loadLoyalty();
@@ -228,7 +216,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       Navigator.pop(context, true);
     } on stripe.StripeException catch (e) {
       debugPrint("STRIPE ERROR: ${e.error.localizedMessage}");
-      debugPrint("STRIPE FULL: $e");
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
