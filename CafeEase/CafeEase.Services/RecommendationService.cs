@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using CafeEase.Model.Responses;
 
 namespace CafeEase.Services;
 public class RecommendationService : IRecommendationService
@@ -71,42 +72,60 @@ public class RecommendationService : IRecommendationService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<Model.Product>> GetRecommendedProducts(int productId)
+    public async Task<List<RecommendedProductResponse>> GetRecommendedProducts(int productId)
     {
-        var recs = await _context.Recommendations
-            .Where(r => r.ProductId == productId)
-            .OrderByDescending(r => r.Score)
-            .Take(3)
-            .ToListAsync();
+        var seedProduct = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
+
+        var seedName = seedProduct?.Name ?? "selected product";
+
+        var recs = await _context.Recommendations.Where(r => r.ProductId == productId && r.RecommendedProductId != productId).OrderByDescending(r => r.Score)
+            .Take(3).ToListAsync();
 
         if (recs.Any())
         {
-            var productIds = recs
-                .Select(r => r.RecommendedProductId)
-                .Where(id => id != productId) 
-                .Distinct()
-                .ToList();
+            var productIds = recs.Select(r => r.RecommendedProductId).ToList();
 
-            var dbProducts = await _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToListAsync();
+            var products = await _context.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).ToListAsync();
 
-            return _mapper.Map<List<Model.Product>>(dbProducts);
+            return recs
+                .Select(r =>
+                {
+                    var product = products.FirstOrDefault(p => p.Id == r.RecommendedProductId);
+                    if (product == null) return null;
+
+                    return new RecommendedProductResponse
+                    {
+                        Product = _mapper.Map<Model.Product>(product),
+                        Score = r.Score,
+                        Reason = $"Recommended because it is often ordered together with {seedName}."
+                    };
+                })
+                .Where(x => x != null).ToList()!;
         }
 
-        var popularIds = await _context.OrderItems
-            .GroupBy(oi => oi.ProductId)
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.Key)
-            .Where(id => id != productId)
-            .Take(3)
-            .ToListAsync();
+        var popular = await _context.OrderItems.Where(oi => oi.ProductId != productId).GroupBy(oi => oi.ProductId).Select(g => new
+            {
+                ProductId = g.Key,
+                Score = g.Count()
+            }).OrderByDescending(x => x.Score).Take(3).ToListAsync();
 
-        var fallbackProducts = await _context.Products
-            .Where(p => popularIds.Contains(p.Id))
-            .ToListAsync();
+        var popularIds = popular.Select(x => x.ProductId).ToList();
 
-        return _mapper.Map<List<Model.Product>>(fallbackProducts);
+        var fallbackProducts = await _context.Products.AsNoTracking().Where(p => popularIds.Contains(p.Id)).ToListAsync();
+
+        return popular
+            .Select(r =>
+            {
+                var product = fallbackProducts.FirstOrDefault(p => p.Id == r.ProductId);
+                if (product == null) return null;
+
+                return new RecommendedProductResponse
+                {
+                    Product = _mapper.Map<Model.Product>(product),
+                    Score = r.Score,
+                    Reason = "Recommended because it is one of the most ordered products."
+                };
+            })
+            .Where(x => x != null).ToList()!;
     }
-
 }

@@ -3,7 +3,6 @@ import 'package:cafeease_mobile/screens/reservation_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/util.dart';
-import '../models/product.dart';
 import '../providers/recommendation_provider.dart';
 import '../providers/order_item_provider.dart';
 import '../providers/order_provider.dart';
@@ -15,6 +14,7 @@ import 'review_screen.dart';
 import 'profile_screen.dart';
 import 'notification_screen.dart';
 import 'nearby_cafes_screen.dart';
+import '../models/recommended_product.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +26,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _recLoading = false;
   String? _recError;
-  List<Product> _recommended = [];
+  List<RecommendedProduct> _recommended = [];
 
   final ScrollController _recScrollController = ScrollController();
 
@@ -291,6 +291,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const Spacer(),
+        IconButton(
+          tooltip: "Previous",
+          icon: const Icon(Icons.chevron_left, size: 22),
+          onPressed: () {
+            if (!_recScrollController.hasClients) return;
+            _recScrollController.animateTo(
+              (_recScrollController.offset - 180).clamp(
+                0.0,
+                _recScrollController.position.maxScrollExtent,
+              ),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          },
+        ),
+        IconButton(
+          tooltip: "Next",
+          icon: const Icon(Icons.chevron_right, size: 22),
+          onPressed: () {
+            if (!_recScrollController.hasClients) return;
+            _recScrollController.animateTo(
+              (_recScrollController.offset + 180).clamp(
+                0.0,
+                _recScrollController.position.maxScrollExtent,
+              ),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          },
+        ),
         TextButton(
           onPressed: () {
             Navigator.of(context).push(
@@ -349,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
         header,
         const SizedBox(height: 6),
         SizedBox(
-          height: 150,
+          height: 215,
           child: Stack(
             children: [
               ListView.separated(
@@ -358,10 +388,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: _recommended.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, i) {
-                  final p = _recommended[i];
+                  final rec = _recommended[i];
+                  final p = rec.product;
+
+                  if (p == null) {
+                    return const SizedBox.shrink();
+                  }
 
                   return SizedBox(
-                    width: 150,
+                    width: 175,
                     child: Card(
                       elevation: 2,
                       color: Colors.white,
@@ -393,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Color(0xFF6F4E37),
                                 ),
                               ),
-                              const Spacer(),
+                              const SizedBox(height: 12),
                               Text(
                                 p.name ?? "Unnamed",
                                 maxLines: 2,
@@ -411,6 +446,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
+                              Text(
+                                rec.reason ?? "",
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF8D6E63),
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -419,71 +463,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: _arrowButton(
-                  icon: Icons.chevron_left,
-                  onTap: () {
-                    _recScrollController.animateTo(
-                      (_recScrollController.offset - 180).clamp(
-                        0.0,
-                        _recScrollController.position.maxScrollExtent,
-                      ),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: _arrowButton(
-                  icon: Icons.chevron_right,
-                  onTap: () {
-                    _recScrollController.animateTo(
-                      (_recScrollController.offset + 180).clamp(
-                        0.0,
-                        _recScrollController.position.maxScrollExtent,
-                      ),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                ),
-              ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _arrowButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Center(
-      child: Material(
-        color: Colors.white.withOpacity(0.9),
-        shape: const CircleBorder(),
-        elevation: 2,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Icon(
-              icon,
-              size: 26,
-              color: const Color(0xFF6F4E37),
-            ),
-          ),
-        ),
-      ),
     );
   }
 

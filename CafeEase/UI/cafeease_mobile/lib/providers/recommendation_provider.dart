@@ -1,30 +1,22 @@
-import '../models/product.dart';
 import 'base_provider.dart';
+import '../models/recommended_product.dart';
 
-class RecommendationProvider extends BaseProvider<Product> {
+class RecommendationProvider extends BaseProvider<RecommendedProduct> {
   RecommendationProvider() : super("Recommendations");
 
   @override
-  Product fromJson(data) {
-    return Product.fromJson(data as Map<String, dynamic>);
+  RecommendedProduct fromJson(data) {
+    return RecommendedProduct.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<void> train() async {
-    await postCustom("Recommendations/train");
-  }
-
-  Future<void> clear() async {
-    await deleteCustom("Recommendations/clear");
-  }
-
-  Future<List<Product>> getRecommended(int productId) async {
+  Future<List<RecommendedProduct>> getRecommended(int productId) async {
     final response = await getCustom("Recommendations/$productId/recommended");
 
     if (response == null) return [];
 
     final list = (response as List).cast<dynamic>();
     return list
-        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .map((e) => RecommendedProduct.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }
