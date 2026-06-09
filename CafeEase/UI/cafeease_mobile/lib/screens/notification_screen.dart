@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -16,16 +17,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool loading = true;
   String? error;
   List<AppNotification> items = [];
+  Timer? _pollingTimer;
 
   static const primaryBrown = Color(0xFF7B5E57);
   static const lightBeige = Color(0xFFF3EDE8);
   static const accentBrown = Color(0xFFD7CCC8);
 
-  Future<void> _load() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
+  Future<void> _load({bool showSpinner = true}) async {
+    if (showSpinner) {
+      setState(() {
+        loading = true;
+        error = null;
+      });
+    }
 
     try {
       final provider = context.read<NotificationProvider>();
@@ -51,6 +55,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        _load(showSpinner: false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   @override

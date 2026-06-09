@@ -60,10 +60,7 @@ namespace CafeEase.Services
         {
             var currentUser = GetCurrentDbUser();
 
-            if (currentUser.RoleId == 2)
-            {
                 query = query.Where(n => n.UserId == currentUser.Id);
-            }
 
             if (search?.IsRead.HasValue == true)
             {
@@ -79,12 +76,7 @@ namespace CafeEase.Services
         {
             var currentUser = GetCurrentDbUser();
 
-            IQueryable<Database.Notification> query = _context.Notifications;
-
-            if (currentUser.RoleId == 2)
-            {
-                query = query.Where(n => n.UserId == currentUser.Id);
-            }
+            IQueryable<Database.Notification> query = _context.Notifications.Where(n => n.UserId == currentUser.Id);
 
             var notif = await query.FirstOrDefaultAsync(n => n.Id == id);
             if (notif == null) return;
@@ -98,17 +90,50 @@ namespace CafeEase.Services
             var currentUser = GetCurrentDbUser();
 
             IQueryable<Database.Notification> query = _context.Notifications
-                .Where(n => !n.IsRead);
-
-            if (currentUser.RoleId == 2)
-            {
-                query = query.Where(n => n.UserId == currentUser.Id);
-            }
+                .Where(n => !n.IsRead && n.UserId == currentUser.Id);
 
             var unread = await query.ToListAsync();
 
             foreach (var n in unread)
                 n.IsRead = true;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CreateAsync(int userId, string title, string body, int? orderId = null)
+        {
+            _context.Notifications.Add(new Database.Notification
+            {
+                UserId = userId,
+                OrderId = orderId,
+                Title = title,
+                Body = body,
+                IsRead = false,
+                CreatedAt = DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CreateForAdminsAsync(string title, string body, int? orderId = null)
+        {
+            var adminIds = await _context.Users
+                .Where(u => u.RoleId == 1)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            foreach (var adminId in adminIds)
+            {
+                _context.Notifications.Add(new Database.Notification
+                {
+                    UserId = adminId,
+                    OrderId = orderId,
+                    Title = title,
+                    Body = body,
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
+            }
 
             await _context.SaveChangesAsync();
         }

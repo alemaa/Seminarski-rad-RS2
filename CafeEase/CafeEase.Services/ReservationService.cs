@@ -18,10 +18,12 @@ namespace CafeEase.Services
     public class ReservationService : BaseCRUDService<Model.Reservation, Database.Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ReservationService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        private readonly INotificationService _notificationService;
+        public ReservationService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, INotificationService notificationService)
             : base(context, mapper)
         {
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
         }
 
         public override async Task BeforeInsert(Database.Reservation entity, ReservationInsertRequest insert)
@@ -100,6 +102,17 @@ namespace CafeEase.Services
             }
 
             return base.AddFilter(query, search);
+        }
+
+        public override async Task<Model.Reservation> Insert(ReservationInsertRequest insert)
+        {
+            var result = await base.Insert(insert);
+
+            await _notificationService.CreateForAdminsAsync(
+                "New reservation created",
+                $"Reservation #{result.Id} for table {result.TableId} was created.");
+
+            return result;
         }
 
         public override async Task<Model.Reservation> Update(int id, ReservationUpdateRequest update)
@@ -204,6 +217,21 @@ namespace CafeEase.Services
             }
 
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(update.Status) && oldStatus != entity.Status)
+            {
+                var reservationOwner = await _context.Users.FirstOrDefaultAsync(u => u.Id == entity.UserId);
+
+                var body = reservationOwner?.RoleId == 1
+                    ? $"Reservation #{entity.Id} for table {entity.TableId} is now {entity.Status}."
+                    : $"Your reservation for table {entity.TableId} is now {entity.Status}.";
+
+                await _notificationService.CreateAsync(
+                    entity.UserId,
+                    "Reservation status updated",
+                    body);
+            }
+
             return _mapper.Map<Model.Reservation>(entity);
         }
 
@@ -265,6 +293,24 @@ namespace CafeEase.Services
             }
 
             await _context.SaveChangesAsync();
+
+            var reservationOwner = await _context.Users.FirstOrDefaultAsync(u => u.Id == entity.UserId);
+
+            var userBody = reservationOwner?.RoleId == 1
+                ? $"Reservation #{entity.Id} for table {entity.TableId} was cancelled. Reason: {entity.CancellationReason}"
+                : $"Your reservation for table {entity.TableId} was cancelled. Reason: {entity.CancellationReason}";
+
+            if (reservationOwner?.RoleId != 1)
+            {
+                await _notificationService.CreateAsync(
+                    entity.UserId,
+                    "Reservation cancelled",
+                    userBody);
+            }
+
+            await _notificationService.CreateForAdminsAsync(
+                "Reservation cancelled",
+                $"Reservation #{entity.Id} for table {entity.TableId} was cancelled. Reason: {entity.CancellationReason}");
 
             return _mapper.Map<Model.Reservation>(entity);
         }

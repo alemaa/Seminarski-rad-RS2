@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification.dart';
+import 'dart:async';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -15,18 +16,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool loading = true;
   String? error;
   List<AppNotification> items = [];
+  Timer? _pollingTimer;
 
   static const primaryBrown = Color(0xFF7B5E57);
   static const lightBeige = Color(0xFFF3EDE8);
   static const softBrown = Color(0xFFE6D4C3);
   static const textBrown = Color(0xFF4E342E);
 
-  Future<void> _load() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
+  Future<void> _load({bool showSpinner = true}) async {
+    if (showSpinner) {
+      setState(() {
+        loading = true;
+        error = null;
+      });
+    }
+    
     try {
       final provider = context.read<NotificationProvider>();
       final res = await provider.get(
@@ -64,6 +68,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        _load(showSpinner: false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   String _formatDate(dynamic value) {

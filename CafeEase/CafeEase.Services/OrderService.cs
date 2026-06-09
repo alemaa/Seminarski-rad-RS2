@@ -18,10 +18,12 @@ namespace CafeEase.Services
     public class OrderService : BaseCRUDService<Model.Order, Database.Order, OrderSearchObject, OrderInsertRequest, OrderUpdateRequest>, IOrderService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public OrderService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        private readonly INotificationService _notificationService;
+        public OrderService(CafeEaseDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, INotificationService notificationService)
             : base(context, mapper)
         {
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
         }
 
         public override async Task BeforeInsert(Database.Order entity, OrderInsertRequest insert)
@@ -110,6 +112,18 @@ namespace CafeEase.Services
             entity.Status = newStatus;
 
             await _context.SaveChangesAsync();
+
+            var orderOwner = await _context.Users.FirstOrDefaultAsync(u => u.Id == entity.UserId);
+
+            var body = orderOwner?.RoleId == 1
+                ? $"Order #{entity.Id} status changed to {entity.Status}."
+                : $"Your order #{entity.Id} status changed to {entity.Status}.";
+
+            await _notificationService.CreateAsync(
+                entity.UserId,
+                "Order status updated",
+                body,
+                entity.Id);
 
             return _mapper.Map<Model.Order>(entity);
         }
@@ -202,6 +216,33 @@ namespace CafeEase.Services
             }
 
             return Math.Round(discountedTotal, 2);
+        }
+
+        public override async Task<Model.Order> Insert(OrderInsertRequest insert)
+        {
+            var result = await base.Insert(insert);
+
+            var orderOwner = await _context.Users.FirstOrDefaultAsync(u => u.Id == result.UserId);
+
+            var body = orderOwner?.RoleId == 1
+                ? $"Order #{result.Id} has been created and is waiting for confirmation."
+                : $"Your order #{result.Id} has been created and is waiting for confirmation.";
+
+            if (orderOwner?.RoleId != 1)
+            {
+                await _notificationService.CreateAsync(
+                    result.UserId,
+                    "Order created",
+                    body,
+                    result.Id);
+            }
+
+            await _notificationService.CreateForAdminsAsync(
+                "New order created",
+                $"Order #{result.Id} was created and is waiting for confirmation.",
+                result.Id);
+
+            return result;
         }
 
         public async Task<OrderTotalPreviewResponse> PreviewTotal(OrderInsertRequest request)

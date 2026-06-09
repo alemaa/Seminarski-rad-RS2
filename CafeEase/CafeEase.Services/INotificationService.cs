@@ -12,5 +12,7 @@ namespace CafeEase.Services
     {
         Task MarkAsRead(int id);
         Task MarkAllAsRead();
+        Task CreateAsync(int userId, string title, string body, int? orderId = null);
+        Task CreateForAdminsAsync(string title, string body, int? orderId = null);
     }
 }
