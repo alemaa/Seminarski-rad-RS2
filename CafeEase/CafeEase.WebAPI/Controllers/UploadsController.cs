@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.WebAPI.Controllers
 {
@@ -29,20 +30,20 @@ namespace CafeEase.WebAPI.Controllers
         public async Task<ActionResult<string>> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+                throw new UserException("No file uploaded.");
 
             if (file.Length > MaxFileSize)
-                return BadRequest("File size must be 5 MB or less.");
+               throw new UserException("File size must be 5 MB or less.");
 
             var extension = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(extension) || !AllowedExtensions.Contains(extension))
-                return BadRequest("Unsupported image extension.");
+                throw new UserException("Unsupported image extension.");
 
             if (string.IsNullOrWhiteSpace(file.ContentType) || !AllowedContentTypes.Contains(file.ContentType))
-                return BadRequest("Unsupported image content type.");
+                throw new UserException("Unsupported image content type.");
 
             if (!await HasValidImageSignature(file, extension))
-                return BadRequest("Invalid image file content.");
+                throw new UserException("Invalid image file content.");
 
             var imagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
 

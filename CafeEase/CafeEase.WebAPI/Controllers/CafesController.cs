@@ -5,6 +5,7 @@ using CafeEase.Model.SearchObjects;
 using CafeEase.Services;
 using Microsoft.AspNetCore.Authorization;
 using CafeEase.Model.Responses;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.WebAPI.Controllers
 {
@@ -32,12 +33,12 @@ namespace CafeEase.WebAPI.Controllers
         public async Task<ActionResult<GeocodeResponse>> Geocode([FromQuery] string address, [FromQuery] string city)
         {
             if (string.IsNullOrWhiteSpace(address) || string.IsNullOrWhiteSpace(city))
-                return BadRequest("Address and city are required.");
+                throw new UserException("Address and city are required.");
 
             var result = await _cafeService.GeocodeAddress(address, city);
 
             if (result == null)
-                return NotFound("Coordinates not found.");
+                throw new NotFoundException("Coordinates not found.");
 
             return Ok(result);
         }

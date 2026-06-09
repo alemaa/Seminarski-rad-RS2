@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using CafeEase.Services.Exceptions;
 
 namespace CafeEase.WebAPI.Controllers
 {
@@ -31,7 +32,7 @@ namespace CafeEase.WebAPI.Controllers
                 return Unauthorized();
 
             var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == req.OrderId);
-            if (order == null) return NotFound("Order not found");
+            if (order == null) throw new NotFoundException("Order not found");
 
             if (!CanAccessOrder(currentUser, order))
                 return Forbid();
@@ -45,9 +46,9 @@ namespace CafeEase.WebAPI.Controllers
             if (existingPayment != null)
             {
                 if (existingPayment.Status == "Completed")
-                    return BadRequest("This order has already been paid.");
+                    throw new UserException("This order has already been paid.");
 
-                return BadRequest("Payment is already in progress for this order.");
+                throw new UserException("Payment is already in progress for this order.");
             }
 
             var amount = Convert.ToDecimal(order.TotalAmount);
@@ -93,7 +94,7 @@ namespace CafeEase.WebAPI.Controllers
                 .FirstOrDefaultAsync(p => p.Id == req.PaymentId);
 
             if (payment == null)
-                return NotFound("Payment not found");
+                throw new NotFoundException("Payment not found");
 
             if (!CanAccessOrder(currentUser, payment.Order))
                 return Forbid();
@@ -102,11 +103,11 @@ namespace CafeEase.WebAPI.Controllers
                 return Ok();
 
             if (string.IsNullOrWhiteSpace(payment.ProviderIntentId))
-                return BadRequest("Missing intent id");
+                throw new UserException("Missing intent id");
 
             var ok = await _stripe.ConfirmPaymentAsync(payment.ProviderIntentId);
             if (!ok)
-                return BadRequest("Payment not successful");
+                throw new UserException("Payment not successful");
 
             await _paymentService.FinalizePaidOrderAsync(payment.Id);
 
