@@ -120,9 +120,11 @@ class _TableDetailScreenState extends State<TableDetailScreen> {
 
       Navigator.pop(context, 'refresh');
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Operation failed')));
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -153,18 +155,26 @@ class _TableDetailScreenState extends State<TableDetailScreen> {
     );
 
     if (confirm == true) {
-      await provider.delete(widget.table!.id!);
+      try {
+        await provider.delete(widget.table!.id!);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Table deleted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Table deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-      Navigator.pop(context, 'refresh');
+        Navigator.pop(context, 'refresh');
+      } catch (e) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
     }
   }
 

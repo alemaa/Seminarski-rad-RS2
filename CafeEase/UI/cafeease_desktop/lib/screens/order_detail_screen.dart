@@ -95,9 +95,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       Navigator.pop(context, 'refresh');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
     } finally {
       if (mounted) {
         setState(() => _savingStatus = false);

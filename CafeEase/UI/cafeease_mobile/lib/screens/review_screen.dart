@@ -147,7 +147,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed: $e")),
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+        ),
       );
     }
   }

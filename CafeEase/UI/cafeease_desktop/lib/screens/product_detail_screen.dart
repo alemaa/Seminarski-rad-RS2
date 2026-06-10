@@ -10,6 +10,7 @@ import '../providers/inventory_provider.dart';
 import '../providers/product_provider.dart';
 import '../providers/base_provider.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -58,25 +59,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  Future<String?> _uploadImage(File file) async {
-    try {
-      final uri = Uri.parse('${BaseProvider.baseUrl}api/Uploads/image');
+  Future<String> _uploadImage(File file) async {
+    final uri = Uri.parse('${BaseProvider.baseUrl}api/Uploads/image');
 
-      final request = http.MultipartRequest('POST', uri);
-      request.headers.addAll(BaseProvider.createAuthHeaders());
-      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    final request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(BaseProvider.createAuthHeaders());
+    request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
-      final response = await request.send();
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
 
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        return responseBody.replaceAll('"', '');
-      }
-
-      return null;
-    } catch (e) {
-      return null;
+    if (response.statusCode == 200) {
+      return responseBody.replaceAll('"', '');
     }
+
+    String? message;
+
+    try {
+      final decoded = jsonDecode(responseBody);
+      final errors = decoded['errors'];
+      final userError = errors?['userError'];
+
+      if (userError is List && userError.isNotEmpty) {
+        message = userError.first.toString();
+      }
+    } catch (_) {}
+
+    throw Exception(message ?? 'Image upload failed.');
   }
 
   String _formatPriceForInput(double? value) {
@@ -188,13 +197,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       final normalizedPrice = _priceController.text.trim().replaceAll(',', '.');
       String? imagePath;
       if (_selectedImage != null) {
-        imagePath = await _uploadImage(_selectedImage!);
-
-        if (imagePath == null || imagePath.isEmpty) {
+        try {
+          imagePath = await _uploadImage(_selectedImage!);
+        } catch (e) {
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Image upload failed.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          );
           setState(() => _isSaving = false);
           return;
         }
@@ -261,9 +270,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       debugPrint(st.toString());
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);

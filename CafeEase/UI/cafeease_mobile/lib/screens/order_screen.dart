@@ -96,91 +96,92 @@ class _OrdersScreenState extends State<OrdersScreen> {
     _fetchOrders();
   }
 
-Future<void> _reorder(Order order, {bool replace = false}) async {
-  final cartProvider = context.read<CartProvider>();
-  final orderItemProvider = context.read<OrderItemProvider>();
-  final productProvider = context.read<ProductProvider>();
-  final inventoryProvider = context.read<InventoryProvider>();
+  Future<void> _reorder(Order order, {bool replace = false}) async {
+    final cartProvider = context.read<CartProvider>();
+    final orderItemProvider = context.read<OrderItemProvider>();
+    final productProvider = context.read<ProductProvider>();
+    final inventoryProvider = context.read<InventoryProvider>();
 
-  try {
-    final res = await orderItemProvider.get(filter: {"orderId": order.id});
-    final items = res.result;
+    try {
+      final res = await orderItemProvider.get(filter: {"orderId": order.id});
+      final items = res.result;
 
-    if (items.isEmpty) {
+      if (items.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("This order has no items.")),
+          );
+        }
+        return;
+      }
+
+      if (replace) {
+        await cartProvider.clear();
+      }
+
+      bool addedAny = false;
+      final skippedMessages = <String>[];
+
+      for (final it in items) {
+        final pid = it.productId;
+        final qty = it.quantity ?? 1;
+        if (pid == null) continue;
+
+        final product = await productProvider.getById(pid);
+        final stock = await inventoryProvider.getStockForProduct(pid);
+
+        final alreadyInCart = cartProvider.getTotalQuantityForProduct(product);
+        final availableToAdd = stock - alreadyInCart;
+
+        if (availableToAdd <= 0) {
+          skippedMessages.add("${product.name} is out of stock.");
+          continue;
+        }
+
+        final qtyToAdd = qty > availableToAdd ? availableToAdd : qty;
+
+        await cartProvider.addToCartCustomized(
+          product,
+          qtyToAdd,
+          size: it.size ?? "M",
+          milkType: it.milkType ?? "Regular",
+          sugarLevel: it.sugarLevel ?? 1,
+          note: it.note ?? "",
+        );
+
+        addedAny = true;
+
+        if (qtyToAdd < qty) {
+          skippedMessages.add(
+            "Only $qtyToAdd of ${product.name} added (requested $qty, available $availableToAdd).",
+          );
+        }
+      }
+
+      if (!mounted) return;
+
+      if (addedAny && skippedMessages.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Order added to cart.")),
+        );
+      } else if (addedAny && skippedMessages.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(skippedMessages.join(" "))),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Items from this order are no longer available.")),
+        );
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("This order has no items.")),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
         );
       }
-      return;
-    }
-
-    if (replace) {
-      await cartProvider.clear();
-    }
-
-    bool addedAny = false;
-    final skippedMessages = <String>[];
-
-    for (final it in items) {
-      final pid = it.productId;
-      final qty = it.quantity ?? 1;
-      if (pid == null) continue;
-
-      final product = await productProvider.getById(pid);
-      final stock = await inventoryProvider.getStockForProduct(pid);
-
-      final alreadyInCart = cartProvider.getTotalQuantityForProduct(product);
-      final availableToAdd = stock - alreadyInCart;
-
-      if (availableToAdd <= 0) {
-        skippedMessages.add("${product.name} is out of stock.");
-        continue;
-      }
-
-      final qtyToAdd = qty > availableToAdd ? availableToAdd : qty;
-
-      await cartProvider.addToCartCustomized(
-        product,
-        qtyToAdd,
-        size: it.size ?? "M",
-        milkType: it.milkType ?? "Regular",
-        sugarLevel: it.sugarLevel ?? 1,
-        note: it.note ?? "",
-      );
-
-      addedAny = true;
-
-      if (qtyToAdd < qty) {
-        skippedMessages.add(
-          "Only $qtyToAdd of ${product.name} added (requested $qty, available $availableToAdd).",
-        );
-      }
-    }
-
-    if (!mounted) return;
-
-    if (addedAny && skippedMessages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Order added to cart.")),
-      );
-    } else if (addedAny && skippedMessages.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(skippedMessages.join(" "))),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Items from this order are no longer available.")),
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Reorder failed. Please try again: $e")),
-      );
     }
   }
-}
 
   Color _getStatusColor(String? status) {
     switch ((status ?? '').toLowerCase()) {

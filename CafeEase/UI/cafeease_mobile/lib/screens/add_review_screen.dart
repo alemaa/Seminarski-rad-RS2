@@ -50,7 +50,9 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to add review: $e")),
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);

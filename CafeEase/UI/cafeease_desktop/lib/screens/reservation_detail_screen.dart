@@ -30,10 +30,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
   bool _isSaving = false;
   bool get isEdit => widget.reservation != null;
-
-  String _toYmd(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
+  
   static const int _durationMinutes = 120;
 
   @override
