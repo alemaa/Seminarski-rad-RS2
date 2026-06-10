@@ -23,20 +23,24 @@
 Aplikacija koristi Stripe za kartično plaćanje u testnom režimu.
 
 ### 🛠  Konfiguracija 
-Zbog sigurnosnih ograničenja GitHub-a, konfiguracijski fajl .env nije direktno uključen u repozitorij.
+Konfiguracijski fajl `.env` nije uključen u repozitorij jer sadrži osjetljive podatke. U repozitoriju se nalazi `.env.example`, koji služi kao šablon za potrebne konfiguracijske vrijednosti.
 
-Umjesto toga, dostupan je fajl: .env.zip koji se nalazi u istom folderu.
- 
-#### Koraci za postavljanje:
-1. Raspakovati .env.zip
-2. Dobijeni .env fajl ostaviti u istom folderu
-3. Pokrenuti aplikaciju pomoću Docker-a
+#### Koraci za lokalno pokretanje:
 
-Struktura `.env` datoteke:
+1. Pozicionirati se u folder `CafeEase`
+2. Kopirati `.env.example` u novi fajl `.env`
+3. U `.env` upisati stvarne vrijednosti za bazu i Stripe test ključeve
+4. Pokrenuti aplikaciju pomoću Docker Compose-a
+
+Primjer strukture `.env` fajla:
+```env
+DB_NAME=190046
+MSSQL_SA_PASSWORD=YourStrongPassword123!
+STRIPE_SECRET_KEY=sk_test_your_key_here
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 ```
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
-```
+
+Za finalnu predaju stvarni `.env` fajl se dostavlja kao zaštićena ZIP arhiva prema uputama za seminarski rad, dok se u repozitoriju zadržava samo `.env.example`.
 
 Plaćanje se vrši putem Stripe PaymentSheet interfejsa.
 
@@ -56,18 +60,25 @@ Plaćanje se vrši putem Stripe PaymentSheet interfejsa.
 Backend aplikacija (Web API, SQL Server i RabbitMQ) pokreće se pomoću **Docker Compose-a**.
 
 ### Koraci:
+ 
+1. Pozicionirati se u folder backend projekta:
+ ```powershell
+ cd CafeEase
+ ```
 
-1. Pozicionirati se u root folder projekta
-
-2. Pokrenuti sljedeću komandu:
-    docker compose up --build
+2. Pokrenuti aplikaciju:
+```powershell
+docker compose up --build
+```
 
 3. Nakon uspješnog pokretanja:
     - API je dostupan na adresi: http://localhost:5003/swagger
     - Baza podataka se automatski kreira prilikom prvog pokretanja koristeći Entity Framework Core migracije i seed podatke
 
 4. Zaustavljanje aplikacije:
-    docker compose down
+```powershell
+docker compose down
+```
 
 ## 💻 Klijentske aplikacije
 Desktop aplikacija se pokreće pomoću .exe fajla
@@ -78,4 +89,4 @@ Mobilna aplikacija se pokreće pomoću .apk fajla
 
 
 ## Recommender sistem
-Recommender sistem u aplikaciji CafeEase generiše preporuke proizvoda na osnovu historije narudžbi korisnika. Sistem analizira koje se stavke često naručuju zajedno i na osnovu toga kreira preporuke koje se pohranjuju u bazu podataka i prikazuju korisnicima u aplikaciji. Preporučeni proizvodi se prikazuju korisnicima u Flutter aplikaciji. Recommender sistem se trenira na osnovu postojećih narudžbi i ne koristi eksterni ML framework.
+Recommender sistem u aplikaciji CafeEase generiše preporuke proizvoda na osnovu historije narudžbi korisnika. Sistem analizira koje se stavke često naručuju zajedno i na osnovu toga kreira preporuke koje se pohranjuju u bazu podataka i prikazuju korisnicima u aplikaciji. Preporučeni proizvodi se prikazuju korisnicima u Flutter aplikaciji. Recommender sistem se trenira na osnovu postojećih narudžbi i ne koristi eksterni ML framework. Uz svaku preporuku prikazuje se i objašnjenje zašto je proizvod preporučen, npr. zato što se često naručuje zajedno sa odabranim proizvodom ili je među najčešće naručivanim proizvodima.
