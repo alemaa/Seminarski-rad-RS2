@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CafeEase.Services.Exceptions
+namespace CafeEase.Model.Exceptions
 {
     public class NotFoundException : Exception
     {

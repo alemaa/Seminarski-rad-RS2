@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 
 namespace CafeEase.WebAPI.Controllers
 {

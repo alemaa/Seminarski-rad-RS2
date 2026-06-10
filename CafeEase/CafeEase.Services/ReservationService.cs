@@ -2,7 +2,7 @@
 using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -5,7 +5,7 @@ using CafeEase.Model.SearchObjects;
 using CafeEase.Services;
 using Microsoft.AspNetCore.Authorization;
 using CafeEase.Model.Responses;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 
 namespace CafeEase.WebAPI.Controllers
 {

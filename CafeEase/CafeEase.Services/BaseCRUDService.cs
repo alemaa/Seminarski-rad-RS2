@@ -3,7 +3,7 @@ using CafeEase.Model.SearchObjects;
 using CafeEase.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 
 namespace CafeEase.Services
 {

@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 
 namespace CafeEase.Services
 {

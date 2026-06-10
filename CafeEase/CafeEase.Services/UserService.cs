@@ -6,7 +6,7 @@ using System.Linq;
 using System;
 using System.Threading.Tasks;
 using CafeEase.Services.Database;
-using CafeEase.Services.Exceptions;
+using CafeEase.Model.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace CafeEase.Services

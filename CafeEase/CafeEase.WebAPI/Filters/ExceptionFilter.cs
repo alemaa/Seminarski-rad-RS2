@@ -1,4 +1,4 @@
-﻿using CafeEase.Services.Exceptions;
+﻿using CafeEase.Model.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
