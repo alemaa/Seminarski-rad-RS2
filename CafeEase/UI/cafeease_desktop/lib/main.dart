@@ -15,6 +15,7 @@ import 'screens/login_screen.dart';
 import 'providers/category_provider.dart';
 import 'providers/cafe_provider.dart';
 import 'providers/report_provider.dart';
+import 'providers/payment_provider.dart';
 
 void main() {
   runApp(
@@ -34,6 +35,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => CafeProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: const CafeEaseApp(),
     ),

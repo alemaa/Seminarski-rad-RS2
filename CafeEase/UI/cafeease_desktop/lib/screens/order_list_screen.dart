@@ -147,6 +147,13 @@ class _OrderListScreenState extends State<OrderListScreen> {
         label = "CONFIRMED";
         break;
 
+      case "completed":
+        bgColor = Colors.green.shade300;
+        textColor = Colors.green.shade900;
+        icon = Icons.done_all;
+        label = "COMPLETED";
+        break;
+
       default:
         bgColor = Colors.grey.shade200;
         textColor = Colors.grey.shade800;

@@ -100,6 +100,13 @@ namespace CafeEase.Services
 
             var newStatus = update.Status;
 
+            if (newStatus == OrderStatuses.Paid)
+            {
+                throw new UserException(
+                    "Paid status can only be set through payment confirmation."
+                );
+            }
+
             if (!OrderStatuses.All.Contains(newStatus))
                 throw new UserException("Invalid order status.");
 

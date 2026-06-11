@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../models/order.dart';
 import '../models/order_item.dart';
 import '../providers/order_provider.dart';
 import '../providers/order_item_provider.dart';
+import '../models/payment.dart';
+import '../providers/payment_provider.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
@@ -24,11 +25,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Set<int> _expandedItems = {};
   final ScrollController _scrollController = ScrollController();
 
+  Payment? _payment;
+  bool _confirmingCash = false;
+
   @override
   void initState() {
     super.initState();
     _status = widget.order.status ?? 'Pending';
     _loadItems();
+    _loadPayment();
   }
 
   Future<void> _loadItems() async {
@@ -76,6 +81,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _saveStatus() async {
+    final currentStatus = widget.order.status ?? 'Pending';
+
+    if (_status == currentStatus) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order status has not changed.')),
+      );
+      return;
+    }
     final shouldContinue = await _confirmStatusChange();
     if (!shouldContinue) return;
 
@@ -103,6 +116,118 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         setState(() => _savingStatus = false);
       }
     }
+  }
+
+  Future<void> _loadPayment() async {
+    try {
+      final result = await context.read<PaymentProvider>().get(
+        filter: {'orderId': widget.order.id},
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _payment = result.result.isEmpty ? null : result.result.first;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    }
+  }
+
+  Future<void> _confirmCashPayment() async {
+    final paymentId = _payment?.id;
+    if (paymentId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm cash payment'),
+        content: Text(
+          'Confirm that cash payment for order #${widget.order.id} was received?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirm payment'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _confirmingCash = true);
+
+    try {
+      await context.read<PaymentProvider>().confirmCashPayment(paymentId);
+
+      await _loadPayment();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cash payment confirmed')));
+
+      Navigator.pop(context, 'refresh');
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _confirmingCash = false);
+      }
+    }
+  }
+
+  bool _canTransitionTo(String target) {
+    final current = (widget.order.status ?? 'Pending').toLowerCase();
+
+    const transitions = {
+      'pending': {'confirmed', 'cancelled'},
+      'confirmed': {'cancelled'},
+      'paid': {'completed'},
+      'completed': <String>{},
+      'cancelled': <String>{},
+    };
+
+    return transitions[current]?.contains(target.toLowerCase()) ?? false;
+  }
+
+  DropdownMenuItem<String> _statusItem(
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    final isCurrent = value == _status;
+    final selectable = value != 'Paid' && _canTransitionTo(value);
+    final active = isCurrent || selectable;
+
+    return DropdownMenuItem<String>(
+      value: value,
+      enabled: active,
+      child: Opacity(
+        opacity: active ? 1.0 : 0.45,
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Text(value),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _infoBlock(String label, String value, {bool bold = false}) {
@@ -165,6 +290,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         textColor = Colors.blue.shade800;
         icon = Icons.thumb_up;
         label = "CONFIRMED";
+        break;
+
+      case "completed":
+        bgColor = Colors.green.shade300;
+        textColor = Colors.green.shade900;
+        icon = Icons.done_all;
+        label = "COMPLETED";
         break;
 
       default:
@@ -550,10 +682,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                           ),
                                                     ),
                                               ),
-                                              items: const [
-                                                DropdownMenuItem(
-                                                  value: 'Pending',
-                                                  child: Row(
+                                              selectedItemBuilder: (context) {
+                                                return [
+                                                  const Row(
                                                     children: [
                                                       Icon(
                                                         Icons.hourglass_top,
@@ -564,10 +695,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                       Text('Pending'),
                                                     ],
                                                   ),
-                                                ),
-                                                DropdownMenuItem(
-                                                  value: 'Confirmed',
-                                                  child: Row(
+                                                  const Row(
                                                     children: [
                                                       Icon(
                                                         Icons.thumb_up,
@@ -578,10 +706,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                       Text('Confirmed'),
                                                     ],
                                                   ),
-                                                ),
-                                                DropdownMenuItem(
-                                                  value: 'Paid',
-                                                  child: Row(
+                                                  const Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.done_all,
+                                                        color: Colors.green,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 6),
+                                                      Text('Completed'),
+                                                    ],
+                                                  ),
+                                                  const Row(
                                                     children: [
                                                       Icon(
                                                         Icons.check_circle,
@@ -592,10 +728,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                       Text('Paid'),
                                                     ],
                                                   ),
-                                                ),
-                                                DropdownMenuItem(
-                                                  value: 'Cancelled',
-                                                  child: Row(
+                                                  const Row(
                                                     children: [
                                                       Icon(
                                                         Icons.cancel,
@@ -606,6 +739,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                                       Text('Cancelled'),
                                                     ],
                                                   ),
+                                                ];
+                                              },
+                                              items: [
+                                                _statusItem(
+                                                  'Pending',
+                                                  Icons.hourglass_top,
+                                                  Colors.orange,
+                                                ),
+                                                _statusItem(
+                                                  'Confirmed',
+                                                  Icons.thumb_up,
+                                                  Colors.blue,
+                                                ),
+                                                _statusItem(
+                                                  'Completed',
+                                                  Icons.done_all,
+                                                  Colors.green.shade700,
+                                                ),
+                                                _statusItem(
+                                                  'Paid',
+                                                  Icons.check_circle,
+                                                  Colors.green,
+                                                ),
+                                                _statusItem(
+                                                  'Cancelled',
+                                                  Icons.cancel,
+                                                  Colors.red,
                                                 ),
                                               ],
                                               onChanged: (value) {
@@ -665,6 +825,43 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 ),
                               ],
                             ),
+                            if (_payment != null) ...[
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 12),
+
+                              _infoBlock(
+                                'Payment method',
+                                _payment!.method ?? '-',
+                              ),
+                              const SizedBox(height: 12),
+                              _infoBlock(
+                                'Payment status',
+                                _payment!.status ?? '-',
+                              ),
+
+                              if (_payment!.method?.toLowerCase() == 'cash' &&
+                                  _payment!.status?.toLowerCase() ==
+                                      'pending') ...[
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: _confirmingCash
+                                      ? null
+                                      : _confirmCashPayment,
+                                  icon: _confirmingCash
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.payments),
+                                  label: const Text('Confirm cash payment'),
+                                ),
+                              ],
+                            ],
                           ],
                         ),
                       ),
