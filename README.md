@@ -40,14 +40,14 @@ STRIPE_SECRET_KEY=sk_test_your_key_here
 STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 ```
 
-Za finalnu predaju stvarni `.env` fajl se dostavlja kao zaštićena ZIP arhiva prema uputama za seminarski rad, dok se u repozitoriju zadržava samo `.env.example`.
+Za finalnu predaju stvarni `.env` fajl nalazi se u šifrovanoj arhivi `.env-tajne.zip` u folderu `CafeEase`. Šifra arhive dostavlja se putem DLWMS sistema. `.env` i `.env-tajne.zip` ne uključuju se u ZIP arhivu sa build fajlovima na GitHub Release-u.
 
 Plaćanje se vrši putem Stripe PaymentSheet interfejsa.
 
 ### 🧪 Test podaci za plaćanje
  Za testiranje plaćanja koristiti sljedeću test karticu:
   - Broj kartice: 4242 4242 4242 4242
-  - Datum isteka: bilo koji budući datum (npr. 12/26)
+  - Datum isteka: bilo koji budući datum (npr. 12/29)
   - CVC: bilo koja 3 broja (npr. 123)
 
   Plaćanje se inicijalno kreira sa statusom `Pending`, a nakon uspješne Stripe potvrde prelazi u `Completed`, dok narudžba dobija status `Paid`.
@@ -61,7 +61,7 @@ Backend aplikacija (Web API, SQL Server i RabbitMQ) pokreće se pomoću **Docker
 
 ### Koraci:
  
-1. Pozicionirati se u folder backend projekta:
+1. Pozicionirati se u folder `CafeEase`:
  ```powershell
  cd CafeEase
  ```
@@ -87,6 +87,9 @@ Mobilna aplikacija se pokreće pomoću .apk fajla
 
  ⚠️ Klijentske aplikacije zahtijevaju da backend bude prethodno pokrenut putem Dockera.
 
+Klijentski buildovi dostupni su u GitHub Release-u. Desktop aplikacija koristi `http://localhost:5003/`, dok mobilna aplikacija na Android emulatoru koristi `http://10.0.2.2:5003/`.
+
 
 ## Recommender sistem
 Recommender sistem u aplikaciji CafeEase generiše preporuke proizvoda na osnovu historije narudžbi korisnika. Sistem analizira koje se stavke često naručuju zajedno i na osnovu toga kreira preporuke koje se pohranjuju u bazu podataka i prikazuju korisnicima u aplikaciji. Preporučeni proizvodi se prikazuju korisnicima u Flutter aplikaciji. Recommender sistem se trenira na osnovu postojećih narudžbi i ne koristi eksterni ML framework. Uz svaku preporuku prikazuje se i objašnjenje zašto je proizvod preporučen, npr. zato što se često naručuje zajedno sa odabranim proizvodom ili je među najčešće naručivanim proizvodima.
+Detaljna dokumentacija dostupna je u fajlu [recommender-dokumentacija.md](recommender-dokumentacija.md).
