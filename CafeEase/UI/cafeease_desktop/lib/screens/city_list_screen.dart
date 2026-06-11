@@ -16,6 +16,9 @@ class _CityListScreenState extends State<CityListScreen> {
   List<City> _cities = [];
   bool _loading = true;
 
+  final _searchController = TextEditingController();
+  String _searchText = '';
+
   @override
   void initState() {
     super.initState();
@@ -36,10 +39,26 @@ class _CityListScreenState extends State<CityListScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load cities')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load cities')));
     }
+  }
+
+  List<City> get _filteredCities {
+    final query = _searchText.trim().toLowerCase();
+
+    if (query.isEmpty) return _cities;
+
+    return _cities.where((city) {
+      return (city.name ?? '').toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -54,32 +73,64 @@ class _CityListScreenState extends State<CityListScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16),
-              child: ListView.builder(
-                padding: const EdgeInsets.only(bottom: 90),
-                itemCount: _cities.length,
-                itemBuilder: (_, index) {
-                  final city = _cities[index];
-
-                  return Card(
-                    color: const Color(0xFFD2B48C),
-                    child: ListTile(
-                      title: Text(city.name ?? ''),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CityDetailScreen(city: city),
-                          ),
-                        );
-
-                        if (result == 'refresh') {
-                          _loadCities();
-                        }
-                      },
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search by name...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchText.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchText = '');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  );
-                },
+                    onChanged: (value) {
+                      setState(() => _searchText = value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _filteredCities.isEmpty
+                        ? const Center(child: Text('No cities found'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 90),
+                            itemCount: _filteredCities.length,
+                            itemBuilder: (_, index) {
+                              final city = _filteredCities[index];
+
+                              return Card(
+                                color: const Color(0xFFD2B48C),
+                                child: ListTile(
+                                  title: Text(city.name ?? ''),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            CityDetailScreen(city: city),
+                                      ),
+                                    );
+
+                                    if (result == 'refresh') {
+                                      _loadCities();
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
             ),
       floatingActionButton: FloatingActionButton.extended(
