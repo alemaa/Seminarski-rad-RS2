@@ -25,8 +25,9 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
   final List<String> _statusOptions = [
     'All',
     'Pending',
-    'Paid',
     'Confirmed',
+    'Paid',
+    'Completed',
     'Cancelled',
   ];
 
@@ -52,6 +53,8 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
         return Colors.orange.shade700;
       case 'confirmed':
         return Colors.blue.shade600;
+      case 'completed':
+        return Colors.green.shade800;
       case 'cancelled':
       case 'canceled':
         return Colors.red.shade600;
@@ -70,6 +73,8 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
         return 'Pending';
       case 'confirmed':
         return 'Confirmed';
+      case 'completed':
+        return 'Completed';
       case 'cancelled':
       case 'canceled':
         return 'Cancelled';

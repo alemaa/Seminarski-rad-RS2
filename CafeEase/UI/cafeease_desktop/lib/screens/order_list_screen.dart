@@ -301,6 +301,16 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     ],
                   ),
                 ),
+                DropdownMenuItem<String?>(
+                  value: 'Completed',
+                  child: Row(
+                    children: [
+                      Icon(Icons.done_all, color: Colors.green, size: 16),
+                      SizedBox(width: 6),
+                      Text("Completed"),
+                    ],
+                  ),
+                ),
               ],
               onChanged: (value) {
                 setState(() => _selectedStatus = value);
