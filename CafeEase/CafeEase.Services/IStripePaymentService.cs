@@ -8,5 +8,7 @@ namespace CafeEase.Services
     {
         Task<StripeCreateIntentResponse> CreatePaymentIntentAsync(decimal amount, string currency, Dictionary<string, string>? metadata = null);
         Task<bool> ConfirmPaymentAsync(string paymentIntentId);
+        Task<StripeCreateIntentResponse> CreateIntentForCurrentUserAsync(string username, StripeCreateIntentRequest request);
+        Task ConfirmForCurrentUserAsync(string username, StripeConfirmRequest request);
     }
 }
