@@ -4,9 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
 import '../models/order.dart';
-import '../providers/order_provider.dart';
+import '../providers/report_provider.dart';
 
 class SalesSummaryReportScreen extends StatefulWidget {
   const SalesSummaryReportScreen({super.key});
@@ -28,22 +27,31 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
   }
 
   Future<void> _loadOrders() async {
-    final provider = context.read<OrderProvider>();
+    final provider = context.read<ReportProvider>();
 
     try {
-      final filter = <String, dynamic>{};
+      final data = await provider.getReportData();
+      var orders = List<Order>.from(data.orders);
 
       if (_selectedDate != null) {
-        filter['date'] = _selectedDate!.toIso8601String();
+        orders = orders.where((order) {
+          final date = order.orderDate;
+          if (date == null) return false;
+
+          return date.year == _selectedDate!.year &&
+              date.month == _selectedDate!.month &&
+              date.day == _selectedDate!.day;
+        }).toList();
       }
 
-      final result = await provider.get(filter: filter);
+      if (!mounted) return;
 
       setState(() {
-        _orders = result.result;
+        _orders = orders;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -67,10 +75,7 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
           children: [
             pw.Text(
               'Sales Summary Report',
-              style: pw.TextStyle(
-                fontSize: 22,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 10),
             pw.Text(
@@ -125,8 +130,7 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
                     label: Text(
                       _selectedDate == null
                           ? 'Select date'
-                          : DateFormat('dd.MM.yyyy')
-                              .format(_selectedDate!),
+                          : DateFormat('dd.MM.yyyy').format(_selectedDate!),
                     ),
                     onPressed: () async {
                       final picked = await showDatePicker(
@@ -152,10 +156,7 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
                     'Total revenue',
                     '${totalRevenue.toStringAsFixed(2)} KM',
                   ),
-                  _buildSummaryCard(
-                    'Total orders',
-                    '$totalOrders',
-                  ),
+                  _buildSummaryCard('Total orders', '$totalOrders'),
                   _buildSummaryCard(
                     'Average order value',
                     '${averageOrderValue.toStringAsFixed(2)} KM',
@@ -170,20 +171,12 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
     return Card(
       color: const Color(0xFFD2B48C),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         trailing: Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

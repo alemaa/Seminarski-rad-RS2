@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/inventory_provider.dart';
+import '../providers/report_provider.dart';
 import '../models/inventory.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -28,15 +28,19 @@ class _InventoryReportScreenState extends State<InventoryReportScreen> {
   }
 
   Future<void> _loadInventory() async {
-    final provider = context.read<InventoryProvider>();
+    final provider = context.read<ReportProvider>();
 
     try {
-      final result = await provider.get();
+      final data = await provider.getReportData();
+
+      if (!mounted) return;
+
       setState(() {
-        _inventory = result.result;
+        _inventory = List<Inventory>.from(data.inventory);
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }

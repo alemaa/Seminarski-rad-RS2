@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
-import '../providers/order_provider.dart';
+import '../providers/report_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -150,13 +150,13 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
   }
 
   Future<void> _loadOrders() async {
-    final provider = context.read<OrderProvider>();
+    final provider = context.read<ReportProvider>();
 
     setState(() => _isLoading = true);
 
     try {
-      final result = await provider.get();
-      List<Order> filtered = List<Order>.from(result.result);
+      final data = await provider.getReportData();
+      List<Order> filtered = List<Order>.from(data.orders);
 
       if (_dateFrom != null) {
         final from = DateTime(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/order_item_provider.dart';
-import '../providers/order_provider.dart';
+import '../providers/report_provider.dart';
 import '../models/order.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -83,8 +82,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
   }
 
   Future<void> _loadData() async {
-    final orderProvider = context.read<OrderProvider>();
-    final orderItemProvider = context.read<OrderItemProvider>();
+    final provider = context.read<ReportProvider>();
 
     setState(() {
       _isLoading = true;
@@ -92,8 +90,8 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
     });
 
     try {
-      final ordersResult = await orderProvider.get();
-      List<Order> filteredOrders = List<Order>.from(ordersResult.result);
+      final data = await provider.getReportData();
+      List<Order> filteredOrders = List<Order>.from(data.orders);
 
       if (_dateFrom != null) {
         final from = DateTime(
@@ -126,11 +124,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
 
       final allowedOrderIds = filteredOrders.map((o) => o.id).toSet();
 
-      final itemsResult = await orderItemProvider.get(
-        filter: {"paidOnly": true},
-      );
-
-      final filteredItems = itemsResult.result.where((item) {
+      final filteredItems = data.paidOrderItems.where((item) {
         return item.orderId != null && allowedOrderIds.contains(item.orderId);
       }).toList();
 

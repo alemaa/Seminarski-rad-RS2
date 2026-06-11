@@ -36,6 +36,7 @@ builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICafeService, CafeService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddControllers(options =>
 {
