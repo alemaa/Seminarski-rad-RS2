@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../models/table.dart' as model;
 import '../providers/table_provider.dart';
+import '../models/reservation.dart';
+import '../providers/reservation_provider.dart';
 
 class TableAvailabilityScreen extends StatefulWidget {
   const TableAvailabilityScreen({super.key});
@@ -14,56 +16,72 @@ class TableAvailabilityScreen extends StatefulWidget {
 }
 
 class _TableAvailabilityScreenState extends State<TableAvailabilityScreen> {
-  List<model.Table> _tables = [];
-  bool _loading = true;
+  List<model.Table> _occupiedTables = [];
+  List<model.Table> _freeTables = [];
+  Map<int, List<Reservation>> _reservationsByTable = {};
 
+  bool _loading = true;
   DateTime _selectedDate = DateTime.now();
-  bool? _selectedIsOccupied;
-  int? _selectedMinCapacity;
-  String _tableNumberQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _loadTables();
+    _loadData();
   }
 
-  String _toYmd(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  Future<void> _loadTables() async {
-    final provider = context.read<TableProvider>();
+  Future<void> _loadData() async {
+    final tableProvider = context.read<TableProvider>();
+    final reservationProvider = context.read<ReservationProvider>();
 
     setState(() => _loading = true);
 
-    final filter = <String, dynamic>{'date': _toYmd(_selectedDate)};
-
-    if (_selectedIsOccupied != null) {
-      filter['isOccupied'] = _selectedIsOccupied;
-    }
-
-    if (_selectedMinCapacity != null) {
-      filter['capacity'] = _selectedMinCapacity;
-    }
-
-    final q = _tableNumberQuery.trim();
-    if (q.isNotEmpty) {
-      final parsed = int.tryParse(q);
-      if (parsed != null) {
-        filter['number'] = parsed;
-      }
-    }
-
     try {
-      final res = await provider.get(filter: filter);
+      final tablesResult = await tableProvider.get(filter: {'pageSize': 100});
+
+      final reservationsResult = await reservationProvider.get(
+        filter: {'date': _selectedDate.toIso8601String(), 'pageSize': 100},
+      );
+
+      final activeReservations = reservationsResult.result.where((reservation) {
+        final status = reservation.status.toLowerCase();
+        return status != 'cancelled' && status != 'canceled';
+      }).toList();
+
+      final grouped = <int, List<Reservation>>{};
+
+      for (final reservation in activeReservations) {
+        grouped.putIfAbsent(reservation.tableId, () => []).add(reservation);
+      }
+
+      for (final reservations in grouped.values) {
+        reservations.sort(
+          (a, b) => a.reservationDateTime.compareTo(b.reservationDateTime),
+        );
+      }
+
+      final occupied = tablesResult.result.where((table) {
+        return table.id != null && grouped.containsKey(table.id);
+      }).toList();
+
+      final free = tablesResult.result.where((table) {
+        return table.id == null || !grouped.containsKey(table.id);
+      }).toList();
+
+      occupied.sort((a, b) => (a.number ?? 0).compareTo(b.number ?? 0));
+      free.sort((a, b) => (a.number ?? 0).compareTo(b.number ?? 0));
+
+      if (!mounted) return;
 
       setState(() {
-        _tables = res.result;
+        _reservationsByTable = grouped;
+        _occupiedTables = occupied;
+        _freeTables = free;
         _loading = false;
       });
     } catch (e) {
-      setState(() => _loading = false);
       if (!mounted) return;
+
+      setState(() => _loading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -85,7 +103,53 @@ class _TableAvailabilityScreenState extends State<TableAvailabilityScreen> {
     if (picked == null) return;
 
     setState(() => _selectedDate = picked);
-    _loadTables();
+    await _loadData();
+  }
+
+  Widget _tableCard(model.Table table, {required bool occupied}) {
+    final reservations = table.id == null
+        ? <Reservation>[]
+        : _reservationsByTable[table.id!] ?? [];
+
+    return Card(
+      color: occupied ? const Color(0xFFC4A484) : const Color(0xFFD2B48C),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Icon(
+          Icons.table_restaurant,
+          color: occupied ? Colors.red : Colors.green,
+        ),
+        title: Text(
+          'Table ${table.number}',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Capacity: ${table.capacity}'),
+
+            if (!occupied)
+              const Text('Free all day', style: TextStyle(color: Colors.green)),
+
+            if (occupied)
+              ...reservations.map((reservation) {
+                final end = reservation.reservationDateTime.add(
+                  Duration(minutes: reservation.durationMinutes ?? 120),
+                );
+
+                return Text(
+                  '${DateFormat('HH:mm').format(reservation.reservationDateTime)}'
+                  ' - ${DateFormat('HH:mm').format(end)}',
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -96,128 +160,50 @@ class _TableAvailabilityScreenState extends State<TableAvailabilityScreen> {
         title: const Text('Table availability'),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today),
-                label: Text(DateFormat('dd.MM.yyyy').format(_selectedDate)),
-                onPressed: _pickDate,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<bool?>(
-                    value: _selectedIsOccupied,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All')),
-                      DropdownMenuItem(value: false, child: Text('Free')),
-                      DropdownMenuItem(value: true, child: Text('Occupied')),
-                    ],
-                    onChanged: (v) {
-                      setState(() => _selectedIsOccupied = v);
-                      _loadTables();
-                    },
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(DateFormat('dd.MM.yyyy').format(_selectedDate)),
+                    onPressed: _pickDate,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<int?>(
-                    value: _selectedMinCapacity,
-                    decoration: const InputDecoration(
-                      labelText: 'Min capacity',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All')),
-                      DropdownMenuItem(value: 2, child: Text('2+')),
-                      DropdownMenuItem(value: 4, child: Text('4+')),
-                      DropdownMenuItem(value: 6, child: Text('6+')),
-                      DropdownMenuItem(value: 8, child: Text('8+')),
-                    ],
-                    onChanged: (v) {
-                      setState(() => _selectedMinCapacity = v);
-                      _loadTables();
-                    },
-                  ),
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Reserved that day',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 12),
+
+                if (_occupiedTables.isEmpty)
+                  const Text('No occupied tables for this date.')
+                else
+                  ..._occupiedTables.map(
+                    (table) => _tableCard(table, occupied: true),
+                  ),
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Free all day',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+
+                if (_freeTables.isEmpty)
+                  const Text('No tables are free all day.')
+                else
+                  ..._freeTables.map(
+                    (table) => _tableCard(table, occupied: false),
+                  ),
               ],
             ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Table number',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (v) {
-                setState(() => _tableNumberQuery = v);
-                _loadTables();
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _tables.isEmpty
-                  ? const Center(child: Text('No tables found.'))
-                  : ListView.builder(
-                      itemCount: _tables.length,
-                      itemBuilder: (context, index) {
-                        final t = _tables[index];
-                        final occupied = t.isOccupied == true;
-
-                        return Card(
-                          color: occupied
-                              ? const Color(0xFFC4A484)
-                              : const Color(0xFFD2B48C),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.table_restaurant,
-                              color: occupied ? Colors.red : Colors.green,
-                            ),
-                            title: Text(
-                              'Table ${t.number}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF3E2723),
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Capacity: ${t.capacity} | ${occupied ? "Occupied" : "Free"}',
-                              style: const TextStyle(color: Color(0xFF5D4037)),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -281,7 +281,7 @@ namespace CafeEase.Services
                 throw new UserException("User not found");
 
             entity.Status = ReservationStatuses.Cancelled;
-            entity.CancelledAt = DateTime.Now;
+            entity.CancelledAt = DateTime.UtcNow;
             entity.CancelledByUserId = currentUser.Id;
             entity.CancellationReason = request.CancellationReason.Trim();
 

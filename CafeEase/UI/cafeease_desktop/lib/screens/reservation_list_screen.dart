@@ -68,7 +68,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   }
 
   String _formatDate(DateTime? dt) {
-    if (dt == null) return '—';
+    if (dt == null) return '-';
     return DateFormat('dd.MM.yyyy HH:mm').format(dt);
   }
 
@@ -251,9 +251,12 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                                               : Colors.black87,
                                         ),
                                       ),
+                                      Text(
+                                        'Duration: ${r.durationMinutes ?? 120} minutes',
+                                      ),
                                       if (isCancelled && r.cancelledAt != null)
                                         Text(
-                                          'Cancelled at: ${_formatDate(r.cancelledAt)}',
+                                          'Cancelled at: ${DateFormat('dd.MM.yyyy HH:mm').format(r.cancelledAt!.toLocal())}',
                                           style: TextStyle(
                                             color: Colors.grey.shade700,
                                           ),

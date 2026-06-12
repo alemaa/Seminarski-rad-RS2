@@ -30,7 +30,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
   bool _isSaving = false;
   bool get isEdit => widget.reservation != null;
-  
+
   static const int _durationMinutes = 120;
 
   @override
@@ -447,6 +447,13 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                               },
                             ),
                             right: _dateTimeButton(),
+                          ),
+                          const SizedBox(height: 10),
+
+                          Text(
+                            'Reserved time slot: '
+                            '${DateFormat('HH:mm').format(_reservationDate!)}'
+                            ' - ${DateFormat('HH:mm').format(_reservationDate!.add(const Duration(hours: 2)))}',
                           ),
 
                           const SizedBox(height: 28),

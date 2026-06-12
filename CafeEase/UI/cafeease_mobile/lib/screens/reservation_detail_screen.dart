@@ -105,8 +105,9 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                     _DetailRow(
                       icon: Icons.schedule_outlined,
                       label: "Cancelled at",
-                      value:
-                          DateFormat('dd.MM.yyyy HH:mm').format(r.cancelledAt!),
+                      value: DateFormat('dd.MM.yyyy HH:mm').format(
+                        r.cancelledAt!.toLocal(),
+                      ),
                       accent: _accent,
                       textDark: _textDark,
                     ),
