@@ -22,8 +22,8 @@ services:
       - "15672:15672"
       - "5672:5672"
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     networks:
       - cafeease-net
 
@@ -37,10 +37,10 @@ services:
       - ASPNETCORE_URLS=http://+:5003
       - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=${DB_NAME};User=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;ConnectRetryCount=0
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=guest
-      - RABBITMQ_PASSWORD=guest
-      - RABBITMQ_VIRTUALHOST=/
-      - RABBITMQ_QUEUE=payment_completed
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VIRTUALHOST=${RABBITMQ_VIRTUALHOST}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
       - Stripe__SecretKey=${STRIPE_SECRET_KEY}
       - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
     ports:
@@ -58,18 +58,18 @@ services:
       dockerfile: CafeEase.Subscriber/Dockerfile
     environment:
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USERNAME=guest
-      - RABBITMQ_PASSWORD=guest
-      - RABBITMQ_VIRTUALHOST=/
-      - RABBITMQ_QUEUE=payment_completed
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VIRTUALHOST=${RABBITMQ_VIRTUALHOST}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
       - ConnectionStrings__DefaultConnection=Server=cafeease-sql;Database=${DB_NAME};User=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;ConnectRetryCount=0
 
-      - SMTP_ENABLED=false
-      - SMTP_HOST=smtp.example.com
-      - SMTP_PORT=587
-      - SMTP_USERNAME=...
-      - SMTP_PASSWORD=...
-      - SMTP_FROM=no-reply@cafeease.com
+      - SMTP_ENABLED=${SMTP_ENABLED}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
 
     networks:
       - cafeease-net
