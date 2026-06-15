@@ -35,7 +35,7 @@ class _SalesSummaryReportScreenState extends State<SalesSummaryReportScreen> {
 
       if (_selectedDate != null) {
         orders = orders.where((order) {
-          final date = order.orderDate;
+          final date = order.orderDate?.toLocal();
           if (date == null) return false;
 
           return date.year == _selectedDate!.year &&

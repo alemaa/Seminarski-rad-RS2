@@ -580,7 +580,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                         order.orderDate != null
                                             ? DateFormat(
                                                 'dd.MM.yyyy HH:mm',
-                                              ).format(order.orderDate!)
+                                              ).format(
+                                                order.orderDate!.toLocal(),
+                                              )
                                             : '-',
                                       ),
                                     ],

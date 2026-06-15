@@ -26,7 +26,7 @@ namespace CafeEase.Services
 
         public override async Task BeforeInsert(Database.Review entity, ReviewInsertRequest insert)
         {
-            entity.DateCreated = DateTime.Now;
+            entity.DateCreated = DateTime.UtcNow;
 
 
             var user = _httpContextAccessor.HttpContext?.User;

@@ -220,7 +220,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   const SizedBox(height: 6),
                   Text(
                     n.createdAt != null
-                        ? DateFormat('dd.MM.yyyy HH:mm').format(n.createdAt!)
+                        ? DateFormat('dd.MM.yyyy HH:mm').format(n.createdAt!.toLocal())
                         : "",
                     style: TextStyle(
                       fontSize: 11,

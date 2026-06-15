@@ -104,9 +104,10 @@ class _PromotionListScreenState extends State<PromotionListScreen> {
   String _formatDate(DateTime? d) {
     if (d == null) return '-';
 
-    final day = d.day.toString().padLeft(2, '0');
-    final month = d.month.toString().padLeft(2, '0');
-    final year = d.year.toString();
+    final localDate = d.toLocal();
+    final day = localDate.day.toString().padLeft(2, '0');
+    final month = localDate.month.toString().padLeft(2, '0');
+    final year = localDate.year.toString();
 
     return '$day.$month.$year';
   }

@@ -69,7 +69,8 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '-';
-    return DateFormat('dd.MM.yyyy HH:mm').format(dt);
+
+    return DateFormat('dd.MM.yyyy HH:mm').format(dt.toLocal());
   }
 
   Future<void> _pickDate() async {

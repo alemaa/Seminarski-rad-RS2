@@ -16,7 +16,7 @@ class ReservationProvider extends BaseProvider<Reservation> {
   }) async {
     final req = {
       "tableNumber": tableNumber,
-      "reservationDateTime": reservationDateTime.toIso8601String(),
+      "reservationDateTime": reservationDateTime.toUtc().toIso8601String(),
       "numberOfGuests": numberOfGuests,
     };
     return await insert(req);
@@ -35,7 +35,7 @@ class ReservationProvider extends BaseProvider<Reservation> {
       String? status}) async {
     final req = <String, dynamic>{};
     if (reservationDateTime != null) {
-      req["reservationDateTime"] = reservationDateTime.toIso8601String();
+      req["reservationDateTime"] = reservationDateTime.toUtc().toIso8601String();
     }
 
     if (numberOfGuests != null) {

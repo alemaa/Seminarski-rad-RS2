@@ -77,7 +77,8 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
     }
   }
 
-  String _formatDate(DateTime dt) => DateFormat('dd.MM.yyyy').format(dt);
+  String _formatDate(DateTime dt) =>
+      DateFormat('dd.MM.yyyy').format(dt.toLocal());
 
   @override
   Widget build(BuildContext context) {

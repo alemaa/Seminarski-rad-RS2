@@ -206,7 +206,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                               final dt = r.reservationDateTime;
                               final dateStr = dt == null
                                   ? "-"
-                                  : DateFormat('dd.MM.yyyy').format(dt);
+                                  : DateFormat('dd.MM.yyyy').format(dt.toLocal());
                               return ListTile(
                                 title: Text(
                                     "Table: ${r.tableNumber ?? r.tableId ?? '-'}"),

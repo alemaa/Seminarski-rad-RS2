@@ -108,14 +108,14 @@ namespace CafeEase.Services
                 {
                     UserId = order.UserId,
                     Points = earnedPoints,
-                    LastUpdated = DateTime.Now
+                    LastUpdated = DateTime.UtcNow
                 };
                 _context.LoyaltyPoints.Add(loyalty);
             }
             else
             {
                 loyalty.Points += earnedPoints;
-                loyalty.LastUpdated = DateTime.Now;
+                loyalty.LastUpdated = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();

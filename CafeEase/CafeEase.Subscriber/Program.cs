@@ -117,7 +117,7 @@ consumer.ReceivedAsync += async (_, ea) =>
                 Title = "Payment successful",
                 Body = $"Your payment for order #{message.OrderId} has been recorded. Amount: {message.Amount:0.00}.",
                 IsRead = false,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
 
             db.Notifications.Add(notif);

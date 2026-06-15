@@ -133,13 +133,15 @@ class _TableAvailabilityScreenState extends State<TableAvailabilityScreen> {
 
             if (occupied)
               ...reservations.map((reservation) {
-                final end = reservation.reservationDateTime.add(
+                final localStart = reservation.reservationDateTime.toLocal();
+
+                final localEnd = localStart.add(
                   Duration(minutes: reservation.durationMinutes ?? 120),
                 );
 
                 return Text(
-                  '${DateFormat('HH:mm').format(reservation.reservationDateTime)}'
-                  ' - ${DateFormat('HH:mm').format(end)}',
+                  '${DateFormat('HH:mm').format(localStart)}'
+                  ' - ${DateFormat('HH:mm').format(localEnd)}',
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.w500,

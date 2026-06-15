@@ -124,9 +124,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return "";
-    final y = dt.year.toString().padLeft(4, '0');
-    final m = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
+
+    final localDate = dt.toLocal();
+    final y = localDate.year.toString().padLeft(4, '0');
+    final m = localDate.month.toString().padLeft(2, '0');
+    final d = localDate.day.toString().padLeft(2, '0');
+
     return "$d.$m.$y";
   }
 

@@ -173,7 +173,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
 
       await reservationProvider.insert({
         "tableId": _selectedTable!.id,
-        "reservationDateTime": _selectedDate!.toIso8601String(),
+        "reservationDateTime": _selectedDate!.toUtc().toIso8601String(),
         "durationMinutes": _durationMinutes,
         "numberOfGuests": guests,
       });

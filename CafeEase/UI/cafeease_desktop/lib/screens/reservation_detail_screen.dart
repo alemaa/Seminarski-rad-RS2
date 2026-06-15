@@ -42,7 +42,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     );
 
     _reservationDate =
-        widget.reservation?.reservationDateTime ?? DateTime.now();
+        widget.reservation?.reservationDateTime.toLocal() ?? DateTime.now();
 
     _status = widget.reservation?.status ?? 'Pending';
 
@@ -140,7 +140,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     final request = {
       'tableId': _selectedTableId,
       'numberOfGuests': int.parse(_guestsController.text.trim()),
-      'reservationDateTime': _reservationDate!.toIso8601String(),
+      'reservationDateTime': _reservationDate!.toUtc().toIso8601String(),
       'durationMinutes': _durationMinutes,
       'status': _status,
     };

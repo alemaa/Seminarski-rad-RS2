@@ -49,7 +49,8 @@ namespace CafeEase.Services
                 throw new UserException("Selected table does not exist");
             }
 
-            var requestedStart = insert.ReservationDateTime;
+            var requestedStart = insert.ReservationDateTime.ToUniversalTime();
+            entity.ReservationDateTime = requestedStart;
             var requestedDuration = insert.DurationMinutes;
 
             var reservationsForTable = await _context.Reservations
@@ -64,7 +65,7 @@ namespace CafeEase.Services
             if (hasOverlap)
                 throw new UserException("Selected table is already reserved for that time.");
 
-            if(insert.ReservationDateTime.Date == DateTime.Today)
+            if (requestedStart.Date == DateTime.UtcNow.Date)
             {
                 table.IsOccupied = true;
             }
@@ -125,7 +126,7 @@ namespace CafeEase.Services
                 throw new UserException("Reservation not found");
 
             var targetTableId = update.TableId ?? entity.TableId;
-            var targetStart = update.ReservationDateTime ?? entity.ReservationDateTime;
+            var targetStart = update.ReservationDateTime.HasValue ? update.ReservationDateTime.Value.ToUniversalTime() : entity.ReservationDateTime;
             var targetDuration = update.DurationMinutes ?? entity.DurationMinutes;
             var targetGuests = update.NumberOfGuests ?? entity.NumberOfGuests;
 
@@ -178,6 +179,9 @@ namespace CafeEase.Services
 
             _mapper.Map(update, entity);
 
+            if (update.ReservationDateTime.HasValue)
+                entity.ReservationDateTime = targetStart;
+
             if (string.IsNullOrWhiteSpace(update.Status))
                 entity.Status = oldStatus;
 
@@ -189,7 +193,7 @@ namespace CafeEase.Services
 
             if (oldStatus != ReservationStatuses.Cancelled && entity.Status == ReservationStatuses.Cancelled)
             {
-                if (table != null && entity.ReservationDateTime.Date == DateTime.Today)
+                if (table != null && entity.ReservationDateTime.Date == DateTime.UtcNow.Date)
                 {
                     var anyOtherToday = await _context.Reservations
                         .Where(r =>
@@ -200,7 +204,7 @@ namespace CafeEase.Services
 
                     table.IsOccupied = anyOtherToday.Any(r =>
                         Overlaps(
-                            DateTime.Now,
+                            DateTime.UtcNow,
                             1,
                             r.ReservationDateTime,
                             r.DurationMinutes));
@@ -210,7 +214,7 @@ namespace CafeEase.Services
                      (entity.Status == ReservationStatuses.Pending || entity.Status == ReservationStatuses.Confirmed))
             {
                 if (table != null &&
-                    Overlaps(DateTime.Now, 1, entity.ReservationDateTime, entity.DurationMinutes))
+                    Overlaps(DateTime.UtcNow, 1, entity.ReservationDateTime, entity.DurationMinutes))
                 {
                     table.IsOccupied = true;
                 }
@@ -289,7 +293,7 @@ namespace CafeEase.Services
             {
                 var otherReservations = await _context.Reservations.Where(r => r.Id != id && r.TableId == entity.TableId && r.Status != ReservationStatuses.Cancelled).ToListAsync();
 
-                entity.Table.IsOccupied = otherReservations.Any(r => Overlaps(DateTime.Now, 1, r.ReservationDateTime, r.DurationMinutes));
+                entity.Table.IsOccupied = otherReservations.Any(r => Overlaps(DateTime.UtcNow, 1, r.ReservationDateTime, r.DurationMinutes));
             }
 
             await _context.SaveChangesAsync();

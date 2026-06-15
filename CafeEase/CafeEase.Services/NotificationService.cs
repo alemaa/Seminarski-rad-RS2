@@ -109,7 +109,7 @@ namespace CafeEase.Services
                 Title = title,
                 Body = body,
                 IsRead = false,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
 
             await _context.SaveChangesAsync();
@@ -131,7 +131,7 @@ namespace CafeEase.Services
                     Title = title,
                     Body = body,
                     IsRead = false,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 });
             }
 

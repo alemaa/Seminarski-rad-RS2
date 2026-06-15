@@ -366,7 +366,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Date: ${DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!)}',
+                                                'Date: ${DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!.toLocal())}',
                                                 style: const TextStyle(
                                                   fontSize: 13,
                                                   color: Color(0xFF3E2723),

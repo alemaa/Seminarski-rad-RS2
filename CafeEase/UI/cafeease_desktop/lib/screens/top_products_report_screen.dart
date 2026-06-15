@@ -102,7 +102,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
 
         filteredOrders = filteredOrders.where((o) {
           if (o.orderDate == null) return false;
-          return !o.orderDate!.isBefore(from);
+          return !o.orderDate!.toLocal().isBefore(from);
         }).toList();
       }
 
@@ -118,7 +118,7 @@ class _TopProductsReportScreenState extends State<TopProductsReportScreen> {
 
         filteredOrders = filteredOrders.where((o) {
           if (o.orderDate == null) return false;
-          return !o.orderDate!.isAfter(to);
+          return !o.orderDate!.toLocal().isAfter(to);
         }).toList();
       }
 

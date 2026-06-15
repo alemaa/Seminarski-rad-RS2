@@ -25,7 +25,7 @@ namespace CafeEase.Services
 
             if (search?.ActiveOnly == true)
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 query = query.Where(x =>
                     x.StartDate <= now &&
                     x.EndDate >= now);

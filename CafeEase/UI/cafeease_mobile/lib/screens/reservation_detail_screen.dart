@@ -28,7 +28,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     final r = widget.reservation;
 
     final dt = r.reservationDateTime;
-    final dateStr = dt == null ? "-" : DateFormat('dd.MM.yyyy').format(dt);
+    final dateStr = dt == null ? "-" : DateFormat('dd.MM.yyyy').format(dt.toLocal());
 
     final statusText = (r.status ?? "-").trim();
     final isCancelled = statusText.toLowerCase() == "cancelled";

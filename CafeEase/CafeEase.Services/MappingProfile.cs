@@ -34,26 +34,26 @@ namespace CafeEase.Services.Mapping
             IgnoreNullValues(CreateMap<ProductUpdateRequest, Database.Product>());
             CreateMap<OrderInsertRequest, Database.Order>();
             CreateMap<Database.Order, Model.Order>().ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User.FirstName + " " + src.User.LastName))
-             .ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number)); ;
+             .ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number)).ForMember(dest => dest.OrderDate,opt => opt.MapFrom(src => DateTime.SpecifyKind(src.OrderDate, DateTimeKind.Utc)));
             CreateMap<Database.OrderItem, Model.OrderItem>().ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name));
             CreateMap<OrderItemInsertRequest, Database.OrderItem>();
             IgnoreNullValues(CreateMap<OrderItemUpdateRequest, Database.OrderItem>());
             CreateMap<Database.Payment, Model.Payment>();
             CreateMap<PaymentInsertRequest, Database.Payment>();
             IgnoreNullValues(CreateMap<PaymentUpdateRequest, Database.Payment>());
-            CreateMap<Database.LoyaltyPoints, Model.LoyaltyPoints>();
+            CreateMap<Database.LoyaltyPoints, Model.LoyaltyPoints>().ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.LastUpdated, DateTimeKind.Utc)));
             CreateMap<LoyaltyPointsInsertRequest, Database.LoyaltyPoints>();
             IgnoreNullValues(CreateMap<LoyaltyPointsUpdateRequest, Database.LoyaltyPoints>());
-            CreateMap<Database.Promotion, Model.Promotion>().ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.PromotionCategories.Where(pc => pc.Category != null).Select(pc => pc.Category)));
+            CreateMap<Database.Promotion, Model.Promotion>().ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.PromotionCategories.Where(pc => pc.Category != null).Select(pc => pc.Category))).ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.StartDate, DateTimeKind.Utc))).ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.EndDate, DateTimeKind.Utc)));
             CreateMap<PromotionInsertRequest, Database.Promotion>();
             IgnoreNullValues(CreateMap<PromotionUpdateRequest, Database.Promotion>());
-            CreateMap<Database.Review, Model.Review>().ForMember(d => d.UserFullName, o => o.MapFrom(s => s.User.FirstName + " " + s.User.LastName)).ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.Name));
+            CreateMap<Database.Review, Model.Review>().ForMember(d => d.UserFullName, o => o.MapFrom(s => s.User.FirstName + " " + s.User.LastName)).ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.Name)).ForMember(d => d.DateCreated, o => o.MapFrom(s => DateTime.SpecifyKind(s.DateCreated, DateTimeKind.Utc)));
             CreateMap<ReviewInsertRequest, Database.Review>();
             IgnoreNullValues(CreateMap<ReviewUpdateRequest, Database.Review>());
             CreateMap<Database.Reservation, Model.Reservation>().ForMember(dest => dest.TableNumber, opt => opt.MapFrom(src => src.Table.Number)).
                 ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User != null ? src.User.FirstName + " " + src.User.LastName : null))
-                .ForMember(dest => dest.UserMail, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null)).ForMember(dest => dest.CancelledAt,opt => opt.MapFrom(src =>
-                    src.CancelledAt.HasValue ? DateTime.SpecifyKind(src.CancelledAt.Value, DateTimeKind.Utc) : (DateTime?)null));
+                .ForMember(dest => dest.UserMail, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null)).ForMember(dest => dest.CancelledAt, opt => opt.MapFrom(src =>
+                    src.CancelledAt.HasValue ? DateTime.SpecifyKind(src.CancelledAt.Value, DateTimeKind.Utc) : (DateTime?)null)).ForMember(dest => dest.ReservationDateTime, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.ReservationDateTime, DateTimeKind.Utc)));
             CreateMap<ReservationInsertRequest, Database.Reservation>();
             IgnoreNullValues(CreateMap<ReservationUpdateRequest, Database.Reservation>());
             CreateMap<Database.Recommendation, Model.Recommendation>().ReverseMap();
@@ -65,7 +65,7 @@ namespace CafeEase.Services.Mapping
             IgnoreNullValues(CreateMap<InventoryUpdateRequest, Database.Inventory>());
             CreateMap<Database.City, Model.City>();
             CreateMap<CityUpsertRequest, Database.City>();
-            CreateMap<Database.Notification, Model.Notification>();
+            CreateMap<Database.Notification, Model.Notification>().ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.CreatedAt, DateTimeKind.Utc)));
             CreateMap<Database.Cafe, Model.Cafe>()
             .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name));
             CreateMap<CafeEase.Model.Requests.CafeUpsertRequest, Database.Cafe>();

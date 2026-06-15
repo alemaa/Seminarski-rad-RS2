@@ -337,7 +337,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           final icon = _getStatusIcon(o.status);
 
           final dateText = (o.orderDate != null)
-              ? DateFormat('yyyy-MM-dd HH:mm').format(o.orderDate!)
+              ? DateFormat('yyyy-MM-dd HH:mm').format(o.orderDate!.toLocal())
               : "Unknown date";
 
           return Card(

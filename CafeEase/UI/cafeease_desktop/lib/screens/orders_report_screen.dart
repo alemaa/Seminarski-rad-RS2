@@ -172,7 +172,7 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
 
         filtered = filtered.where((o) {
           if (o.orderDate == null) return false;
-          return !o.orderDate!.isBefore(from);
+          return !o.orderDate!.toLocal().isBefore(from);
         }).toList();
       }
 
@@ -188,7 +188,7 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
 
         filtered = filtered.where((o) {
           if (o.orderDate == null) return false;
-          return !o.orderDate!.isAfter(to);
+          return !o.orderDate!.toLocal().isAfter(to);
         }).toList();
       }
 
@@ -237,7 +237,9 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
                   return [
                     o.id.toString(),
                     o.orderDate != null
-                        ? DateFormat('dd.MM.yyyy HH:mm').format(o.orderDate!)
+                        ? DateFormat(
+                            'dd.MM.yyyy HH:mm',
+                          ).format(o.orderDate!.toLocal())
                         : '',
                     _formatStatusLabel(o.status),
                     o.totalAmount?.toStringAsFixed(2) ?? '0.00',
@@ -477,7 +479,7 @@ class _OrdersReportScreenState extends State<OrdersReportScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Date: ${order.orderDate != null ? DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!) : '-'}',
+                                  'Date: ${order.orderDate != null ? DateFormat('dd.MM.yyyy HH:mm').format(order.orderDate!.toLocal()) : '-'}',
                                 ),
                                 const SizedBox(height: 4),
                                 Text(

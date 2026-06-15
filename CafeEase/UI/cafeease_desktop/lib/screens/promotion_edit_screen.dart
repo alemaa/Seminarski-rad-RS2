@@ -52,8 +52,8 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
       text: _formatDiscountForInput(widget.promotion?.discountPercent),
     );
 
-    _startDate = widget.promotion?.startDate;
-    _endDate = widget.promotion?.endDate;
+    _startDate = widget.promotion?.startDate.toLocal();
+    _endDate = widget.promotion?.endDate.toLocal();
 
     _loadCategories();
   }
@@ -61,9 +61,10 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
   String _formatDate(DateTime? d) {
     if (d == null) return 'dd.MM.yyyy';
 
-    final day = d.day.toString().padLeft(2, '0');
-    final month = d.month.toString().padLeft(2, '0');
-    final year = d.year.toString();
+    final localDate = d.toLocal();
+    final day = localDate.day.toString().padLeft(2, '0');
+    final month = localDate.month.toString().padLeft(2, '0');
+    final year = localDate.year.toString();
 
     return '$day.$month.$year';
   }
@@ -187,8 +188,8 @@ class _PromotionEditScreenState extends State<PromotionEditScreen> {
       'name': _nameController.text.trim(),
       'description': _descController.text.trim(),
       'discountPercent': discount,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
+      'startDate': startDate.toUtc().toIso8601String(),
+      'endDate': endDate.toUtc().toIso8601String(),
       'categoryIds': selectedCategoryIds,
       'targetSegment': _selectedSegment,
     };

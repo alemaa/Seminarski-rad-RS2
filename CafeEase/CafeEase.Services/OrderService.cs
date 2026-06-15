@@ -84,7 +84,7 @@ namespace CafeEase.Services
 
             entity.TableId = insert.TableId;
 
-            entity.OrderDate = DateTime.Now;
+            entity.OrderDate = DateTime.UtcNow;
             entity.TotalAmount = await ApplyPromotionDiscount(total, entity.OrderItems.ToList(), dbUser.Id);
             entity.Status = OrderStatuses.Pending;
         }
@@ -191,7 +191,7 @@ namespace CafeEase.Services
                 .FirstOrDefaultAsync() ?? 0;
 
             var segment = GetUserSegment(points);
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             var promotions = await _context.Promotions
                 .Include(p => p.PromotionCategories)

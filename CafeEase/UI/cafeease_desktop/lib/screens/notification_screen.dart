@@ -30,7 +30,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         error = null;
       });
     }
-    
+
     try {
       final provider = context.read<NotificationProvider>();
       final res = await provider.get(
@@ -84,13 +84,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String _formatDate(dynamic value) {
     if (value == null) return "";
+
     try {
       final dt = value is DateTime ? value : DateTime.parse(value.toString());
-      final day = dt.day.toString().padLeft(2, '0');
-      final month = dt.month.toString().padLeft(2, '0');
-      final year = dt.year.toString();
-      final hour = dt.hour.toString().padLeft(2, '0');
-      final minute = dt.minute.toString().padLeft(2, '0');
+
+      final localDate = dt.toLocal();
+
+      final day = localDate.day.toString().padLeft(2, '0');
+      final month = localDate.month.toString().padLeft(2, '0');
+      final year = localDate.year.toString();
+      final hour = localDate.hour.toString().padLeft(2, '0');
+      final minute = localDate.minute.toString().padLeft(2, '0');
+
       return "$day.$month.$year  $hour:$minute";
     } catch (_) {
       return value.toString();
