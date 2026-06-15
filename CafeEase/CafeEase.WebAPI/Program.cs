@@ -96,10 +96,16 @@ builder.Services.AddAutoMapper(cfg =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.AllowAnyOrigin() 
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+    options.AddPolicy("AllowSpecificOrigin", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5003",
+                "http://127.0.0.1:5003"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 var app = builder.Build();
