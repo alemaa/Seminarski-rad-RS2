@@ -62,7 +62,7 @@ namespace CafeEase.Services
             return query;
         }
 
-        public async Task<T> GetById(int id)
+        public virtual async Task<T> GetById(int id)
         {
             var entity = await _context.Set<TDb>().FindAsync(id);
 

@@ -29,6 +29,7 @@ namespace CafeEase.WebAPI.Controllers
             return await _cafeService.GetNearby(latitude, longitude);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("geocode")]
         public async Task<ActionResult<GeocodeResponse>> Geocode([FromQuery] string address, [FromQuery] string city)
         {
@@ -41,6 +42,27 @@ namespace CafeEase.WebAPI.Controllers
                 throw new NotFoundException("Coordinates not found.");
 
             return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public override async Task<Cafe> Insert([FromBody] CafeUpsertRequest insert)
+        {
+            return await base.Insert(insert);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public override async Task<Cafe> Update(int id, [FromBody] CafeUpsertRequest update)
+        {
+            return await base.Update(id, update);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public override async Task<Cafe> Delete(int id)
+        {
+            return await base.Delete(id);
         }
     }
 }

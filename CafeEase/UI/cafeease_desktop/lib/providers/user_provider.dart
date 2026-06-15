@@ -9,4 +9,8 @@ class UserProvider extends BaseProvider<User> {
   User fromJson(data) {
     return User.fromJson(data);
   }
+
+  Future<void> verifyAdmin() async {
+    await getCustom('api/Users/admin-check');
+  }
 }

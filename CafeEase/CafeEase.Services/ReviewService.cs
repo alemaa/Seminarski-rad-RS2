@@ -64,6 +64,61 @@ namespace CafeEase.Services
             return query.Include(r => r.User).Include(r => r.Product);
         }
 
+        public override async Task<Model.Review> GetById(int id)
+        {
+            var entity = await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Product)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Review not found.");
+
+            return _mapper.Map<Model.Review>(entity);
+        }
+
+        public override async Task<Model.Review> Update(int id, ReviewUpdateRequest update)
+        {
+            var entity = await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Product)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Review not found.");
+
+            var currentUser = await GetCurrentUserAsync();
+
+            if (!IsAdmin() && entity.UserId != currentUser.Id)
+                throw new ForbiddenException("You cannot modify this review.");
+
+            _mapper.Map(update, entity);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Review>(entity);
+        }
+
+        public override async Task<Model.Review> Delete(int id)
+        {
+            var entity = await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Product)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Review not found.");
+
+            var currentUser = await GetCurrentUserAsync();
+
+            if (!IsAdmin() && entity.UserId != currentUser.Id)
+                throw new ForbiddenException("You cannot delete this review.");
+
+            _context.Reviews.Remove(entity);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.Review>(entity);
+        }
+
         public override IQueryable<Database.Review> AddFilter(IQueryable<Database.Review> query, ReviewSearchObject? search = null)
         {
             if (search?.ProductId.HasValue == true)
@@ -71,9 +126,15 @@ namespace CafeEase.Services
                 query = query.Where(x => x.ProductId == search.ProductId);
             }
 
-            if (search?.UserId.HasValue == true)
+            if (IsAdmin())
             {
-                query = query.Where(x => x.UserId == search.UserId);
+                if (search?.UserId.HasValue == true)
+                    query = query.Where(r => r.UserId == search.UserId.Value);
+            }
+            else if (search?.UserId.HasValue == true)
+            {
+                var username = GetCurrentUsername();
+                query = query.Where(r => r.User.Username == username);
             }
 
             if(search?.Rating.HasValue == true)
@@ -83,6 +144,31 @@ namespace CafeEase.Services
 
             return base.AddFilter(query, search);
             
+        }
+
+        private string GetCurrentUsername()
+        {
+            return _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new UserException("User not authenticated.");
+        }
+
+        private bool IsAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
+        }
+
+        private async Task<Database.User> GetCurrentUserAsync()
+        {
+            var username = GetCurrentUsername();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+                throw new UserException("User not found.");
+
+            return user;
         }
     }
 }

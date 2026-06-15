@@ -90,10 +90,13 @@ namespace CafeEase.Services
         }
         public override async Task<Model.Order> Update(int id, OrderUpdateRequest update)
         {
-            var entity = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == id);
+            var entity = await _context.Orders.Include(o => o.OrderItems).Include(o => o.User).FirstOrDefaultAsync(o => o.Id == id);
 
             if (entity == null)
                 throw new UserException("Order not found");
+
+            if (!IsAdmin())
+                throw new ForbiddenException("Only administrators can update orders.");
 
             if (string.IsNullOrWhiteSpace(update.Status))
                 throw new UserException("Order status is required.");
@@ -143,16 +146,20 @@ namespace CafeEase.Services
         }
         public override IQueryable<Database.Order> AddFilter(IQueryable<Database.Order> query, OrderSearchObject? search = null)
         {
-            if (search == null)
-                return base.AddFilter(query, search);
-
-            if (search.OrderId.HasValue)
+            if (search?.OrderId.HasValue == true)
                 query = query.Where(o => o.Id == search.OrderId);
 
-            if (search.UserId.HasValue)
-                query = query.Where(o => o.UserId == search.UserId);
+            if (!IsAdmin())
+            {
+                var username = GetCurrentUsername();
+                query = query.Where(o => o.User.Username == username);
+            }
+            else if (search?.UserId.HasValue == true)
+            {
+                query = query.Where(o => o.UserId == search.UserId.Value);
+            }
 
-            if (!string.IsNullOrWhiteSpace(search.UserName))
+            if (!string.IsNullOrWhiteSpace(search?.UserName))
             {
                 var userName = search.UserName.ToLower();
 
@@ -161,13 +168,13 @@ namespace CafeEase.Services
                     o.User.LastName.ToLower().Contains(userName));
             }
 
-            if (search.TableId.HasValue)
+            if (search?.TableId.HasValue == true)
                 query = query.Where(o => o.TableId == search.TableId);
 
-            if (!string.IsNullOrWhiteSpace(search.Status))
+            if (!string.IsNullOrWhiteSpace(search?.Status))
                 query = query.Where(o => o.Status == search.Status);
 
-            if (search.Date.HasValue)
+            if (search?.Date.HasValue == true)
             {
                 var date = search.Date.Value.Date;
                 query = query.Where(o => o.OrderDate.Date == date);
@@ -181,6 +188,31 @@ namespace CafeEase.Services
             if (points >= 50) return "VIP";
             if (points >= 20) return "NEW";
             return "ALL";
+        }
+
+        public override async Task<Model.Order> GetById(int id)
+        {
+            var entity = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Table)
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Order not found.");
+
+            if (!IsAdmin() && entity.User.Username != GetCurrentUsername())
+                throw new ForbiddenException("You cannot access this order.");
+
+            return _mapper.Map<Model.Order>(entity);
+        }
+
+        public override async Task<Model.Order> Delete(int id)
+        {
+            if (!IsAdmin())
+                throw new ForbiddenException("Only administrators can delete orders.");
+
+            return await base.Delete(id);
         }
 
         private async Task<decimal> ApplyPromotionDiscount(decimal subtotal, List<Database.OrderItem> items, int userId)
@@ -310,6 +342,18 @@ namespace CafeEase.Services
                 DiscountAmount = subtotal - total,
                 TotalAmount = total
             };
+        }
+
+        private string GetCurrentUsername()
+        {
+            return _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new UserException("User not authenticated.");
+        }
+
+        private bool IsAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
         }
     }
 }

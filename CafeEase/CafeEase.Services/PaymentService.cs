@@ -13,20 +13,37 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace CafeEase.Services
 {
     public class PaymentService : BaseCRUDService<Model.Payment, Database.Payment, PaymentSearchObject, PaymentInsertRequest, PaymentUpdateRequest>,IPaymentService
     {
         private readonly ILogger<PaymentService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PaymentService(CafeEaseDbContext context, IMapper mapper, ILogger<PaymentService> logger) : base(context, mapper)
+        public PaymentService(CafeEaseDbContext context, IMapper mapper, ILogger<PaymentService> logger, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
         {
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public override async Task BeforeInsert(Database.Payment entity,PaymentInsertRequest insert)
         {
+            var order = await _context.Orders.Include(o => o.User).FirstOrDefaultAsync(o => o.Id == insert.OrderId);
+
+            if (order == null)
+                throw new NotFoundException("Order not found.");
+
+            if (!IsAdmin() && order.User.Username != GetCurrentUsername())
+                throw new ForbiddenException("You cannot create payment for this order.");
+
+            var paymentExists = await _context.Payments.AnyAsync(p => p.OrderId == insert.OrderId && (p.Status == "Pending" || p.Status == "Completed"));
+
+            if (paymentExists)
+                throw new UserException("An active payment already exists for this order.");
+
             entity.Status = "Pending";
         }
 
@@ -182,15 +199,63 @@ namespace CafeEase.Services
             return result;
         }
 
+        public override async Task<Model.Payment> Update(int id, PaymentUpdateRequest update)
+        {
+            if (!IsAdmin())
+               throw new ForbiddenException("Only administrators can update payments.");
+
+            return await base.Update(id, update);
+        }
+
+        public override async Task<Model.Payment> Delete(int id)
+        {
+            if (!IsAdmin())
+                throw new ForbiddenException("Only administrators can delete payments.");
+
+            return await base.Delete(id);
+        }
+
         public override IQueryable<Database.Payment> AddFilter(IQueryable<Database.Payment> query, PaymentSearchObject? search = null)
         {
+            if (!IsAdmin())
+            {
+                var username = GetCurrentUsername();
+                query = query.Where(p => p.Order.User.Username == username);
+            }
+
             if (search?.OrderId.HasValue == true)
-                query = query.Where(x => x.OrderId == search.OrderId);
+                query = query.Where(x => x.OrderId == search.OrderId.Value);
 
             if (!string.IsNullOrWhiteSpace(search?.Status))
                 query = query.Where(x => x.Status == search.Status);
 
             return base.AddFilter(query, search);
+        }
+
+        public override IQueryable<Database.Payment> AddInclude(IQueryable<Database.Payment> query, PaymentSearchObject? search = null)
+        {
+            return query.Include(p => p.Order).ThenInclude(o => o.User);
+        }
+
+        public override async Task<Model.Payment> GetById(int id)
+        {
+            var entity = await _context.Payments
+                .Include(p => p.Order)
+                .ThenInclude(o => o.User)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Payment not found.");
+
+            if (!IsAdmin() &&
+                entity.Order.User.Username != GetCurrentUsername())
+            {
+                throw new ForbiddenException(
+                    "You cannot access this payment."
+                );
+            }
+
+            return _mapper.Map<Model.Payment>(entity);
         }
 
         public async Task ConfirmCashPaymentAsync(int paymentId)
@@ -209,6 +274,17 @@ namespace CafeEase.Services
                 return;
 
             await FinalizePaidOrderAsync(payment.Id);
+        }
+
+        private string GetCurrentUsername()
+        {
+            return _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new UserException("User not authenticated.");
+        }
+
+        private bool IsAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
         }
     }
 }

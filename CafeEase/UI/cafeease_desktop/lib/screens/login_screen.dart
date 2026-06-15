@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../providers/product_provider.dart';
 import '../utils/authorization.dart';
 import 'home_screen.dart';
+import '../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -63,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productProvider = context.read<ProductProvider>();
+    final userProvider = context.read<UserProvider>();
 
     return Scaffold(
       body: Stack(
@@ -203,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() => _isLoading = true);
 
                                   try {
-                                    await productProvider.get();
+                                    await userProvider.verifyAdmin();
 
                                     if (!mounted) return;
 
@@ -223,11 +222,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                         .replaceFirst('Exception: ', '')
                                         .toLowerCase();
 
-                                    if (msg.contains('desktop access denied')) {
+                                    if (msg.contains('desktop access denied') ||
+                                        msg.contains('forbidden') ||
+                                        msg.contains('403')) {
                                       _showErrorDialog(
                                         title: 'Access denied',
                                         message:
-                                            'User accounts cannot access the desktop/admin application.',
+                                            'Administrator account is required.',
                                       );
                                     } else if (msg.contains('invalid') ||
                                         msg.contains('unauthorized') ||

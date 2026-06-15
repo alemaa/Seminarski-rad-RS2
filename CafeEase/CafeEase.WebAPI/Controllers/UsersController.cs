@@ -1,4 +1,5 @@
 ﻿using CafeEase.Model.Requests;
+using CafeEase.Model.SearchObjects;
 using CafeEase.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,27 @@ namespace CafeEase.WebAPI.Controllers
 
             await ((IUserService)_service).ChangePassword(username, request);
             return Ok();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-check")]
+        public IActionResult AdminCheck()
+        {
+            return Ok();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public override Task<Model.PagedResult<Model.User>> Get([FromQuery] UserSearchObject? search = null)
+        {
+            return base.Get(search);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id}")]
+        public override Task<Model.User> GetById(int id)
+        {
+            return base.GetById(id);
         }
     }
 }

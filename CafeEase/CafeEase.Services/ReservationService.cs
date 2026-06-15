@@ -81,9 +81,14 @@ namespace CafeEase.Services
 
         public override IQueryable<Database.Reservation> AddFilter(IQueryable<Database.Reservation> query, ReservationSearchObject? search = null)
         {
-            if (search?.UserId.HasValue == true)
+            if (!IsAdmin())
             {
-                query = query.Where(x => x.UserId == search.UserId);
+                var username = GetCurrentUsername();
+                query = query.Where(r => r.User.Username == username);
+            }
+            else if (search?.UserId.HasValue == true)
+            {
+                query = query.Where(r => r.UserId == search.UserId.Value);
             }
 
             if (search?.TableId.HasValue == true)
@@ -105,6 +110,22 @@ namespace CafeEase.Services
             return base.AddFilter(query, search);
         }
 
+        public override async Task<Model.Reservation> GetById(int id)
+        {
+            var entity = await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.Table)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new NotFoundException("Reservation not found.");
+
+            if (!IsAdmin() && entity.User.Username != GetCurrentUsername())
+                throw new ForbiddenException("You cannot access this reservation.");
+
+            return _mapper.Map<Model.Reservation>(entity);
+        }
+
         public override async Task<Model.Reservation> Insert(ReservationInsertRequest insert)
         {
             var result = await base.Insert(insert);
@@ -118,12 +139,18 @@ namespace CafeEase.Services
 
         public override async Task<Model.Reservation> Update(int id, ReservationUpdateRequest update)
         {
-            var entity = await _context.Reservations
+            var entity = await _context.Reservations.Include(r => r.User)
                 .Include(r => r.Table)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Reservation not found");
+
+            if (!IsAdmin() && entity.User.Username != GetCurrentUsername())
+                throw new ForbiddenException("You cannot modify this reservation.");
+
+            if (!IsAdmin() && !string.IsNullOrWhiteSpace(update.Status))
+                throw new ForbiddenException("Only administrators can change reservation status.");
 
             var targetTableId = update.TableId ?? entity.TableId;
             var targetStart = update.ReservationDateTime.HasValue ? update.ReservationDateTime.Value.ToUniversalTime() : entity.ReservationDateTime;
@@ -258,21 +285,12 @@ namespace CafeEase.Services
 
         public async Task<Model.Reservation> Cancel(int id, ReservationCancelRequest request)
         {
-            var entity = await _context.Reservations
+            var entity = await _context.Reservations.Include(r => r.User)
                 .Include(r => r.Table)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Reservation not found");
-
-            if (entity.Status == ReservationStatuses.Cancelled)
-                return _mapper.Map<Model.Reservation>(entity);
-
-            if (!ReservationStatuses.AllowedTransitions.TryGetValue(entity.Status, out var allowedNextStatuses) ||
-                !allowedNextStatuses.Contains(ReservationStatuses.Cancelled))
-            {
-                throw new UserException($"Reservation status cannot change from {entity.Status} to {ReservationStatuses.Cancelled}.");
-            }
 
             var username = _httpContextAccessor.HttpContext?.User?
                 .FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -283,6 +301,17 @@ namespace CafeEase.Services
 
             if (currentUser == null)
                 throw new UserException("User not found");
+
+            if (!IsAdmin() && entity.UserId != currentUser.Id)
+                throw new ForbiddenException("You cannot cancel another user's reservation.");
+
+            if (entity.Status == ReservationStatuses.Cancelled)
+                return _mapper.Map<Model.Reservation>(entity);
+
+            if (!ReservationStatuses.AllowedTransitions.TryGetValue(entity.Status, out var allowedNextStatuses) || !allowedNextStatuses.Contains(ReservationStatuses.Cancelled))
+            {
+                throw new UserException($"Reservation status cannot change from {entity.Status} to {ReservationStatuses.Cancelled}.");
+            }
 
             entity.Status = ReservationStatuses.Cancelled;
             entity.CancelledAt = DateTime.UtcNow;
@@ -325,6 +354,18 @@ namespace CafeEase.Services
             var endB = startB.AddMinutes(durationB);
 
             return startA < endB && startB < endA;
+        }
+
+        private string GetCurrentUsername()
+        {
+            return _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? throw new UserException("User not authenticated.");
+        }
+
+        private bool IsAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
         }
     }
 }
