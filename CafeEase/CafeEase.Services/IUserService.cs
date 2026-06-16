@@ -11,5 +11,8 @@ namespace CafeEase.Services
         public Task<Model.User> Login(string username, string password);
         Task<Model.User> Register(Model.Requests.RegisterRequest request);
         Task ChangePassword(string username, ChangePasswordRequest request);
+        Task<Model.User> GetCurrentUser(string username);
+        Task<Model.User> UpdateCurrentUser(string username, ProfileUpdateRequest request);
+        Task<Model.User> DeleteCurrentUser(string username);
     }
 }

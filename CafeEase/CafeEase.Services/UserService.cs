@@ -164,5 +164,65 @@ namespace CafeEase.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<Model.User> GetCurrentUser(string username)
+        {
+            var user = await _context.Users
+                .Include(u => u.City)
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+                throw new NotFoundException("User not found.");
+
+            return _mapper.Map<Model.User>(user);
+        }
+
+        public async Task<Model.User> UpdateCurrentUser(string username, ProfileUpdateRequest request)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Username == username);
+
+            if (user == null)
+                throw new NotFoundException("User not found.");
+
+            if (!await _context.Cities.AnyAsync(x => x.Id == request.CityId))
+                throw new UserException("Selected city does not exist.");
+
+            if (await _context.Users.AnyAsync(x =>
+                    x.Id != user.Id && x.Username == request.Username))
+                throw new UserException("Username is already taken.");
+
+            if (await _context.Users.AnyAsync(x =>
+                    x.Id != user.Id && x.Email == request.Email))
+                throw new UserException("Email is already taken.");
+
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+            user.Email = request.Email;
+            user.Username = request.Username;
+            user.CityId = request.CityId;
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.User>(user);
+        }
+
+        public async Task<Model.User> DeleteCurrentUser(string username)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Username == username);
+
+            if (user == null)
+                throw new NotFoundException("User not found.");
+
+            if (user.RoleId == 1)
+                throw new ForbiddenException("Admin account cannot be deleted.");
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<Model.User>(user);
+        }
     }
 }

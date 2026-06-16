@@ -55,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final userProvider = context.read<UserProvider>();
-      final user = await userProvider.getById(userId);
+      final user = await userProvider.getCurrentUser();
 
       setState(() {
         _user = user;
@@ -152,12 +152,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         lastName: _lastName.text.trim(),
         email: _email.text.trim(),
         username: _username.text.trim(),
-        roleId: _user!.roleId,
         cityId: _selectedCityId!,
       );
 
-      await userProvider.updateUserVoid(_user!.id!, req);
-      final freshUser = await userProvider.getById(_user!.id!);
+      final updatedUser = await userProvider.updateCurrentUser(req);
+
+      Authorization.username = updatedUser.username;
+
+      final freshUser = await userProvider.getCurrentUser();
 
       if (!mounted) return;
       setState(() {
@@ -217,7 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _deleting = true);
     try {
       final userProvider = context.read<UserProvider>();
-      await userProvider.deleteUser(_user!.id!);
+      await userProvider.deleteCurrentUser();
 
       Authorization.username = null;
       Authorization.password = null;

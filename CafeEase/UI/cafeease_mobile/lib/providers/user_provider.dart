@@ -1,6 +1,5 @@
 import '../models/user.dart';
 import 'base_provider.dart';
-import '../utils/util.dart';
 import '../models/user_insert_request.dart';
 import '../models/user_update_request.dart';
 import 'dart:convert';
@@ -11,12 +10,10 @@ class UserProvider extends BaseProvider<User> {
 
   @override
   User fromJson(data) => User.fromJson(data as Map<String, dynamic>);
+
   Future<User> getCurrentUser() async {
-    final id = Authorization.userId;
-    if (id == null) {
-      throw Exception("Something went wrong after login. Please try again.");
-    }
-    return await getById(id);
+    final data = await getCustom("api/Users/me");
+    return User.fromJson(data);
   }
 
   Future<void> updateUserVoid(int id, UserUpdateRequest request) async {
@@ -52,5 +49,25 @@ class UserProvider extends BaseProvider<User> {
     );
 
     isValidResponse(response);
+  }
+
+  Future<User> updateCurrentUser(UserUpdateRequest request) async {
+    final uri = Uri.parse('${BaseProvider.baseUrl}api/Users/me');
+
+    final response = await http.put(
+      uri,
+      headers: createHeaders(),
+      body: jsonEncode(request.toJson()),
+    );
+
+    isValidResponse(response);
+
+    return User.fromJson(
+      jsonDecode(utf8.decode(response.bodyBytes)),
+    );
+  }
+
+  Future<void> deleteCurrentUser() async {
+    await deleteCustom('api/Users/me');
   }
 }

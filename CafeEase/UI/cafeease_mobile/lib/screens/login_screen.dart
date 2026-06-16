@@ -65,11 +65,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await productProvider.get();
 
-      final usersResponse = await userProvider.get();
+      final loggedUser = await userProvider.getCurrentUser();
 
-      final loggedUser = usersResponse.result.firstWhere(
-        (u) => u.username == Authorization.username,
-      );
       Authorization.userId = loggedUser.id;
 
       if (!mounted) return;
@@ -176,9 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                       },
                     ),
-
                     const SizedBox(height: 16),
-                    
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
@@ -199,7 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       onSubmitted: (_) => _isLoading ? null : _login(),
                     ),
-
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,

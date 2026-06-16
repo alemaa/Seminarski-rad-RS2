@@ -1,4 +1,5 @@
-﻿using CafeEase.Model.Requests;
+﻿using CafeEase.Model.Exceptions;
+using CafeEase.Model.Requests;
 using CafeEase.Model.SearchObjects;
 using CafeEase.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -75,6 +76,41 @@ namespace CafeEase.WebAPI.Controllers
         public override Task<Model.User> GetById(int id)
         {
             return base.GetById(id);
+        }
+
+        [HttpGet("me")]
+        public async Task<Model.User> GetCurrentUser()
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(username))
+                throw new UserException("User not authenticated.");
+
+            return await ((IUserService)_service).GetCurrentUser(username);
+        }
+
+        [HttpPut("me")]
+        public async Task<Model.User> UpdateCurrentUser([FromBody] ProfileUpdateRequest request)
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(username))
+                throw new UserException("User not authenticated.");
+
+            return await ((IUserService)_service)
+                .UpdateCurrentUser(username, request);
+        }
+
+        [HttpDelete("me")]
+        public async Task<Model.User> DeleteCurrentUser()
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(username))
+                throw new UserException("User not authenticated.");
+
+            return await ((IUserService)_service)
+                .DeleteCurrentUser(username);
         }
     }
 }
