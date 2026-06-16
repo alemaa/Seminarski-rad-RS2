@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
 
                   return SizedBox(
-                    width: 165,
+                    width: 170,
                     child: Card(
                       elevation: 2,
                       color: Colors.white,

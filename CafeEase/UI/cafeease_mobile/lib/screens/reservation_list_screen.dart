@@ -164,7 +164,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                       DropdownMenuItem(
                           value: "Pending", child: Text("Pending")),
                       DropdownMenuItem(
-                          value: "Approved", child: Text("Approved")),
+                          value: "Confirmed", child: Text("Confirmed")),
                       DropdownMenuItem(
                           value: "Cancelled", child: Text("Cancelled")),
                     ],
