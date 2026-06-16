@@ -379,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
         header,
         const SizedBox(height: 6),
         SizedBox(
-          height: 215,
+          height: 195,
           child: Stack(
             children: [
               ListView.separated(
@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
 
                   return SizedBox(
-                    width: 175,
+                    width: 165,
                     child: Card(
                       elevation: 2,
                       color: Colors.white,
@@ -452,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: Color(0xFF8D6E63),
-                                  fontSize: 11,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],

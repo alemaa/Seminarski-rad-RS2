@@ -37,7 +37,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   String? _requiredPassword(String? value, String label) {
     final text = value ?? "";
     if (text.trim().isEmpty) return "$label is required";
-    if (text.length < 6) return "$label must be at least 6 characters";
+    if (text.length < 4) return "$label must be at least 4 characters";
     return null;
   }
 

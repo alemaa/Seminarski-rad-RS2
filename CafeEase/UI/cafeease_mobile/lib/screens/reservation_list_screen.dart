@@ -113,7 +113,9 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
       backgroundColor: const Color(0xFFF6EFE8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF6F4E37),
-        title: const Text("My Reservations"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text("My Reservations",
+            style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -217,8 +219,19 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                               return ListTile(
                                 title: Text(
                                     "Table: ${r.tableNumber ?? r.tableId ?? '-'}"),
-                                subtitle: Text(
-                                  "$dateStr • Guests: ${r.numberOfGuests ?? '-'} • ${r.status ?? ''}",
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "$dateStr • Guests: ${r.numberOfGuests ?? '-'}",
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ),
+                                      _StatusBadge(status: r.status ?? "-"),
+                                    ],
+                                  ),
                                 ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () async {
@@ -236,6 +249,51 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                           ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final lower = status.toLowerCase();
+
+    Color bg;
+    Color fg;
+
+    if (lower == "confirmed") {
+      bg = Colors.green.shade50;
+      fg = Colors.green.shade700;
+    } else if (lower == "cancelled") {
+      bg = Colors.red.shade50;
+      fg = Colors.red.shade700;
+    } else if (lower == "pending") {
+      bg = Colors.orange.shade50;
+      fg = Colors.orange.shade800;
+    } else {
+      bg = Colors.grey.shade200;
+      fg = Colors.grey.shade700;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: fg.withOpacity(0.25)),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: fg,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

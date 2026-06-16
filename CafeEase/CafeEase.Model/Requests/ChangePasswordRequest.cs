@@ -8,7 +8,7 @@ namespace CafeEase.Model.Requests
         public string CurrentPassword { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(6)]
+        [MinLength(4)]
         public string NewPassword { get; set; } = string.Empty;
 
         [Required]

@@ -204,7 +204,11 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6EFE8),
       appBar: AppBar(
-        title: const Text("New reservation"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "New reservation",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF6F4E37),
       ),
       body: Padding(

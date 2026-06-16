@@ -267,6 +267,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEFE1D1),
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           Consumer<CartProvider>(
             builder: (_, cart, __) => Stack(
@@ -310,7 +311,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
         ],
-        title: const Text('Menu'),
+        title: const Text(
+          'Menu',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF8B5A3C),
       ),
       body: _isLoading

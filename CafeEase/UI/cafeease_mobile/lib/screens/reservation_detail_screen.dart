@@ -61,7 +61,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
             children: [
               _HeaderCard(
                 title: "Reservation",
-                subtitle: "Review details and status",
+                subtitle: "Reservation details and status",
                 status: statusText.isEmpty ? "-" : statusText,
                 isCancelled: isCancelled,
                 cardColor: _card,

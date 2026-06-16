@@ -74,9 +74,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: lightBeige,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: primaryBrown,
         elevation: 0,
-        title: const Text("Notifications"),
+        title: const Text(
+          "Notifications",
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all),
@@ -220,7 +224,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   const SizedBox(height: 6),
                   Text(
                     n.createdAt != null
-                        ? DateFormat('dd.MM.yyyy HH:mm').format(n.createdAt!.toLocal())
+                        ? DateFormat('dd.MM.yyyy HH:mm')
+                            .format(n.createdAt!.toLocal())
                         : "",
                     style: TextStyle(
                       fontSize: 11,
