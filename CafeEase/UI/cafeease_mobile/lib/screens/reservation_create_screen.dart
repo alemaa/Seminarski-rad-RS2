@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/table.dart' as m;
 import '../providers/reservation_provider.dart';
 import '../providers/table_provider.dart';
+import 'package:intl/intl.dart';
 
 class CreateReservationScreen extends StatefulWidget {
   const CreateReservationScreen({super.key});
@@ -93,7 +94,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
 
     try {
       final result = await tableProvider.get(filter: {
-        "date": date.toIso8601String(),
+        "date": date.toUtc().toIso8601String(),
         "durationMinutes": _durationMinutes,
       });
 
@@ -161,7 +162,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
     if (_selectedTable!.id != null &&
         _occupiedTableIds.contains(_selectedTable!.id)) {
       setState(() {
-        _tableError = "This table is already occupied on the selected date.";
+        _tableError = "This table is unavailable for the selected time.";
       });
       return;
     }
@@ -191,9 +192,14 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final reservationEnd = _selectedDate?.add(
+      const Duration(minutes: _durationMinutes),
+    );
+
     final dateText = _selectedDate == null
-        ? "Select reservation date"
-        : "${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}";
+        ? "Select reservation date and time"
+        : '${DateFormat('dd.MM.yyyy HH:mm').format(_selectedDate!)}'
+            ' - ${DateFormat('HH:mm').format(reservationEnd!)}';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6EFE8),
@@ -222,6 +228,14 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                 ),
               ),
             ),
+            if (_selectedDate != null)
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text(
+                  'Estimated reservation time: 2 hours',
+                  style: TextStyle(color: Colors.black54),
+                ),
+              ),
             if (_dateError != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
@@ -260,8 +274,13 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                     return DropdownMenuItem<m.Table>(
                       value: t,
                       child: Opacity(
-                        opacity: isOcc ? 0.4 : 1.0,
-                        child: Text(isOcc ? "$label • occupied" : label),
+                        opacity: isOcc ? 0.4 : 1,
+                        child: Text(
+                          isOcc ? "$label - busy at selected time" : label,
+                          style: TextStyle(
+                            color: isOcc ? Colors.grey : Colors.black,
+                          ),
+                        ),
                       ),
                     );
                   }).toList(),
@@ -273,7 +292,7 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                           if (_occupiedTableIds.contains(val!.id)) {
                             setState(() {
                               _tableError =
-                                  "This table is already booked for that date.";
+                                  "This table is unavailable for the selected time.";
                             });
                             return;
                           }

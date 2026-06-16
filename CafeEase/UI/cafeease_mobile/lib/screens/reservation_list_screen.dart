@@ -204,9 +204,16 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                             itemBuilder: (_, i) {
                               final r = _shown[i];
                               final dt = r.reservationDateTime;
-                              final dateStr = dt == null
+                              final localStart = dt?.toLocal();
+                              final localEnd = localStart?.add(
+                                Duration(minutes: r.durationMinutes ?? 120),
+                              );
+
+                              final dateStr = localStart == null
                                   ? "-"
-                                  : DateFormat('dd.MM.yyyy').format(dt.toLocal());
+                                  : '${DateFormat('dd.MM.yyyy').format(localStart)} '
+                                      '${DateFormat('HH:mm').format(localStart)}'
+                                      ' - ${DateFormat('HH:mm').format(localEnd!)}';
                               return ListTile(
                                 title: Text(
                                     "Table: ${r.tableNumber ?? r.tableId ?? '-'}"),

@@ -28,7 +28,18 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     final r = widget.reservation;
 
     final dt = r.reservationDateTime;
-    final dateStr = dt == null ? "-" : DateFormat('dd.MM.yyyy').format(dt.toLocal());
+    final localStart = dt?.toLocal();
+    final localEnd = localStart?.add(
+      Duration(minutes: r.durationMinutes ?? 120),
+    );
+
+    final dateStr =
+        localStart == null ? "-" : DateFormat('dd.MM.yyyy').format(localStart);
+
+    final timeStr = localStart == null
+        ? "-"
+        : '${DateFormat('HH:mm').format(localStart)}'
+            ' - ${DateFormat('HH:mm').format(localEnd!)}';
 
     final statusText = (r.status ?? "-").trim();
     final isCancelled = statusText.toLowerCase() == "cancelled";
@@ -75,6 +86,14 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                     icon: Icons.event_outlined,
                     label: "Date",
                     value: dateStr,
+                    accent: _accent,
+                    textDark: _textDark,
+                  ),
+                  const _DividerLine(),
+                  _DetailRow(
+                    icon: Icons.schedule_outlined,
+                    label: "Time",
+                    value: timeStr,
                     accent: _accent,
                     textDark: _textDark,
                   ),
