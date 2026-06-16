@@ -51,4 +51,3 @@ Preporuke se prikazuju u mobilnoj aplikaciji u sekciji `Recommended for you`, za
 - Kvalitet preporuka zavisi od broja postojećih narudžbi.
 - Ako nema dovoljno podataka, sistem vraća fallback preporuke.
 - Sistem trenutno koristi narudžbe i stavke narudžbi, a ne koristi dodatne karakteristike proizvoda kao što su kategorija ili opis.
-- 

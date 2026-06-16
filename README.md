@@ -34,7 +34,7 @@ Konfiguracijski fajl `.env` nije uključen u repozitorij jer sadrži osjetljive 
 
 Primjer strukture `.env` fajla:
 ```env
-DB_NAME=190046
+DB_NAME=your_database_name
 MSSQL_SA_PASSWORD=YourStrongPassword123!
 STRIPE_SECRET_KEY=sk_test_your_key_here
 STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
@@ -49,6 +49,7 @@ Plaćanje se vrši putem Stripe PaymentSheet interfejsa.
   - Broj kartice: 4242 4242 4242 4242
   - Datum isteka: bilo koji budući datum (npr. 12/29)
   - CVC: bilo koja 3 broja (npr. 123)
+  - Postal code / ZIP: bilo kojih 5 brojeva (npr. 71000)
 
   Plaćanje se inicijalno kreira sa statusom `Pending`, a nakon uspješne Stripe potvrde prelazi u `Completed`, dok narudžba dobija status `Paid`.
 
