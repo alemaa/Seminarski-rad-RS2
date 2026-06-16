@@ -11,6 +11,7 @@ import '../providers/product_provider.dart';
 import '../providers/base_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http_parser/http_parser.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -61,10 +62,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<String> _uploadImage(File file) async {
     final uri = Uri.parse('${BaseProvider.baseUrl}api/Uploads/image');
+    final extension = file.path.split('.').last.toLowerCase();
+
+    final contentType = switch (extension) {
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'png' => MediaType('image', 'png'),
+      'webp' => MediaType('image', 'webp'),
+      _ => throw Exception('Unsupported image extension.'),
+    };
 
     final request = http.MultipartRequest('POST', uri);
     request.headers.addAll(BaseProvider.createAuthHeaders());
-    request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        contentType: contentType,
+      ),
+    );
 
     final response = await request.send();
     final responseBody = await response.stream.bytesToString();
