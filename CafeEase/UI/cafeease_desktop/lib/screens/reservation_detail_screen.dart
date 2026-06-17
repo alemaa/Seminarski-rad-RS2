@@ -58,7 +58,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       final day = _reservationDate ?? DateTime.now();
       final result = await tableProvider.get(
         filter: {
-          'date': day.toIso8601String(),
+          'date': day.toUtc().toIso8601String(),
           'durationMinutes': _durationMinutes,
         },
       );

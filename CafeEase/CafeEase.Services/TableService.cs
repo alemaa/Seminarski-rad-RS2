@@ -32,7 +32,7 @@ namespace CafeEase.Services
 
             if (search?.Date.HasValue == true)
             {
-                var requestedStart = search.Date.Value;
+                var requestedStart = search.Date.Value.ToUniversalTime();
                 var requestedDuration = search.DurationMinutes ?? 120;
 
                 var occupiedIds = _context.Reservations.Where(r => r.Status != ReservationStatuses.Cancelled).AsEnumerable().Where(r => Overlaps(
@@ -65,7 +65,7 @@ namespace CafeEase.Services
             if (search?.Date.HasValue != true)
                 return result;
 
-            var requestedStart = search!.Date!.Value;
+            var requestedStart = search!.Date!.Value.ToUniversalTime();
             var requestedDuration = search?.DurationMinutes ?? 120;
 
             var reservations = await _context.Reservations

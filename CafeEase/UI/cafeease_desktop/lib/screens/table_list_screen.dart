@@ -133,14 +133,14 @@ class _TableListScreenState extends State<TableListScreen> {
                         color: Colors.white,
                       ),
                       title: const Text(
-                        'Check availability by date',
+                        'Check availability by time',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       subtitle: const Text(
-                        'See free and occupied tables for a selected day',
+                        'See free and occupied tables for a selected time',
                         style: TextStyle(color: Colors.white70),
                       ),
                       trailing: const Icon(
