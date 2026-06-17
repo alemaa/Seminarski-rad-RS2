@@ -207,10 +207,10 @@ namespace CafeEase.Services.Database
                 new Inventory { Id = 1, ProductId = 1, Quantity = 10 },
                 new Inventory { Id = 2, ProductId = 2, Quantity = 6 },
                 new Inventory { Id = 3, ProductId = 3, Quantity =  5 },
-                new Inventory { Id = 4, ProductId = 4, Quantity = 2 },
-                new Inventory { Id = 5, ProductId = 5, Quantity = 4 },
+                new Inventory { Id = 4, ProductId = 4, Quantity = 15 },
+                new Inventory { Id = 5, ProductId = 5, Quantity = 7 },
                 new Inventory { Id = 6, ProductId = 6, Quantity = 8 },
-                new Inventory { Id = 7, ProductId = 7, Quantity = 3 }
+                new Inventory { Id = 7, ProductId = 7, Quantity = 10 }
              );
 
              modelBuilder.Entity<LoyaltyPoints>().HasData(
