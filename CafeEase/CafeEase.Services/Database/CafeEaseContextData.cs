@@ -351,27 +351,34 @@ namespace CafeEase.Services.Database
                 new Payment
                 {
                     Id = 2,
+                    OrderId = 2,
+                    Method = "Cash",
+                    Status = "Pending"
+                },
+                new Payment
+                {
+                    Id = 3,
                     OrderId = 3,
                     Method = "Card",
                     Status = "Completed"
                 },
                 new Payment
                 {
-                    Id = 3,
+                    Id = 4,
                     OrderId = 4,
                     Method = "Cash",
                     Status = "Completed"
                 },
                 new Payment
                 {
-                    Id = 4,
+                    Id = 5,
                     OrderId = 5,
                     Method = "Cash",
                     Status = "Pending"
                 },
                 new Payment
                 {
-                    Id = 5,
+                    Id = 6,
                     OrderId = 6,
                     Method = "Cash",
                     Status = "Completed"
