@@ -844,7 +844,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
                               if (_payment!.method?.toLowerCase() == 'cash' &&
                                   _payment!.status?.toLowerCase() ==
-                                      'pending') ...[
+                                      'pending' &&
+                                  _status.toLowerCase() != 'cancelled') ...[
                                 const SizedBox(height: 16),
                                 ElevatedButton.icon(
                                   onPressed: _confirmingCash

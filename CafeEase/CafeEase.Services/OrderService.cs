@@ -121,6 +121,18 @@ namespace CafeEase.Services
 
             entity.Status = newStatus;
 
+            if (newStatus == OrderStatuses.Cancelled)
+            {
+                var pendingPayments = await _context.Payments
+                    .Where(p => p.OrderId == entity.Id && p.Status == "Pending")
+                    .ToListAsync();
+
+                foreach (var payment in pendingPayments)
+                {
+                    payment.Status = "Cancelled";
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             var orderOwner = await _context.Users.FirstOrDefaultAsync(u => u.Id == entity.UserId);
@@ -129,10 +141,18 @@ namespace CafeEase.Services
                 ? $"Order #{entity.Id} status changed to {entity.Status}."
                 : $"Your order #{entity.Id} status changed to {entity.Status}.";
 
-            await _notificationService.CreateAsync(
-                entity.UserId,
+            if (orderOwner?.RoleId != 1)
+            {
+                await _notificationService.CreateAsync(
+                    entity.UserId,
+                    "Order status updated",
+                    body,
+                    entity.Id);
+            }
+
+            await _notificationService.CreateForAdminsAsync(
                 "Order status updated",
-                body,
+                $"Order #{entity.Id} status changed to {entity.Status}.",
                 entity.Id);
 
             return _mapper.Map<Model.Order>(entity);

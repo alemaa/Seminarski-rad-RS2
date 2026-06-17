@@ -257,10 +257,17 @@ namespace CafeEase.Services
                     ? $"Reservation #{entity.Id} for table {entity.TableId} is now {entity.Status}."
                     : $"Your reservation for table {entity.TableId} is now {entity.Status}.";
 
-                await _notificationService.CreateAsync(
-                    entity.UserId,
+                if (reservationOwner?.RoleId != 1)
+                {
+                    await _notificationService.CreateAsync(
+                        entity.UserId,
+                        "Reservation status updated",
+                        body);
+                }
+
+                await _notificationService.CreateForAdminsAsync(
                     "Reservation status updated",
-                    body);
+                    $"Reservation #{entity.Id} for table {entity.TableId} is now {entity.Status}.");
             }
 
             return _mapper.Map<Model.Reservation>(entity);

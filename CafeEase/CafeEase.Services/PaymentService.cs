@@ -22,11 +22,13 @@ namespace CafeEase.Services
     {
         private readonly ILogger<PaymentService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly INotificationService _notificationService;
 
-        public PaymentService(CafeEaseDbContext context, IMapper mapper, ILogger<PaymentService> logger, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
+        public PaymentService(CafeEaseDbContext context, IMapper mapper, ILogger<PaymentService> logger, IHttpContextAccessor httpContextAccessor, INotificationService notificationService) : base(context, mapper)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
         }
 
         public override async Task BeforeInsert(Database.Payment entity,PaymentInsertRequest insert)
@@ -69,6 +71,9 @@ namespace CafeEase.Services
                 throw new UserException("Order not found");
 
             var order = payment.Order;
+
+            if (order.Status == OrderStatuses.Cancelled)
+                throw new UserException("Cannot confirm payment for a cancelled order.");
 
             if (order.Status == OrderStatuses.Paid)
             {
@@ -139,6 +144,11 @@ namespace CafeEase.Services
             await transaction.CommitAsync();
 
             await PublishPaymentCompletedAsync(order.Id, order.UserId, order.TotalAmount);
+
+            await _notificationService.CreateForAdminsAsync(
+                "Payment completed",
+                $"Payment for order #{order.Id} was completed. Amount: {order.TotalAmount:0.00}.",
+                order.Id);
         }
 
         private async Task PublishPaymentCompletedAsync(int orderId, int userId, decimal amount)
@@ -261,7 +271,7 @@ namespace CafeEase.Services
         public async Task ConfirmCashPaymentAsync(int paymentId)
         {
             var payment = await _context.Payments
-                .AsNoTracking()
+                .Include(p => p.Order)
                 .FirstOrDefaultAsync(p => p.Id == paymentId);
 
             if (payment == null)
@@ -272,6 +282,9 @@ namespace CafeEase.Services
 
             if (payment.Status == "Completed")
                 return;
+
+            if (payment.Order.Status == OrderStatuses.Cancelled)
+                throw new UserException("Cannot confirm payment for a cancelled order.");
 
             await FinalizePaidOrderAsync(payment.Id);
         }
