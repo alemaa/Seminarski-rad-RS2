@@ -225,9 +225,9 @@ namespace CafeEase.Services.Database
                     Name = "Morning Coffee Deal",
                     Description = "10% off coffee products in the morning.",
                     DiscountPercent = 10,
-                    StartDate = new DateTime(2026, 6, 20),
+                    StartDate = new DateTime(2026, 6, 25),
                     EndDate = new DateTime(2026, 6, 30),
-                    TargetSegment = "ALL"
+                    TargetSegment = "NEW"
                 },
                 new Promotion
                 {
@@ -236,24 +236,39 @@ namespace CafeEase.Services.Database
                     Description = "15% off desserts on weekends.",
                     DiscountPercent = 15,
                     StartDate = new DateTime(2026, 6, 5),
-                    EndDate = new DateTime(2026, 6, 25),
-                    TargetSegment = "NEW"
+                    EndDate = new DateTime(2026, 6, 29),
+                    TargetSegment = "ALL"
                 },
+                 new Promotion
+                 {
+                     Id = 3,
+                     Name = "Cold Drinks Refresh Deal",
+                     Description = "5% off cold drinks for VIP customers.",
+                     DiscountPercent = 5,
+                     StartDate = new DateTime(2026, 5, 7),
+                     EndDate = new DateTime(2026, 5, 20),
+                     TargetSegment = "VIP"
+                 },
                 new Promotion
                 {
-                    Id = 3,
-                    Name = "Winter Coffee Special",
-                    Description = "5% off hot drinks during winter season.",
+                    Id = 4,
+                    Name = "CafeEase All Menu Discount",
+                    Description = "5% off all menu categories for ALL customers.",
                     DiscountPercent = 5,
-                    StartDate = new DateTime(2026, 5, 7),
-                    EndDate = new DateTime(2026, 5, 20),
-                    TargetSegment = "VIP"
+                    StartDate = new DateTime(2026, 6, 1),
+                    EndDate = new DateTime(2026, 6, 30),
+                    TargetSegment = "ALL"
                 }
            );
 
             modelBuilder.Entity<PromotionCategory>().HasData(
                 new PromotionCategory { PromotionId = 1, CategoryId = 1 },
-                new PromotionCategory { PromotionId = 2, CategoryId = 3 }
+                new PromotionCategory { PromotionId = 2, CategoryId = 3 },
+                new PromotionCategory { PromotionId = 3, CategoryId = 2 },
+                new PromotionCategory { PromotionId = 4, CategoryId = 1 },
+                new PromotionCategory { PromotionId = 4, CategoryId = 2 },
+                new PromotionCategory { PromotionId = 4, CategoryId = 3 },
+                new PromotionCategory { PromotionId = 4, CategoryId = 4 }
            );
 
             modelBuilder.Entity<Order>().HasData(
@@ -369,17 +384,17 @@ namespace CafeEase.Services.Database
                     Id = 1,
                     UserId = 2,
                     TableId = 1,
-                    ReservationDateTime = new DateTime(2026, 6, 18, 19, 0, 0),
+                    ReservationDateTime = new DateTime(2026, 6, 25, 19, 0, 0),
                     NumberOfGuests = 2,
                     Status = "Confirmed",
-                    DurationMinutes = 90
+                    DurationMinutes = 120
                 },
                 new Reservation
                 {
                     Id = 2,
                     UserId = 2,
                     TableId = 2,
-                    ReservationDateTime = new DateTime(2026, 6, 18, 20, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 6, 25, 21, 0, 0),
                     NumberOfGuests = 2,
                     Status = "Pending",
                     DurationMinutes = 120
@@ -389,11 +404,11 @@ namespace CafeEase.Services.Database
                     Id = 3,
                     UserId = 2,
                     TableId = 3,
-                    ReservationDateTime = new DateTime(2026, 6, 20, 18, 30, 0),
+                    ReservationDateTime = new DateTime(2026, 6, 19, 18, 30, 0),
                     NumberOfGuests = 4,
                     Status = "Cancelled",
-                    DurationMinutes = 60,
-                    CancelledAt = new DateTime(2026, 6, 19, 12, 0, 0),
+                    DurationMinutes = 120,
+                    CancelledAt = new DateTime(2026, 6, 15, 12, 0, 0),
                     CancelledByUserId = 2,
                     CancellationReason = "Plans changed"
                 },
@@ -402,10 +417,10 @@ namespace CafeEase.Services.Database
                     Id = 4,
                     UserId = 3,
                     TableId = 3,
-                    ReservationDateTime = new DateTime(2026, 6, 25, 21, 0, 0),
+                    ReservationDateTime = new DateTime(2026, 6, 27, 21, 0, 0),
                     NumberOfGuests = 4,
                     Status = "Confirmed",
-                    DurationMinutes = 180
+                    DurationMinutes = 120
                 }
             );
 
