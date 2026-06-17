@@ -263,8 +263,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
               },
               child: AbsorbPointer(
                 absorbing: _selectedDate == null,
-                child: DropdownButtonFormField<m.Table>(
-                  value: _selectedTable,
+                child: DropdownButtonFormField<int>(
+                  value: _selectedTable?.id,
                   decoration: InputDecoration(
                     labelText: "Table (No. & Capacity)",
                     border: const OutlineInputBorder(),
@@ -275,8 +275,8 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                         t.id != null && _occupiedTableIds.contains(t.id);
                     final label = "Table ${t.number} (${t.capacity})";
 
-                    return DropdownMenuItem<m.Table>(
-                      value: t,
+                    return DropdownMenuItem<int>(
+                      value: t.id,
                       child: Opacity(
                         opacity: isOcc ? 0.4 : 1,
                         child: Text(
@@ -288,24 +288,24 @@ class _CreateReservationScreenState extends State<CreateReservationScreen> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (_loading || _selectedDate == null)
-                      ? null
-                      : (val) {
-                          if (val?.id == null) return;
+             onChanged: (_loading || _selectedDate == null)
+    ? null
+    : (tableId) {
+        if (tableId == null) return;
 
-                          if (_occupiedTableIds.contains(val!.id)) {
-                            setState(() {
-                              _tableError =
-                                  "This table is unavailable for the selected time.";
-                            });
-                            return;
-                          }
+        if (_occupiedTableIds.contains(tableId)) {
+          setState(() {
+            _tableError =
+                "This table is unavailable for the selected time.";
+          });
+          return;
+        }
 
-                          setState(() {
-                            _selectedTable = val;
-                            _tableError = null;
-                          });
-                        },
+        setState(() {
+          _selectedTable = _tables.firstWhere((t) => t.id == tableId);
+          _tableError = null;
+        });
+      },
                 ),
               ),
             ),

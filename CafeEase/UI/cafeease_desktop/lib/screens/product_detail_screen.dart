@@ -608,24 +608,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             child:
                                                 const CircularProgressIndicator(),
                                           )
-                                        : DropdownButtonFormField<Category>(
-                                            value: _selectedCategory,
+                                        : DropdownButtonFormField<int>(
+                                            value: _selectedCategory?.id,
                                             items: _categories
                                                 .map(
-                                                  (c) =>
-                                                      DropdownMenuItem<
-                                                        Category
-                                                      >(
-                                                        value: c,
-                                                        child: Text(
-                                                          c.name ?? '',
-                                                        ),
-                                                      ),
+                                                  (c) => DropdownMenuItem<int>(
+                                                    value: c.id,
+                                                    child: Text(c.name ?? ''),
+                                                  ),
                                                 )
                                                 .toList(),
-                                            onChanged: (value) {
+                                            onChanged: (categoryId) {
                                               setState(() {
-                                                _selectedCategory = value;
+                                                _selectedCategory = _categories
+                                                    .firstWhere(
+                                                      (c) => c.id == categoryId,
+                                                    );
                                               });
                                             },
                                             validator: (value) => value == null
@@ -717,24 +715,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                 child:
                                                     const CircularProgressIndicator(),
                                               )
-                                            : DropdownButtonFormField<Category>(
-                                                value: _selectedCategory,
+                                            : DropdownButtonFormField<int>(
+                                                value: _selectedCategory?.id,
                                                 items: _categories
                                                     .map(
                                                       (c) =>
-                                                          DropdownMenuItem<
-                                                            Category
-                                                          >(
-                                                            value: c,
+                                                          DropdownMenuItem<int>(
+                                                            value: c.id,
                                                             child: Text(
                                                               c.name ?? '',
                                                             ),
                                                           ),
                                                     )
                                                     .toList(),
-                                                onChanged: (value) {
+                                                onChanged: (categoryId) {
                                                   setState(() {
-                                                    _selectedCategory = value;
+                                                    _selectedCategory =
+                                                        _categories.firstWhere(
+                                                          (c) =>
+                                                              c.id ==
+                                                              categoryId,
+                                                        );
                                                   });
                                                 },
                                                 validator: (value) =>
