@@ -174,6 +174,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
 
     final itemsTotal = _items.fold<double>(0, (sum, x) => sum + x.lineTotal);
+    final orderTotal = widget.order.totalAmount ?? itemsTotal;
+    final discount = itemsTotal - orderTotal;
 
     return Card(
       color: Colors.brown.shade50,
@@ -197,6 +199,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
+            if (discount > 0.01) ...[
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "Discount: -${discount.toStringAsFixed(2)} KM",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
